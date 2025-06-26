@@ -405,7 +405,7 @@ export default function EnrollmentPage() {
       </Tabs>
       
       <Dialog open={!!selectedChild} onOpenChange={(isOpen) => { if (!isOpen) { setSelectedChild(null); setIsEditing(false); } }}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Edit Child Details' : 'Child Details'}</DialogTitle>
             <DialogDescription>
@@ -414,8 +414,8 @@ export default function EnrollmentPage() {
           </DialogHeader>
           {selectedChild && (
             isEditing && editedData ? (
-                <div className="grid gap-4 py-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="edit-name">Name</Label>
                       <Input id="edit-name" name="name" value={editedData.name} onChange={handleEditChange} />
@@ -439,8 +439,7 @@ export default function EnrollmentPage() {
                             </SelectContent>
                         </Select>
                     </div>
-                  </div>
-                   <div className="space-y-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="edit-program">Program Group</Label>
                       <Select value={editedData.program} onValueChange={(value: Program) => handleProgramChange(value)}>
                           <SelectTrigger id="edit-program">
@@ -451,9 +450,10 @@ export default function EnrollmentPage() {
                           </SelectContent>
                       </Select>
                    </div>
+                  </div>
                   <Separator />
                   <h4 className="font-semibold text-base">Parent/Guardian Information</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="edit-motherName">Mother's Name</Label>
                       <Input id="edit-motherName" name="motherName" value={editedData.motherName} onChange={handleEditChange} />
@@ -462,18 +462,18 @@ export default function EnrollmentPage() {
                       <Label htmlFor="edit-fatherName">Father's Name</Label>
                       <Input id="edit-fatherName" name="fatherName" value={editedData.fatherName} onChange={handleEditChange} />
                     </div>
-                    <div className="space-y-2 col-span-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="edit-mobilePhone">Mobile Phone</Label>
                       <Input id="edit-mobilePhone" name="mobilePhone" value={editedData.mobilePhone} onChange={handleEditChange} />
                     </div>
-                    <div className="space-y-2 col-span-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="edit-address">Address</Label>
                       <Textarea id="edit-address" name="address" value={editedData.address} onChange={handleEditChange} />
                     </div>
                   </div>
                   <Separator />
                   <h4 className="font-semibold text-base">Emergency Contact</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      <div className="space-y-2">
                       <Label htmlFor="edit-emergencyName">Name</Label>
                       <Input id="edit-emergencyName" name="emergencyName" value={editedData.emergencyName} onChange={handleEditChange} />
@@ -501,46 +501,102 @@ export default function EnrollmentPage() {
                   </div>
                 </div>
             ) : (
-                <div className="grid gap-4 py-4 text-sm">
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        <div><span className="font-semibold">Name:</span> {selectedChild.name}</div>
-                        <div><span className="font-semibold">Age:</span> {selectedChild.age}</div>
-                        <div><span className="font-semibold">Date of Birth:</span> {new Date(selectedChild.dob).toLocaleDateString()}</div>
-                        <div><span className="font-semibold">Start Date:</span> {new Date(selectedChild.startDate).toLocaleDateString()}</div>
-                        <div><span className="font-semibold">Program Group:</span> {selectedChild.program}</div>
-                        <div><span className="font-semibold">Program Type:</span> {selectedChild.programType}</div>
-                        <div className="col-span-2"><span className="font-semibold">Status:</span> 
-                            <Badge 
-                                variant={
-                                    selectedChild.status === 'Active' ? 'default' :
-                                    selectedChild.status === 'Waitlisted' ? 'secondary' :
-                                    'outline'
-                                } 
-                                className={cn('ml-2', {'bg-accent text-accent-foreground': selectedChild.status === 'Active'})}>
-                                {selectedChild.status}
-                            </Badge>
-                        </div>
+                <div className="space-y-6 py-4 text-sm max-h-[70vh] overflow-y-auto pr-4">
+                    <div>
+                        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                            <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Name</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.name}</dd>
+                            </div>
+                             <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Age</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.age}</dd>
+                            </div>
+                            <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Date of Birth</dt>
+                                <dd className="mt-1 text-foreground">{new Date(selectedChild.dob).toLocaleDateString()}</dd>
+                            </div>
+                            <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Start Date</dt>
+                                <dd className="mt-1 text-foreground">{new Date(selectedChild.startDate).toLocaleDateString()}</dd>
+                            </div>
+                             <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Program Group</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.program}</dd>
+                            </div>
+                            <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Program Type</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.programType}</dd>
+                            </div>
+                             <div className="sm:col-span-2">
+                                <dt className="font-medium text-muted-foreground">Status</dt>
+                                <dd className="mt-1 text-foreground">
+                                    <Badge 
+                                        variant={
+                                            selectedChild.status === 'Active' ? 'default' :
+                                            selectedChild.status === 'Waitlisted' ? 'secondary' :
+                                            'outline'
+                                        } 
+                                        className={cn({'bg-accent text-accent-foreground': selectedChild.status === 'Active'})}>
+                                        {selectedChild.status}
+                                    </Badge>
+                                </dd>
+                            </div>
+                        </dl>
                     </div>
                     <Separator />
-                    <h4 className="font-semibold text-base">Parent/Guardian Information</h4>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        <div><span className="font-semibold">Mother:</span> {selectedChild.motherName}</div>
-                        <div><span className="font-semibold">Father:</span> {selectedChild.fatherName}</div>
-                        <div className="col-span-2"><span className="font-semibold">Mobile Phone:</span> {selectedChild.mobilePhone}</div>
-                        <div className="col-span-2"><span className="font-semibold">Address:</span> {selectedChild.address}</div>
+                    <div>
+                        <h4 className="font-semibold text-base mb-4">Parent/Guardian Information</h4>
+                        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                             <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Mother's Name</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.motherName}</dd>
+                            </div>
+                            <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Father's Name</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.fatherName}</dd>
+                            </div>
+                            <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Mobile Phone</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.mobilePhone}</dd>
+                            </div>
+                            <div className="sm:col-span-2">
+                                <dt className="font-medium text-muted-foreground">Address</dt>
+                                <dd className="mt-1 text-foreground whitespace-pre-wrap">{selectedChild.address}</dd>
+                            </div>
+                        </dl>
                     </div>
                     <Separator />
-                    <h4 className="font-semibold text-base">Emergency Contact</h4>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        <div><span className="font-semibold">Name:</span> {selectedChild.emergencyName}</div>
-                        <div><span className="font-semibold">Phone:</span> {selectedChild.emergencyPhone}</div>
+                     <div>
+                        <h4 className="font-semibold text-base mb-4">Emergency Contact</h4>
+                        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                             <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Name</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.emergencyName}</dd>
+                            </div>
+                            <div className="sm:col-span-1">
+                                <dt className="font-medium text-muted-foreground">Phone</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.emergencyPhone}</dd>
+                            </div>
+                        </dl>
                     </div>
                     <Separator />
-                    <h4 className="font-semibold text-base">Health Information</h4>
-                    <div className="grid grid-cols-1 gap-y-2">
-                        <div><span className="font-semibold">Vaccination:</span> {selectedChild.vaccination || 'N/A'}</div>
-                        <div><span className="font-semibold">Allergies:</span> {selectedChild.allergies || 'None'}</div>
-                        <div><span className="font-semibold">Notes:</span> {selectedChild.notes || 'None'}</div>
+                    <div>
+                        <h4 className="font-semibold text-base mb-4">Health Information</h4>
+                        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-1">
+                             <div>
+                                <dt className="font-medium text-muted-foreground">Vaccination</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.vaccination || 'N/A'}</dd>
+                            </div>
+                             <div>
+                                <dt className="font-medium text-muted-foreground">Allergies</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.allergies || 'None'}</dd>
+                            </div>
+                             <div>
+                                <dt className="font-medium text-muted-foreground">Notes</dt>
+                                <dd className="mt-1 text-foreground">{selectedChild.notes || 'None'}</dd>
+                            </div>
+                        </dl>
                     </div>
                 </div>
              )

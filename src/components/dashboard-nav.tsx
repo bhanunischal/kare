@@ -40,8 +40,8 @@ export function DashboardNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-4 md:gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-              isActive && "bg-muted text-primary"
+              "flex items-center gap-4 md:gap-3 rounded-lg px-3 py-2 text-sidebar-foreground/80 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
             )}
           >
             {item.icon}

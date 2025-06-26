@@ -29,13 +29,15 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    --sidebar-background: 222 47% 11%;
+    
+    /* Microsoft Blue-inspired sidebar theme */
+    --sidebar-background: 207 90% 54%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 210 40% 98%;
     --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent: 207 90% 48%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
+    --sidebar-border: 207 90% 48%;
     --sidebar-ring: 215 20% 65%;
   }
   .dark {
