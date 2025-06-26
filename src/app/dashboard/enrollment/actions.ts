@@ -6,7 +6,9 @@ import { z } from "zod";
 const RegistrationFormSchema = z.object({
   childName: z.string().min(1, { message: "Child's name is required." }),
   dob: z.string().min(1, { message: "Date of birth is required." }),
-  program: z.string().min(1, { message: "Program is required." }),
+  startDate: z.string().min(1, { message: "Start date is required." }),
+  program: z.string().min(1, { message: "Program group is required." }),
+  programType: z.string().min(1, { message: "Program type is required." }),
   motherName: z.string().min(1, { message: "Mother's name is required." }),
   fatherName: z.string().min(1, { message: "Father's name is required." }),
   homePhone: z.string().optional(),
@@ -26,7 +28,9 @@ export async function submitRegistration(prevState: any, formData: FormData) {
   const validatedFields = RegistrationFormSchema.safeParse({
     childName: formData.get("child-name"),
     dob: formData.get("dob"),
+    startDate: formData.get("start-date"),
     program: formData.get("program"),
+    programType: formData.get("program-type"),
     motherName: formData.get("mother-name"),
     fatherName: formData.get("father-name"),
     homePhone: formData.get("home-phone"),

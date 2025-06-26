@@ -22,16 +22,20 @@ import { cn } from "@/lib/utils";
 
 
 type Program = 'Infant (0-12months)' | 'Toddler (1 to 3 years)' | 'Preschool (3 to 5 years)' | 'Gradeschooler (5 to 12 years)';
-
 const programOptions: Program[] = ['Infant (0-12months)', 'Toddler (1 to 3 years)', 'Preschool (3 to 5 years)', 'Gradeschooler (5 to 12 years)'];
+
+type ProgramType = 'Full time' | 'Part time' | 'Ad-hoc daily basis';
+const programTypeOptions: ProgramType[] = ['Full time', 'Part time', 'Ad-hoc daily basis'];
 
 type Child = {
   id: string;
   name: string;
   age: number;
   program: Program;
+  programType: ProgramType;
   status: 'Active' | 'Waitlisted' | 'Inactive';
   dob: string;
+  startDate: string;
   motherName: string;
   fatherName: string;
   mobilePhone: string;
@@ -44,12 +48,12 @@ type Child = {
 };
 
 const initialEnrolledChildren: Child[] = [
-    { id: '1', name: 'Olivia Martin', age: 4, program: 'Preschool (3 to 5 years)', status: 'Active', dob: '2020-05-10', motherName: 'Sarah Martin', fatherName: 'David Martin', mobilePhone: '(555) 111-1111', address: '123 Maple St, Anytown, USA', emergencyName: 'Carol White', emergencyPhone: '(555) 222-2222', allergies: 'Peanuts', vaccination: 'Up to date.' },
-    { id: '2', name: 'Liam Garcia', age: 3, program: 'Toddler (1 to 3 years)', status: 'Active', dob: '2021-08-22', motherName: 'Maria Garcia', fatherName: 'Jose Garcia', mobilePhone: '(555) 333-3333', address: '456 Oak Ave, Anytown, USA', emergencyName: 'Luis Hernandez', emergencyPhone: '(555) 444-4444', notes: 'Loves building blocks.', vaccination: 'Up to date.' },
-    { id: '3', name: 'Emma Rodriguez', age: 5, program: 'Preschool (3 to 5 years)', status: 'Active', dob: '2019-02-15', motherName: 'Ana Rodriguez', fatherName: 'Carlos Rodriguez', mobilePhone: '(555) 555-5555', address: '789 Pine Ln, Anytown, USA', emergencyName: 'Sofia Rodriguez', emergencyPhone: '(555) 666-6666', vaccination: 'Up to date.' },
-    { id: '4', name: 'Noah Hernandez', age: 2, program: 'Toddler (1 to 3 years)', status: 'Waitlisted', dob: '2022-01-30', motherName: 'Isabella Hernandez', fatherName: 'Mateo Hernandez', mobilePhone: '(555) 777-7777', address: '101 Birch Rd, Anytown, USA', emergencyName: 'Elena Cruz', emergencyPhone: '(555) 888-8888', allergies: 'Dairy, Gluten', vaccination: 'Missing one shot.' },
-    { id: '5', name: 'Ava Lopez', age: 4, program: 'Preschool (3 to 5 years)', status: 'Active', dob: '2020-11-05', motherName: 'Mia Lopez', fatherName: 'James Lopez', mobilePhone: '(555) 999-9999', address: '212 Elm Ct, Anytown, USA', emergencyName: 'Sophia King', emergencyPhone: '(555) 000-0000', vaccination: 'Up to date.' },
-    { id: '6', name: 'James Wilson', age: 6, program: 'Gradeschooler (5 to 12 years)', status: 'Inactive', dob: '2018-03-12', motherName: 'Jessica Wilson', fatherName: 'Brian Wilson', mobilePhone: '(555) 123-7890', address: '333 Cedar Dr, Anytown, USA', emergencyName: 'Robert Johnson', emergencyPhone: '(555) 987-6543' },
+    { id: '1', name: 'Olivia Martin', age: 4, program: 'Preschool (3 to 5 years)', programType: 'Full time', startDate: '2023-09-01', status: 'Active', dob: '2020-05-10', motherName: 'Sarah Martin', fatherName: 'David Martin', mobilePhone: '(555) 111-1111', address: '123 Maple St, Anytown, USA', emergencyName: 'Carol White', emergencyPhone: '(555) 222-2222', allergies: 'Peanuts', vaccination: 'Up to date.' },
+    { id: '2', name: 'Liam Garcia', age: 3, program: 'Toddler (1 to 3 years)', programType: 'Full time', startDate: '2023-09-01', status: 'Active', dob: '2021-08-22', motherName: 'Maria Garcia', fatherName: 'Jose Garcia', mobilePhone: '(555) 333-3333', address: '456 Oak Ave, Anytown, USA', emergencyName: 'Luis Hernandez', emergencyPhone: '(555) 444-4444', notes: 'Loves building blocks.', vaccination: 'Up to date.' },
+    { id: '3', name: 'Emma Rodriguez', age: 5, program: 'Preschool (3 to 5 years)', programType: 'Part time', startDate: '2023-09-01', status: 'Active', dob: '2019-02-15', motherName: 'Ana Rodriguez', fatherName: 'Carlos Rodriguez', mobilePhone: '(555) 555-5555', address: '789 Pine Ln, Anytown, USA', emergencyName: 'Sofia Rodriguez', emergencyPhone: '(555) 666-6666', vaccination: 'Up to date.' },
+    { id: '4', name: 'Noah Hernandez', age: 2, program: 'Toddler (1 to 3 years)', programType: 'Full time', startDate: '2024-02-01', status: 'Waitlisted', dob: '2022-01-30', motherName: 'Isabella Hernandez', fatherName: 'Mateo Hernandez', mobilePhone: '(555) 777-7777', address: '101 Birch Rd, Anytown, USA', emergencyName: 'Elena Cruz', emergencyPhone: '(555) 888-8888', allergies: 'Dairy, Gluten', vaccination: 'Missing one shot.' },
+    { id: '5', name: 'Ava Lopez', age: 4, program: 'Preschool (3 to 5 years)', programType: 'Full time', startDate: '2023-12-01', status: 'Active', dob: '2020-11-05', motherName: 'Mia Lopez', fatherName: 'James Lopez', mobilePhone: '(555) 999-9999', address: '212 Elm Ct, Anytown, USA', emergencyName: 'Sophia King', emergencyPhone: '(555) 000-0000', vaccination: 'Up to date.' },
+    { id: '6', name: 'James Wilson', age: 6, program: 'Gradeschooler (5 to 12 years)', programType: 'Part time', startDate: '2022-09-01', status: 'Inactive', dob: '2018-03-12', motherName: 'Jessica Wilson', fatherName: 'Brian Wilson', mobilePhone: '(555) 123-7890', address: '333 Cedar Dr, Anytown, USA', emergencyName: 'Robert Johnson', emergencyPhone: '(555) 987-6543' },
 ];
 
 
@@ -118,8 +122,10 @@ export default function EnrollmentPage() {
             name: state.data.childName,
             age: calculateAge(state.data.dob),
             program: state.data.program as Program,
+            programType: state.data.programType as ProgramType,
             status: 'Active',
             dob: state.data.dob,
+            startDate: state.data.startDate,
             motherName: state.data.motherName,
             fatherName: state.data.fatherName,
             mobilePhone: state.data.mobilePhone,
@@ -149,6 +155,12 @@ export default function EnrollmentPage() {
   const handleProgramChange = (value: Program) => {
     if (editedData) {
       setEditedData({ ...editedData, program: value });
+    }
+  };
+
+  const handleProgramTypeChange = (value: ProgramType) => {
+    if (editedData) {
+      setEditedData({ ...editedData, programType: value });
     }
   };
 
@@ -205,7 +217,7 @@ export default function EnrollmentPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Age</TableHead>
-                    <TableHead>Program</TableHead>
+                    <TableHead>Program Group</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead><span className="sr-only">Actions</span></TableHead>
                   </TableRow>
@@ -276,11 +288,31 @@ export default function EnrollmentPage() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="start-date">Start Date</Label>
+                        <Input id="start-date" name="start-date" type="date" required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="program-type">Program Type</Label>
+                        <Select name="program-type" required>
+                            <SelectTrigger id="program-type">
+                                <SelectValue placeholder="Select a program type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {programTypeOptions.map(option => (
+                                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
                  <div className="space-y-2">
-                    <Label htmlFor="program">Program</Label>
+                    <Label htmlFor="program">Program Group</Label>
                     <Select name="program" required>
                         <SelectTrigger id="program">
-                            <SelectValue placeholder="Select a program" />
+                            <SelectValue placeholder="Select a program group" />
                         </SelectTrigger>
                         <SelectContent>
                             {programOptions.map(option => (
@@ -392,9 +424,24 @@ export default function EnrollmentPage() {
                         <Label htmlFor="edit-dob">Date of Birth</Label>
                         <Input id="edit-dob" name="dob" type="date" value={editedData.dob} onChange={handleEditChange} />
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-startDate">Start Date</Label>
+                        <Input id="edit-startDate" name="startDate" type="date" value={editedData.startDate} onChange={handleEditChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-programType">Program Type</Label>
+                        <Select value={editedData.programType} onValueChange={(value: ProgramType) => handleProgramTypeChange(value)}>
+                            <SelectTrigger id="edit-programType">
+                                <SelectValue placeholder="Select a type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {programTypeOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
                   </div>
                    <div className="space-y-2">
-                      <Label htmlFor="edit-program">Program</Label>
+                      <Label htmlFor="edit-program">Program Group</Label>
                       <Select value={editedData.program} onValueChange={(value: Program) => handleProgramChange(value)}>
                           <SelectTrigger id="edit-program">
                               <SelectValue placeholder="Select a program" />
@@ -459,7 +506,9 @@ export default function EnrollmentPage() {
                         <div><span className="font-semibold">Name:</span> {selectedChild.name}</div>
                         <div><span className="font-semibold">Age:</span> {selectedChild.age}</div>
                         <div><span className="font-semibold">Date of Birth:</span> {new Date(selectedChild.dob).toLocaleDateString()}</div>
-                        <div><span className="font-semibold">Program:</span> {selectedChild.program}</div>
+                        <div><span className="font-semibold">Start Date:</span> {new Date(selectedChild.startDate).toLocaleDateString()}</div>
+                        <div><span className="font-semibold">Program Group:</span> {selectedChild.program}</div>
+                        <div><span className="font-semibold">Program Type:</span> {selectedChild.programType}</div>
                         <div className="col-span-2"><span className="font-semibold">Status:</span> 
                             <Badge 
                                 variant={
