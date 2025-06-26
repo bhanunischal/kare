@@ -1,3 +1,123 @@
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle, Users, Activity, MessageCircle, CreditCard, BarChart, FileText } from "lucide-react";
+import { Logo } from "@/components/logo";
+
 export default function Home() {
-  return <></>;
+  const features = [
+    {
+      icon: <FileText className="h-8 w-8 text-primary" />,
+      title: "Child Enrollment",
+      description: "Streamlined child registration process with digital document submission.",
+    },
+    {
+      icon: <CheckCircle className="h-8 w-8 text-primary" />,
+      title: "Attendance Tracking",
+      description: "Track attendance via digital check-in/check-out.",
+    },
+    {
+      icon: <Users className="h-8 w-8 text-primary" />,
+      title: "Staff Management",
+      description: "Manage staff schedules and track certifications.",
+    },
+    {
+      icon: <MessageCircle className="h-8 w-8 text-primary" />,
+      title: "Parent Communication",
+      description: "A dedicated portal for announcements and updates.",
+    },
+    {
+      icon: <CreditCard className="h-8 w-8 text-primary" />,
+      title: "Billing & Payments",
+      description: "Automated tuition billing and online payment processing.",
+    },
+    {
+      icon: <BarChart className="h-8 w-8 text-primary" />,
+      title: "Waitlist Analytics",
+      description: "Forecast demand and optimize enrollment using AI.",
+    },
+  ];
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <header className="px-4 lg:px-6 h-16 flex items-center bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+        <Link href="/" className="flex items-center justify-center">
+          <Logo />
+        </Link>
+        <nav className="ml-auto flex gap-4 sm:gap-6">
+          <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4">
+            Features
+          </Link>
+          <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4">
+            Pricing
+          </Link>
+          <Link href="/login">
+            <Button variant="outline" size="sm">Login</Button>
+          </Link>
+        </nav>
+      </header>
+
+      <main className="flex-1">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 text-center">
+          <div className="container px-4 md:px-6">
+            <div className="grid gap-6 lg:grid-cols-1 items-center justify-center">
+              <div className="flex flex-col justify-center space-y-4">
+                <div className="space-y-2">
+                  <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
+                    Modernize Your Daycare with CareConnect BC
+                  </h1>
+                  <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
+                    The all-in-one solution for child daycare centers in British Columbia. Streamline operations, enhance parent communication, and grow your business.
+                  </p>
+                </div>
+                <div className="w-full max-w-sm space-x-2 mx-auto">
+                  <Link href="/dashboard">
+                    <Button size="lg">View Dashboard</Button>
+                  </Link>
+                   <Link href="/login">
+                    <Button size="lg" variant="secondary">Get Started</Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-secondary/50">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Key Features</div>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Everything Your Daycare Needs</h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  CareConnect BC provides a comprehensive suite of tools designed to simplify your daily administrative tasks and improve overall efficiency.
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:grid-cols-3 lg:gap-12 mt-12">
+              {features.map((feature) => (
+                <div key={feature.title} className="grid gap-2 text-center">
+                  <div className="flex justify-center items-center">{feature.icon}</div>
+                  <h3 className="text-lg font-bold font-headline">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-muted-foreground">&copy; 2024 CareConnect BC. All rights reserved.</p>
+        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+          <Link href="#" className="text-xs hover:underline underline-offset-4">
+            Terms of Service
+          </Link>
+          <Link href="#" className="text-xs hover:underline underline-offset-4">
+            Privacy
+          </Link>
+        </nav>
+      </footer>
+    </div>
+  );
 }
