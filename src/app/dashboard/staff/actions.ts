@@ -16,7 +16,8 @@ const StaffFormSchema = z.object({
   emergencyPhone: z
     .string()
     .min(10, {message: 'A valid emergency contact phone is required.'}),
-  salary: z.coerce.number().positive({message: 'Salary must be a positive number.'}),
+  payType: z.string().min(1, {message: 'Pay type is required.'}),
+  payRate: z.coerce.number().positive({message: 'Pay rate must be a positive number.'}),
   certifications: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -34,7 +35,8 @@ export async function addStaffMember(prevState: any, formData: FormData) {
     emergencyPhone: formData.get('emergency-phone'),
     certifications: formData.get('certifications'),
     notes: formData.get('notes'),
-    salary: formData.get('salary'),
+    payType: formData.get('pay-type'),
+    payRate: formData.get('pay-rate'),
   });
 
   if (!validatedFields.success) {

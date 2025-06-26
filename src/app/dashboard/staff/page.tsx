@@ -66,6 +66,8 @@ const roleOptions: Role[] = [
 ];
 
 type Status = 'Active' | 'On Leave' | 'Inactive';
+type PayType = 'Monthly Salary' | 'Hourly Rate';
+const payTypeOptions: PayType[] = ['Monthly Salary', 'Hourly Rate'];
 
 export type StaffMember = {
   id: string;
@@ -80,7 +82,8 @@ export type StaffMember = {
   address: string;
   emergencyName: string;
   emergencyPhone: string;
-  salary: number;
+  payType: PayType;
+  payRate: number;
   notes?: string;
 };
 
@@ -98,7 +101,8 @@ export const initialStaffMembers: StaffMember[] = [
     address: '123 Sunshine Ave, Anytown, USA',
     emergencyName: 'John Doe',
     emergencyPhone: '(555) 765-4321',
-    salary: 5500,
+    payType: 'Monthly Salary',
+    payRate: 5500,
   },
   {
     id: '2',
@@ -113,7 +117,8 @@ export const initialStaffMembers: StaffMember[] = [
     address: '456 Rainbow Rd, Anytown, USA',
     emergencyName: 'Mary Smith',
     emergencyPhone: '(555) 876-5432',
-    salary: 3800,
+    payType: 'Hourly Rate',
+    payRate: 22.5,
   },
   {
     id: '3',
@@ -128,7 +133,8 @@ export const initialStaffMembers: StaffMember[] = [
     address: '789 Learning Ln, Anytown, USA',
     emergencyName: 'David White',
     emergencyPhone: '(555) 987-6543',
-    salary: 4200,
+    payType: 'Monthly Salary',
+    payRate: 4200,
   },
   {
     id: '4',
@@ -143,7 +149,8 @@ export const initialStaffMembers: StaffMember[] = [
     address: '101 Playful Pl, Anytown, USA',
     emergencyName: 'Susan Brown',
     emergencyPhone: '(555) 098-7654',
-    salary: 3200,
+    payType: 'Hourly Rate',
+    payRate: 20,
   },
   {
     id: '5',
@@ -158,7 +165,8 @@ export const initialStaffMembers: StaffMember[] = [
     address: '212 Creative Ct, Anytown, USA',
     emergencyName: 'Tom Green',
     emergencyPhone: '(555) 109-8765',
-    salary: 5800,
+    payType: 'Monthly Salary',
+    payRate: 5800,
   },
 ];
 
@@ -224,7 +232,8 @@ export default function StaffPage() {
             emergencyPhone: state.data.emergencyPhone,
             certifications: state.data.certifications || '',
             notes: state.data.notes,
-            salary: state.data.salary || 0,
+            payType: state.data.payType as PayType,
+            payRate: state.data.payRate,
           };
 
           setStaffMembers(prev => [newStaff, ...prev]);
@@ -247,6 +256,12 @@ export default function StaffPage() {
   const handleRoleChange = (value: Role) => {
     if (editedData) {
       setEditedData({...editedData, role: value});
+    }
+  };
+
+  const handlePayTypeChange = (value: PayType) => {
+    if (editedData) {
+      setEditedData({...editedData, payType: value});
     }
   };
 
@@ -456,13 +471,35 @@ export default function StaffPage() {
                   />
                 </div>
                 
-                <div className="space-y-2">
-                    <Label htmlFor="salary">Salary / Monthly Rate</Label>
-                     <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="salary" name="salary" type="number" step="100" placeholder="e.g., 5000" className="pl-8" required />
+                 <div className="space-y-4">
+                  <h3 className="text-lg font-medium border-b pb-2">
+                    Financial Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="pay-type">Pay Type</Label>
+                      <Select name="pay-type" required>
+                        <SelectTrigger id="pay-type">
+                          <SelectValue placeholder="Select a pay type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {payTypeOptions.map(option => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pay-rate">Pay Rate</Label>
+                      <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input id="pay-rate" name="pay-rate" type="number" step="0.01" placeholder="e.g., 5000 or 25.50" className="pl-8" required />
+                      </div>
                     </div>
                   </div>
+                </div>
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium border-b pb-2">
@@ -588,9 +625,16 @@ export default function StaffPage() {
                         onChange={handleEditChange}
                       />
                     </div>
-                    <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="edit-salary">Salary / Monthly Rate</Label>
-                        <Input id="edit-salary" name="salary" type="number" value={editedData.salary} onChange={handleEditChange} />
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-pay-type">Pay Type</Label>
+                        <Select value={editedData.payType} onValueChange={(value: PayType) => handlePayTypeChange(value)}>
+                            <SelectTrigger id="edit-pay-type"><SelectValue placeholder="Select a type" /></SelectTrigger>
+                            <SelectContent>{payTypeOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-payRate">Pay Rate</Label>
+                        <Input id="edit-payRate" name="payRate" type="number" value={editedData.payRate} onChange={handleEditChange} />
                       </div>
                   </div>
                   <Separator />
@@ -682,8 +726,8 @@ export default function StaffPage() {
                               <dd className="mt-1 text-foreground">{selectedStaff.phone}</dd>
                           </div>
                            <div className="sm:col-span-1">
-                              <dt className="font-medium text-muted-foreground">Salary</dt>
-                              <dd className="mt-1 text-foreground">${selectedStaff.salary.toLocaleString()}</dd>
+                              <dt className="font-medium text-muted-foreground">Pay</dt>
+                              <dd className="mt-1 text-foreground">{selectedStaff.payType === 'Monthly Salary' ? `$${selectedStaff.payRate.toLocaleString()}/month` : `$${selectedStaff.payRate.toFixed(2)}/hour`}</dd>
                           </div>
                           <div className="sm:col-span-2">
                               <dt className="font-medium text-muted-foreground">Address</dt>

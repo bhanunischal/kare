@@ -107,8 +107,12 @@ export default function ExpensesPage() {
   const handleStaffChange = (staffName: string) => {
     const staff = staffList.find(s => s.name === staffName);
     if (staff) {
-      setAmount(staff.salary.toFixed(2));
-      setDescription(`Monthly salary for ${staff.name}`);
+      setAmount(staff.payRate.toFixed(2));
+      if (staff.payType === 'Monthly Salary') {
+        setDescription(`Monthly salary for ${staff.name}`);
+      } else {
+        setDescription(`Payment for ${staff.name}. Enter total amount.`);
+      }
     }
   };
   
