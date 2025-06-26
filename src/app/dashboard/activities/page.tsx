@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Sparkles, BookOpen, Music, PaintBrush, Leaf, Microscope } from "lucide-react";
+import { Plus, Edit, Trash2, Sparkles, BookOpen, Music, Paintbrush, Leaf, Microscope } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type ActivityCategory = "Art & Craft" | "Music & Movement" | "Outdoor Play" | "Story Time" | "Science & Discovery";
@@ -65,7 +65,7 @@ const initialActivities: Activity[] = [
 ];
 
 const categoryIcons: Record<ActivityCategory, React.ReactNode> = {
-    "Art & Craft": <PaintBrush className="h-5 w-5 text-primary" />,
+    "Art & Craft": <Paintbrush className="h-5 w-5 text-primary" />,
     "Music & Movement": <Music className="h-5 w-5 text-primary" />,
     "Outdoor Play": <Leaf className="h-5 w-5 text-primary" />,
     "Story Time": <BookOpen className="h-5 w-5 text-primary" />,
