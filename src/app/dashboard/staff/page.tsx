@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/table';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Badge} from '@/components/ui/badge';
-import {Loader2, ImageUp} from 'lucide-react';
+import {Loader2, ImageUp, DollarSign} from 'lucide-react';
 import {Textarea} from '@/components/ui/textarea';
 import {useToast} from '@/hooks/use-toast';
 import {addStaffMember, type StaffFormData} from './actions';
@@ -67,7 +67,7 @@ const roleOptions: Role[] = [
 
 type Status = 'Active' | 'On Leave' | 'Inactive';
 
-type StaffMember = {
+export type StaffMember = {
   id: string;
   name: string;
   photoUrl?: string;
@@ -80,10 +80,11 @@ type StaffMember = {
   address: string;
   emergencyName: string;
   emergencyPhone: string;
+  salary: number;
   notes?: string;
 };
 
-const initialStaffMembers: StaffMember[] = [
+export const initialStaffMembers: StaffMember[] = [
   {
     id: '1',
     name: 'Jane Doe',
@@ -97,6 +98,7 @@ const initialStaffMembers: StaffMember[] = [
     address: '123 Sunshine Ave, Anytown, USA',
     emergencyName: 'John Doe',
     emergencyPhone: '(555) 765-4321',
+    salary: 5500,
   },
   {
     id: '2',
@@ -111,6 +113,7 @@ const initialStaffMembers: StaffMember[] = [
     address: '456 Rainbow Rd, Anytown, USA',
     emergencyName: 'Mary Smith',
     emergencyPhone: '(555) 876-5432',
+    salary: 3800,
   },
   {
     id: '3',
@@ -125,6 +128,7 @@ const initialStaffMembers: StaffMember[] = [
     address: '789 Learning Ln, Anytown, USA',
     emergencyName: 'David White',
     emergencyPhone: '(555) 987-6543',
+    salary: 4200,
   },
   {
     id: '4',
@@ -139,6 +143,7 @@ const initialStaffMembers: StaffMember[] = [
     address: '101 Playful Pl, Anytown, USA',
     emergencyName: 'Susan Brown',
     emergencyPhone: '(555) 098-7654',
+    salary: 3200,
   },
   {
     id: '5',
@@ -153,6 +158,7 @@ const initialStaffMembers: StaffMember[] = [
     address: '212 Creative Ct, Anytown, USA',
     emergencyName: 'Tom Green',
     emergencyPhone: '(555) 109-8765',
+    salary: 5800,
   },
 ];
 
@@ -218,6 +224,7 @@ export default function StaffPage() {
             emergencyPhone: state.data.emergencyPhone,
             certifications: state.data.certifications || '',
             notes: state.data.notes,
+            salary: state.data.salary || 0,
           };
 
           setStaffMembers(prev => [newStaff, ...prev]);
@@ -448,6 +455,14 @@ export default function StaffPage() {
                     required
                   />
                 </div>
+                
+                <div className="space-y-2">
+                    <Label htmlFor="salary">Salary / Monthly Rate</Label>
+                     <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input id="salary" name="salary" type="number" step="100" placeholder="e.g., 5000" className="pl-8" required />
+                    </div>
+                  </div>
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium border-b pb-2">
@@ -573,6 +588,10 @@ export default function StaffPage() {
                         onChange={handleEditChange}
                       />
                     </div>
+                    <div className="space-y-2 sm:col-span-2">
+                        <Label htmlFor="edit-salary">Salary / Monthly Rate</Label>
+                        <Input id="edit-salary" name="salary" type="number" value={editedData.salary} onChange={handleEditChange} />
+                      </div>
                   </div>
                   <Separator />
                   <div className="space-y-2">
@@ -656,11 +675,15 @@ export default function StaffPage() {
                   </div>
                   <Separator />
                    <div>
-                      <h4 className="font-semibold text-base mb-4">Contact Information</h4>
+                      <h4 className="font-semibold text-base mb-4">Contact & Financial Information</h4>
                       <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                            <div className="sm:col-span-1">
                               <dt className="font-medium text-muted-foreground">Phone</dt>
                               <dd className="mt-1 text-foreground">{selectedStaff.phone}</dd>
+                          </div>
+                           <div className="sm:col-span-1">
+                              <dt className="font-medium text-muted-foreground">Salary</dt>
+                              <dd className="mt-1 text-foreground">${selectedStaff.salary.toLocaleString()}</dd>
                           </div>
                           <div className="sm:col-span-2">
                               <dt className="font-medium text-muted-foreground">Address</dt>
