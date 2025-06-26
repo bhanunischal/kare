@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link";
@@ -13,7 +14,9 @@ import {
     BrainCircuit,
     FileText,
     Wallet,
-    LineChart
+    LineChart,
+    FolderKanban,
+    Images
 } from "lucide-react";
 
 const navItems = [
@@ -24,6 +27,8 @@ const navItems = [
     { href: "/dashboard/communication", icon: <MessageSquare className="h-5 w-5 md:h-4 md:w-4" />, text: "Communication" },
     { href: "/dashboard/billing", icon: <CreditCard className="h-5 w-5 md:h-4 md:w-4" />, text: "Billing" },
     { href: "/dashboard/expenses", icon: <Wallet className="h-5 w-5 md:h-4 md:w-4" />, text: "Expenses" },
+    { href: "/dashboard/documents", icon: <FolderKanban className="h-5 w-5 md:h-4 md:w-4" />, text: "Documents" },
+    { href: "/dashboard/gallery", icon: <Images className="h-5 w-5 md:h-4 md:w-4" />, text: "Gallery" },
     { href: "/dashboard/reports", icon: <LineChart className="h-5 w-5 md:h-4 md:w-4" />, text: "Reports" },
     { href: "/dashboard/subsidies", icon: <BadgeDollarSign className="h-5 w-5 md:h-4 md:w-4" />, text: "Subsidies" },
     { href: "/dashboard/waitlist-analytics", icon: <BrainCircuit className="h-5 w-5 md:h-4 md:w-4" />, text: "Waitlist Analytics" },

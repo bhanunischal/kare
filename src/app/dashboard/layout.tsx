@@ -2,6 +2,7 @@
 import Link from "next/link";
 import {
   Menu,
+  Settings,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -80,7 +81,12 @@ export default function DashboardLayout({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Jane Doe</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <Link href="/dashboard/settings">
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+              </Link>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
                <Link href="/login">
