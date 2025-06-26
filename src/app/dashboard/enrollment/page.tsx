@@ -15,8 +15,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { submitRegistration, type RegistrationFormData } from "./actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 
 type Program = 'Infant (0-12months)' | 'Toddler (1 to 3 years)' | 'Preschool (3 to 5 years)' | 'Gradeschooler (5 to 12 years)';
@@ -28,7 +30,7 @@ type Child = {
   name: string;
   age: number;
   program: Program;
-  status: 'Active' | 'Waitlisted';
+  status: 'Active' | 'Waitlisted' | 'Inactive';
   dob: string;
   motherName: string;
   fatherName: string;
@@ -47,6 +49,7 @@ const initialEnrolledChildren: Child[] = [
     { id: '3', name: 'Emma Rodriguez', age: 5, program: 'Preschool (3 to 5 years)', status: 'Active', dob: '2019-02-15', motherName: 'Ana Rodriguez', fatherName: 'Carlos Rodriguez', mobilePhone: '(555) 555-5555', address: '789 Pine Ln, Anytown, USA', emergencyName: 'Sofia Rodriguez', emergencyPhone: '(555) 666-6666', vaccination: 'Up to date.' },
     { id: '4', name: 'Noah Hernandez', age: 2, program: 'Toddler (1 to 3 years)', status: 'Waitlisted', dob: '2022-01-30', motherName: 'Isabella Hernandez', fatherName: 'Mateo Hernandez', mobilePhone: '(555) 777-7777', address: '101 Birch Rd, Anytown, USA', emergencyName: 'Elena Cruz', emergencyPhone: '(555) 888-8888', allergies: 'Dairy, Gluten', vaccination: 'Missing one shot.' },
     { id: '5', name: 'Ava Lopez', age: 4, program: 'Preschool (3 to 5 years)', status: 'Active', dob: '2020-11-05', motherName: 'Mia Lopez', fatherName: 'James Lopez', mobilePhone: '(555) 999-9999', address: '212 Elm Ct, Anytown, USA', emergencyName: 'Sophia King', emergencyPhone: '(555) 000-0000', vaccination: 'Up to date.' },
+    { id: '6', name: 'James Wilson', age: 6, program: 'Gradeschooler (5 to 12 years)', status: 'Inactive', dob: '2018-03-12', motherName: 'Jessica Wilson', fatherName: 'Brian Wilson', mobilePhone: '(555) 123-7890', address: '333 Cedar Dr, Anytown, USA', emergencyName: 'Robert Johnson', emergencyPhone: '(555) 987-6543' },
 ];
 
 
@@ -88,6 +91,7 @@ export default function EnrollmentPage() {
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<Child | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(submitRegistration, initialState);
   const { toast } = useToast();
@@ -157,6 +161,26 @@ export default function EnrollmentPage() {
     }
   };
 
+  const handleDeactivateChild = () => {
+    if (selectedChild) {
+      const newStatus = selectedChild.status === 'Active' ? 'Inactive' : 'Active';
+      const updatedChild = { ...selectedChild, status: newStatus };
+      setEnrolledChildren(prev => prev.map(child => child.id === selectedChild.id ? updatedChild : child));
+      setSelectedChild(updatedChild);
+      toast({ title: "Success!", description: `Child has been marked as ${newStatus.toLowerCase()}.` });
+    }
+  };
+
+  const handleDeleteChild = () => {
+    if (selectedChild) {
+      setEnrolledChildren(prev => prev.filter(child => child.id !== selectedChild.id));
+      setSelectedChild(null);
+      setIsDeleteDialogOpen(false);
+      toast({ title: "Success!", description: "Child record has been deleted." });
+    }
+  };
+
+
   return (
     <div className="space-y-6">
       <div>
@@ -193,7 +217,18 @@ export default function EnrollmentPage() {
                       <TableCell>{child.age}</TableCell>
                       <TableCell>{child.program}</TableCell>
                       <TableCell>
-                        <Badge variant={child.status === 'Active' ? 'default' : 'secondary'} className={child.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>
+                        <Badge
+                          variant={
+                            child.status === 'Active'
+                              ? 'default'
+                              : child.status === 'Waitlisted'
+                              ? 'secondary'
+                              : 'outline'
+                          }
+                          className={cn({
+                            'bg-accent text-accent-foreground': child.status === 'Active',
+                          })}
+                        >
                           {child.status}
                         </Badge>
                       </TableCell>
@@ -426,7 +461,13 @@ export default function EnrollmentPage() {
                         <div><span className="font-semibold">Date of Birth:</span> {new Date(selectedChild.dob).toLocaleDateString()}</div>
                         <div><span className="font-semibold">Program:</span> {selectedChild.program}</div>
                         <div className="col-span-2"><span className="font-semibold">Status:</span> 
-                            <Badge variant={selectedChild.status === 'Active' ? 'default' : 'secondary'} className={`${selectedChild.status === 'Active' ? 'bg-accent text-accent-foreground' : ''} ml-2`}>
+                            <Badge 
+                                variant={
+                                    selectedChild.status === 'Active' ? 'default' :
+                                    selectedChild.status === 'Waitlisted' ? 'secondary' :
+                                    'outline'
+                                } 
+                                className={cn('ml-2', {'bg-accent text-accent-foreground': selectedChild.status === 'Active'})}>
                                 {selectedChild.status}
                             </Badge>
                         </div>
@@ -463,7 +504,29 @@ export default function EnrollmentPage() {
                 </>
              ) : (
                 <>
+                    <div className="mr-auto">
+                        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive">Delete</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the child's record.
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDeleteChild}>Continue</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
                     <Button variant="outline" onClick={() => setSelectedChild(null)}>Close</Button>
+                    <Button variant="outline" onClick={handleDeactivateChild}>
+                      {selectedChild?.status === 'Active' ? 'Deactivate' : 'Activate'}
+                    </Button>
                     <Button onClick={() => { setIsEditing(true); setEditedData(selectedChild); }}>Edit</Button>
                 </>
              )}
