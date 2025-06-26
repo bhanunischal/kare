@@ -32,6 +32,10 @@ export default function SignupPage() {
                 <Input id="full-name" placeholder="John Doe" required />
             </div>
             <div className="grid gap-2">
+                <Label htmlFor="daycare-name">Day Care Name</Label>
+                <Input id="daycare-name" placeholder="Sunshine Daycare" required />
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
