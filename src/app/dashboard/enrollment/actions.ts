@@ -1,0 +1,52 @@
+
+"use server";
+
+import { z } from "zod";
+
+const RegistrationFormSchema = z.object({
+  childName: z.string().min(1, { message: "Child's name is required." }),
+  dob: z.string().min(1, { message: "Date of birth is required." }),
+  motherName: z.string().min(1, { message: "Mother's name is required." }),
+  fatherName: z.string().min(1, { message: "Father's name is required." }),
+  homePhone: z.string().optional(),
+  mobilePhone: z.string().min(10, { message: "A valid mobile phone number is required." }),
+  address: z.string().min(1, { message: "Address is required." }),
+  emergencyName: z.string().min(1, { message: "Emergency contact name is required." }),
+  emergencyPhone: z.string().min(10, { message: "A valid emergency contact phone is required." }),
+  vaccination: z.string().optional(),
+  allergies: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+
+export async function submitRegistration(prevState: any, formData: FormData) {
+  const validatedFields = RegistrationFormSchema.safeParse({
+    childName: formData.get("child-name"),
+    dob: formData.get("dob"),
+    motherName: formData.get("mother-name"),
+    fatherName: formData.get("father-name"),
+    homePhone: formData.get("home-phone"),
+    mobilePhone: formData.get("mobile-phone"),
+    address: formData.get("address"),
+    emergencyName: formData.get("emergency-name"),
+    emergencyPhone: formData.get("emergency-phone"),
+    vaccination: formData.get("vaccination"),
+    allergies: formData.get("allergies"),
+    notes: formData.get("notes"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: 'Please review the form and correct any errors.',
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  // In a real application, you would save validatedFields.data to your database.
+  console.log("New child registration submitted:", validatedFields.data);
+
+  return {
+    message: "Registration submitted successfully!",
+    errors: null,
+  };
+}
