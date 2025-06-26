@@ -152,8 +152,8 @@ export default function CommunicationPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2">
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="md:col-span-1">
           <Card>
             <CardHeader>
               <CardTitle>Recent Announcements</CardTitle>
