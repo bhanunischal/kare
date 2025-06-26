@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useActionState, useState, useRef } from "react";
@@ -13,14 +14,35 @@ import { FileUp, ImageUp, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { submitRegistration, type RegistrationFormData } from "./actions";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 
-const initialEnrolledChildren = [
-  { id: '1', name: 'Olivia Martin', age: 4, program: 'Preschool', status: 'Active' },
-  { id: '2', name: 'Liam Garcia', age: 3, program: 'Toddler', status: 'Active' },
-  { id: '3', name: 'Emma Rodriguez', age: 5, program: 'Pre-K', status: 'Active' },
-  { id: '4', name: 'Noah Hernandez', age: 2, program: 'Toddler', status: 'Waitlisted' },
-  { id: '5', name: 'Ava Lopez', age: 4, program: 'Preschool', status: 'Active' },
+type Child = {
+  id: string;
+  name: string;
+  age: number;
+  program: 'Preschool' | 'Toddler' | 'Pre-K';
+  status: 'Active' | 'Waitlisted';
+  dob: string;
+  motherName: string;
+  fatherName: string;
+  mobilePhone: string;
+  address: string;
+  emergencyName: string;
+  emergencyPhone: string;
+  allergies?: string;
+  notes?: string;
+  vaccination?: string;
+};
+
+const initialEnrolledChildren: Child[] = [
+    { id: '1', name: 'Olivia Martin', age: 4, program: 'Preschool', status: 'Active', dob: '2020-05-10', motherName: 'Sarah Martin', fatherName: 'David Martin', mobilePhone: '(555) 111-1111', address: '123 Maple St, Anytown, USA', emergencyName: 'Carol White', emergencyPhone: '(555) 222-2222', allergies: 'Peanuts', vaccination: 'Up to date.' },
+    { id: '2', name: 'Liam Garcia', age: 3, program: 'Toddler', status: 'Active', dob: '2021-08-22', motherName: 'Maria Garcia', fatherName: 'Jose Garcia', mobilePhone: '(555) 333-3333', address: '456 Oak Ave, Anytown, USA', emergencyName: 'Luis Hernandez', emergencyPhone: '(555) 444-4444', notes: 'Loves building blocks.', vaccination: 'Up to date.' },
+    { id: '3', name: 'Emma Rodriguez', age: 5, program: 'Pre-K', status: 'Active', dob: '2019-02-15', motherName: 'Ana Rodriguez', fatherName: 'Carlos Rodriguez', mobilePhone: '(555) 555-5555', address: '789 Pine Ln, Anytown, USA', emergencyName: 'Sofia Rodriguez', emergencyPhone: '(555) 666-6666', vaccination: 'Up to date.' },
+    { id: '4', name: 'Noah Hernandez', age: 2, program: 'Toddler', status: 'Waitlisted', dob: '2022-01-30', motherName: 'Isabella Hernandez', fatherName: 'Mateo Hernandez', mobilePhone: '(555) 777-7777', address: '101 Birch Rd, Anytown, USA', emergencyName: 'Elena Cruz', emergencyPhone: '(555) 888-8888', allergies: 'Dairy, Gluten', vaccination: 'Missing one shot.' },
+    { id: '5', name: 'Ava Lopez', age: 4, program: 'Preschool', status: 'Active', dob: '2020-11-05', motherName: 'Mia Lopez', fatherName: 'James Lopez', mobilePhone: '(555) 999-9999', address: '212 Elm Ct, Anytown, USA', emergencyName: 'Sophia King', emergencyPhone: '(555) 000-0000', vaccination: 'Up to date.' },
 ];
+
 
 const initialState: {
   message: string | null;
@@ -56,16 +78,15 @@ function SubmitButton() {
 }
 
 export default function EnrollmentPage() {
-  const [enrolledChildren, setEnrolledChildren] = useState(initialEnrolledChildren);
+  const [enrolledChildren, setEnrolledChildren] = useState<Child[]>(initialEnrolledChildren);
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(submitRegistration, initialState);
   const { toast } = useToast();
   
-  // Use a ref to track the last state processed by the effect to prevent re-running on the same data.
   const processedStateRef = useRef(initialState);
 
   useEffect(() => {
-    // Only proceed if the state has actually changed from the one we've already processed.
     if (state !== processedStateRef.current) {
       if (state.message) {
         if (state.errors) {
@@ -80,19 +101,28 @@ export default function EnrollmentPage() {
             description: state.message,
           });
 
-          const newChild = {
-            id: String(new Date().getTime()), // Use a more unique key for demo purposes
+          const newChild: Child = {
+            id: String(new Date().getTime()),
             name: state.data.childName,
             age: calculateAge(state.data.dob),
             program: 'Preschool',
             status: 'Active',
+            dob: state.data.dob,
+            motherName: state.data.motherName,
+            fatherName: state.data.fatherName,
+            mobilePhone: state.data.mobilePhone,
+            address: state.data.address,
+            emergencyName: state.data.emergencyName,
+            emergencyPhone: state.data.emergencyPhone,
+            allergies: state.data.allergies,
+            notes: state.data.notes,
+            vaccination: state.data.vaccination,
           };
           
           setEnrolledChildren(prev => [newChild, ...prev]);
           formRef.current?.reset();
         }
       }
-      // Remember the state we've just handled.
       processedStateRef.current = state;
     }
   }, [state, toast]);
@@ -139,7 +169,7 @@ export default function EnrollmentPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">View</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedChild(child)}>View</Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -263,6 +293,57 @@ export default function EnrollmentPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <Dialog open={!!selectedChild} onOpenChange={(isOpen) => !isOpen && setSelectedChild(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Child Details</DialogTitle>
+            <DialogDescription>
+              Detailed information for {selectedChild?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedChild && (
+            <div className="grid gap-4 py-4 text-sm">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div><span className="font-semibold">Name:</span> {selectedChild.name}</div>
+                    <div><span className="font-semibold">Age:</span> {selectedChild.age}</div>
+                    <div><span className="font-semibold">Date of Birth:</span> {new Date(selectedChild.dob).toLocaleDateString()}</div>
+                    <div><span className="font-semibold">Program:</span> {selectedChild.program}</div>
+                    <div className="col-span-2"><span className="font-semibold">Status:</span> 
+                        <Badge variant={selectedChild.status === 'Active' ? 'default' : 'secondary'} className={`${selectedChild.status === 'Active' ? 'bg-accent text-accent-foreground' : ''} ml-2`}>
+                            {selectedChild.status}
+                        </Badge>
+                    </div>
+                </div>
+                <Separator />
+                <h4 className="font-semibold text-base">Parent/Guardian Information</h4>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div><span className="font-semibold">Mother:</span> {selectedChild.motherName}</div>
+                    <div><span className="font-semibold">Father:</span> {selectedChild.fatherName}</div>
+                    <div className="col-span-2"><span className="font-semibold">Mobile Phone:</span> {selectedChild.mobilePhone}</div>
+                    <div className="col-span-2"><span className="font-semibold">Address:</span> {selectedChild.address}</div>
+                </div>
+                <Separator />
+                <h4 className="font-semibold text-base">Emergency Contact</h4>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div><span className="font-semibold">Name:</span> {selectedChild.emergencyName}</div>
+                    <div><span className="font-semibold">Phone:</span> {selectedChild.emergencyPhone}</div>
+                </div>
+                <Separator />
+                <h4 className="font-semibold text-base">Health Information</h4>
+                <div className="grid grid-cols-1 gap-y-2">
+                    <div><span className="font-semibold">Vaccination:</span> {selectedChild.vaccination || 'N/A'}</div>
+                    <div><span className="font-semibold">Allergies:</span> {selectedChild.allergies || 'None'}</div>
+                    <div><span className="font-semibold">Notes:</span> {selectedChild.notes || 'None'}</div>
+                </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedChild(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
