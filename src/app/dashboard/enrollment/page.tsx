@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -137,6 +138,24 @@ export default function EnrollmentPage() {
                     <Label htmlFor="emergency-phone">Contact Phone Number</Label>
                     <Input id="emergency-phone" type="tel" placeholder="e.g., (555) 111-2222" />
                   </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium border-b pb-2">Health Information</h3>
+                <div className="grid grid-cols-1 gap-6 pt-2">
+                    <div className="space-y-2">
+                        <Label htmlFor="vaccination">Vaccination Information</Label>
+                        <Textarea id="vaccination" placeholder="e.g., Up to date on all required vaccinations. Record attached." />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="allergies">Allergies</Label>
+                        <Textarea id="allergies" placeholder="e.g., Peanuts, dairy. Carries an EpiPen." />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="notes">Additional Notes</Label>
+                        <Textarea id="notes" placeholder="e.g., Requires a nap in the afternoon. Loves to play with blocks." />
+                    </div>
                 </div>
               </div>
 
