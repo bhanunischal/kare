@@ -31,6 +31,7 @@ import {
 import { MoreHorizontal, Mail, CheckCircle, CircleOff, FileText, Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 type InvoiceStatus = "Paid" | "Due" | "Overdue";
 
@@ -217,7 +218,7 @@ export default function BillingPage() {
                             <div className="text-xs text-muted-foreground">{invoice.parent}</div>
                         </TableCell>
                         <TableCell>${invoice.amount.toFixed(2)}</TableCell>
-                        <TableCell>{new Date(invoice.dueDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{format(new Date(invoice.dueDate.replace(/-/g, '/')), 'MMMM d, yyyy')}</TableCell>
                         <TableCell>
                             <Badge
                                 variant={getStatusBadgeVariant(invoice.status)}
