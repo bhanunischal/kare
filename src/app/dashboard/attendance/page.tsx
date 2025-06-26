@@ -67,6 +67,7 @@ export default function AttendancePage() {
   const [selectedChild, setSelectedChild] = useState<AttendanceRecord | null>(null);
   const [leaveReason, setLeaveReason] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const { toast } = useToast();
 
   const handleUpdateRecord = (id: string, updates: Partial<AttendanceRecord>) => {
@@ -104,6 +105,13 @@ export default function AttendancePage() {
     setLeaveReason(child.leaveReason || "");
     setDateRange(child.leaveRange);
     setIsLeaveDialogOpen(true);
+  };
+  
+  const handleDateSelect = (range: DateRange | undefined) => {
+    setDateRange(range);
+    if (range?.to) {
+      setIsCalendarOpen(false);
+    }
   };
 
   const handleSaveLeave = () => {
@@ -263,7 +271,7 @@ export default function AttendancePage() {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
                 <Label htmlFor="leave-dates">Leave Dates</Label>
-                <Popover>
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       id="leave-dates"
@@ -294,7 +302,7 @@ export default function AttendancePage() {
                       mode="range"
                       defaultMonth={dateRange?.from}
                       selected={dateRange}
-                      onSelect={setDateRange}
+                      onSelect={handleDateSelect}
                       numberOfMonths={2}
                     />
                   </PopoverContent>
