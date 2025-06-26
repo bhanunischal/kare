@@ -57,45 +57,45 @@ function SubmitButton() {
 
 export default function EnrollmentPage() {
   const [enrolledChildren, setEnrolledChildren] = useState(initialEnrolledChildren);
-  const [lastAddedChildData, setLastAddedChildData] = useState<RegistrationFormData | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(submitRegistration, initialState);
   const { toast } = useToast();
-  const formRef = useRef<HTMLFormElement>(null);
+  
+  // Use a ref to track the last state processed by the effect to prevent re-running on the same data.
+  const processedStateRef = useRef(initialState);
 
   useEffect(() => {
-    if (state.message) {
-      if (state.errors) {
-        toast({
-          variant: "destructive",
-          title: "Error submitting form",
-          description: state.message,
-        });
-      } else if (state.data) {
-        // Success, and we have data.
-        // Prevent re-adding the same child on re-renders.
-        if (JSON.stringify(state.data) === JSON.stringify(lastAddedChildData)) {
-          return;
+    // Only proceed if the state has actually changed from the one we've already processed.
+    if (state !== processedStateRef.current) {
+      if (state.message) {
+        if (state.errors) {
+          toast({
+            variant: "destructive",
+            title: "Error submitting form",
+            description: state.message,
+          });
+        } else if (state.data) {
+          toast({
+            title: "Success!",
+            description: state.message,
+          });
+
+          const newChild = {
+            id: String(new Date().getTime()), // Use a more unique key for demo purposes
+            name: state.data.childName,
+            age: calculateAge(state.data.dob),
+            program: 'Preschool',
+            status: 'Active',
+          };
+          
+          setEnrolledChildren(prev => [newChild, ...prev]);
+          formRef.current?.reset();
         }
-
-        toast({
-          title: "Success!",
-          description: state.message,
-        });
-
-        const newChild = {
-          id: String(enrolledChildren.length + 1),
-          name: state.data.childName,
-          age: calculateAge(state.data.dob),
-          program: 'Preschool', // Assign a default program
-          status: 'Active', // Assign a default status
-        };
-
-        setEnrolledChildren(prev => [newChild, ...prev]);
-        setLastAddedChildData(state.data);
-        formRef.current?.reset();
       }
+      // Remember the state we've just handled.
+      processedStateRef.current = state;
     }
-  }, [state, toast, enrolledChildren.length, lastAddedChildData]);
+  }, [state, toast]);
 
 
   return (
