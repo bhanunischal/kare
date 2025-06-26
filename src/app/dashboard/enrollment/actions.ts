@@ -18,6 +18,8 @@ const RegistrationFormSchema = z.object({
   notes: z.string().optional(),
 });
 
+export type RegistrationFormData = z.infer<typeof RegistrationFormSchema>;
+
 
 export async function submitRegistration(prevState: any, formData: FormData) {
   const validatedFields = RegistrationFormSchema.safeParse({
@@ -39,6 +41,7 @@ export async function submitRegistration(prevState: any, formData: FormData) {
     return {
       message: 'Please review the form and correct any errors.',
       errors: validatedFields.error.flatten().fieldErrors,
+      data: null,
     };
   }
 
@@ -48,5 +51,6 @@ export async function submitRegistration(prevState: any, formData: FormData) {
   return {
     message: "Registration submitted successfully!",
     errors: null,
+    data: validatedFields.data,
   };
 }

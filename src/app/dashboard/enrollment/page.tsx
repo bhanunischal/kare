@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useActionState } from "react";
+import { useEffect, useActionState, useState, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,9 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { FileUp, ImageUp, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { submitRegistration } from "./actions";
+import { submitRegistration, type RegistrationFormData } from "./actions";
 
-const enrolledChildren = [
+const initialEnrolledChildren = [
   { id: '1', name: 'Olivia Martin', age: 4, program: 'Preschool', status: 'Active' },
   { id: '2', name: 'Liam Garcia', age: 3, program: 'Toddler', status: 'Active' },
   { id: '3', name: 'Emma Rodriguez', age: 5, program: 'Pre-K', status: 'Active' },
@@ -22,10 +22,28 @@ const enrolledChildren = [
   { id: '5', name: 'Ava Lopez', age: 4, program: 'Preschool', status: 'Active' },
 ];
 
-const initialState = {
+const initialState: {
+  message: string | null;
+  errors: any;
+  data: RegistrationFormData | null;
+} = {
   message: null,
   errors: null,
+  data: null,
 };
+
+function calculateAge(dob: string): number {
+  if (!dob) return 0;
+  const birthDate = new Date(dob);
+  if (isNaN(birthDate.getTime())) return 0; // Invalid date
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age > 0 ? age : 0;
+}
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -38,8 +56,11 @@ function SubmitButton() {
 }
 
 export default function EnrollmentPage() {
+  const [enrolledChildren, setEnrolledChildren] = useState(initialEnrolledChildren);
+  const [lastAddedChildData, setLastAddedChildData] = useState<RegistrationFormData | null>(null);
   const [state, formAction] = useActionState(submitRegistration, initialState);
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (state.message) {
@@ -49,16 +70,32 @@ export default function EnrollmentPage() {
           title: "Error submitting form",
           description: state.message,
         });
-      } else {
+      } else if (state.data) {
+        // Success, and we have data.
+        // Prevent re-adding the same child on re-renders.
+        if (JSON.stringify(state.data) === JSON.stringify(lastAddedChildData)) {
+          return;
+        }
+
         toast({
           title: "Success!",
           description: state.message,
         });
-        // Here you might want to reset the form
-        // document.querySelector('form')?.reset();
+
+        const newChild = {
+          id: String(enrolledChildren.length + 1),
+          name: state.data.childName,
+          age: calculateAge(state.data.dob),
+          program: 'Preschool', // Assign a default program
+          status: 'Active', // Assign a default status
+        };
+
+        setEnrolledChildren(prev => [newChild, ...prev]);
+        setLastAddedChildData(state.data);
+        formRef.current?.reset();
       }
     }
-  }, [state, toast]);
+  }, [state, toast, enrolledChildren.length, lastAddedChildData]);
 
 
   return (
@@ -118,7 +155,7 @@ export default function EnrollmentPage() {
               <CardDescription>Fill out the form below to register a new child.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={formAction} className="space-y-8">
+              <form ref={formRef} action={formAction} className="space-y-8">
                 <div className="space-y-2">
                   <Label>Child's Profile Photo</Label>
                   <Card className="border-2 border-dashed">
