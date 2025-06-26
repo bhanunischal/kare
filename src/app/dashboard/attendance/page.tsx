@@ -29,12 +29,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { MoreHorizontal, LogIn, LogOut, CalendarOff, Plane, RefreshCcw } from "lucide-react";
+import { MoreHorizontal, LogIn, LogOut, CalendarOff, Plane, RefreshCcw, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
+import type { DateRange } from "react-day-picker";
+import { format, differenceInDays } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
-type AttendanceStatus = "Present" | "Absent" | "On Leave";
+type AttendanceStatus = "Present" | "Absent" | "On Leave" | "Pending";
+type LeaveType = "Daily" | "Short-term" | "Long-term";
 
 type AttendanceRecord = {
   id: string;
@@ -43,12 +48,14 @@ type AttendanceRecord = {
   checkOut: string | null;
   status: AttendanceStatus;
   leaveReason?: string;
+  leaveRange?: { from: Date; to: Date };
+  leaveType?: LeaveType;
 };
 
 const initialAttendanceRecords: AttendanceRecord[] = [
     { id: "1", name: "Olivia Martin", checkIn: "8:30 AM", checkOut: "4:00 PM", status: "Present" },
     { id: "2", name: "Liam Garcia", checkIn: "9:00 AM", checkOut: null, status: "Present" },
-    { id: "3", name: "Emma Rodriguez", checkIn: null, checkOut: null, status: "Absent" },
+    { id: "3", name: "Emma Rodriguez", checkIn: null, checkOut: null, status: "Pending" },
     { id: "4", name: "Noah Hernandez", checkIn: null, checkOut: null, status: "On Leave", leaveReason: "Family vacation." },
     { id: "5", name: "Ava Lopez", checkIn: "9:15 AM", checkOut: "4:30 PM", status: "Present" },
     { id: "6", name: "James Wilson", checkIn: null, checkOut: null, status: "Absent" },
@@ -59,6 +66,7 @@ export default function AttendancePage() {
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [selectedChild, setSelectedChild] = useState<AttendanceRecord | null>(null);
   const [leaveReason, setLeaveReason] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const { toast } = useToast();
 
   const handleUpdateRecord = (id: string, updates: Partial<AttendanceRecord>) => {
@@ -68,7 +76,7 @@ export default function AttendancePage() {
   const handleCheckIn = (id: string) => {
     const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     const childName = records.find(r => r.id === id)?.name;
-    handleUpdateRecord(id, { status: "Present", checkIn: time, checkOut: null, leaveReason: undefined });
+    handleUpdateRecord(id, { status: "Present", checkIn: time, checkOut: null, leaveReason: undefined, leaveRange: undefined, leaveType: undefined });
     toast({ title: "Checked In", description: `${childName} has been checked in.` });
   };
 
@@ -81,29 +89,55 @@ export default function AttendancePage() {
 
   const handleMarkAbsent = (id: string) => {
     const childName = records.find(r => r.id === id)?.name;
-    handleUpdateRecord(id, { status: "Absent", checkIn: null, checkOut: null, leaveReason: undefined });
+    handleUpdateRecord(id, { status: "Absent", checkIn: null, checkOut: null, leaveReason: undefined, leaveRange: undefined, leaveType: undefined });
     toast({ variant: "default", title: "Marked Absent", description: `${childName} has been marked absent.` });
   };
 
   const handleResetStatus = (id: string) => {
     const childName = records.find(r => r.id === id)?.name;
-    handleUpdateRecord(id, { status: "Absent", checkIn: null, checkOut: null, leaveReason: undefined });
+    handleUpdateRecord(id, { status: "Pending", checkIn: null, checkOut: null, leaveReason: undefined, leaveRange: undefined, leaveType: undefined });
     toast({ title: "Status Reset", description: `The status for ${childName} has been reset.` });
   };
 
   const openLeaveDialog = (child: AttendanceRecord) => {
     setSelectedChild(child);
     setLeaveReason(child.leaveReason || "");
+    setDateRange(child.leaveRange);
     setIsLeaveDialogOpen(true);
   };
 
   const handleSaveLeave = () => {
-    if (selectedChild) {
-      handleUpdateRecord(selectedChild.id, { status: "On Leave", checkIn: null, checkOut: null, leaveReason: leaveReason });
-      toast({ title: "Leave Added", description: `Leave has been recorded for ${selectedChild.name}.` });
+    if (selectedChild && dateRange?.from) {
+      const from = dateRange.from;
+      const to = dateRange.to || from;
+      const days = differenceInDays(to, from) + 1;
+
+      let leaveType: LeaveType;
+      if (days > 21) {
+        leaveType = "Long-term";
+      } else if (days >= 7) {
+        leaveType = "Short-term";
+      } else {
+        leaveType = "Daily";
+      }
+
+      handleUpdateRecord(selectedChild.id, {
+        status: "On Leave",
+        checkIn: null,
+        checkOut: null,
+        leaveReason,
+        leaveRange: { from, to },
+        leaveType,
+      });
+
+      toast({
+        title: "Leave Saved",
+        description: `${leaveType} leave has been recorded for ${selectedChild.name}.`,
+      });
       setIsLeaveDialogOpen(false);
       setSelectedChild(null);
       setLeaveReason("");
+      setDateRange(undefined);
     }
   };
   
@@ -115,6 +149,8 @@ export default function AttendancePage() {
         return "destructive";
       case "On Leave":
         return "secondary";
+      case "Pending":
+        return "outline";
       default:
         return "outline";
     }
@@ -125,9 +161,16 @@ export default function AttendancePage() {
       case "Present":
         return "bg-accent text-accent-foreground";
       default:
-        return ""; // Use default variant colors
+        return "";
     }
   };
+
+  const getStatusText = (record: AttendanceRecord) => {
+    if (record.status === "On Leave") {
+      return `On Leave${record.leaveType ? `: ${record.leaveType}` : ''}`;
+    }
+    return record.status;
+  }
 
   return (
     <div className="space-y-6">
@@ -160,15 +203,15 @@ export default function AttendancePage() {
                     <TableCell>
                       <Badge 
                         variant={getStatusBadgeVariant(record.status)}
-                        className={cn(getStatusBadgeClass(record.status))}
+                        className={cn(getStatusBadgeClass(record.status), 'whitespace-nowrap')}
                       >
-                        {record.status}
+                        {getStatusText(record)}
                       </Badge>
                     </TableCell>
                     <TableCell>{record.checkIn || "N/A"}</TableCell>
                     <TableCell>{record.checkOut || "N/A"}</TableCell>
                     <TableCell className="text-right space-x-2 whitespace-nowrap">
-                       {(record.status === 'Absent' || record.status === 'On Leave') && (
+                       {(record.status !== 'Present') && (
                           <Button size="sm" onClick={() => handleCheckIn(record.id)}>
                             <LogIn className="mr-2 h-4 w-4" /> Check In
                           </Button>
@@ -214,12 +257,51 @@ export default function AttendancePage() {
           <DialogHeader>
             <DialogTitle>Add/Edit Leave for {selectedChild?.name}</DialogTitle>
             <DialogDescription>
-              Provide a reason for the leave. This will mark the child as "On Leave" and clear any check-in data for the day.
+              Select the date range and provide a reason for the leave. This will mark the child as "On Leave".
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="leave-reason">Leave Reason</Label>
+                <Label htmlFor="leave-dates">Leave Dates</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="leave-dates"
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateRange && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "LLL dd, y")} -{" "}
+                            {format(dateRange.to, "LLL dd, y")}
+                          </>
+                        ) : (
+                          format(dateRange.from, "LLL dd, y")
+                        )
+                      ) : (
+                        <span>Pick a date range</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={dateRange?.from}
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      numberOfMonths={2}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="leave-reason">Leave Reason (Optional)</Label>
               <Textarea
                 id="leave-reason"
                 value={leaveReason}
@@ -231,7 +313,7 @@ export default function AttendancePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsLeaveDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveLeave}>Save Leave</Button>
+            <Button onClick={handleSaveLeave} disabled={!dateRange?.from}>Save Leave</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
