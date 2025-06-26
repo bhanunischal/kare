@@ -45,14 +45,10 @@ export default function Home() {
           <Logo />
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4">
-            Features
-          </Link>
-          <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4">
-            Pricing
-          </Link>
-          <Link href="/login">
-            <Button variant="outline" size="sm">Login</Button>
+          <Link href="/login" passHref>
+            <Button variant="outline">
+              Login / Sign Up
+            </Button>
           </Link>
         </nav>
       </header>
