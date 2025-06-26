@@ -19,6 +19,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 
 type Program = 'Infant (0-12months)' | 'Toddler (1 to 3 years)' | 'Preschool (3 to 5 years)' | 'Gradeschooler (5 to 12 years)';
@@ -30,6 +31,8 @@ const programTypeOptions: ProgramType[] = ['Full time', 'Part time', 'Ad-hoc dai
 type Child = {
   id: string;
   name: string;
+  photoUrl?: string;
+  photoHint?: string;
   age: number;
   program: Program;
   programType: ProgramType;
@@ -48,12 +51,12 @@ type Child = {
 };
 
 const initialEnrolledChildren: Child[] = [
-    { id: '1', name: 'Olivia Martin', age: 4, program: 'Preschool (3 to 5 years)', programType: 'Full time', startDate: '2023-09-01', status: 'Active', dob: '2020-05-10', motherName: 'Sarah Martin', fatherName: 'David Martin', mobilePhone: '(555) 111-1111', address: '123 Maple St, Anytown, USA', emergencyName: 'Carol White', emergencyPhone: '(555) 222-2222', allergies: 'Peanuts', vaccination: 'Up to date.' },
-    { id: '2', name: 'Liam Garcia', age: 3, program: 'Toddler (1 to 3 years)', programType: 'Full time', startDate: '2023-09-01', status: 'Active', dob: '2021-08-22', motherName: 'Maria Garcia', fatherName: 'Jose Garcia', mobilePhone: '(555) 333-3333', address: '456 Oak Ave, Anytown, USA', emergencyName: 'Luis Hernandez', emergencyPhone: '(555) 444-4444', notes: 'Loves building blocks.', vaccination: 'Up to date.' },
-    { id: '3', name: 'Emma Rodriguez', age: 5, program: 'Preschool (3 to 5 years)', programType: 'Part time', startDate: '2023-09-01', status: 'Active', dob: '2019-02-15', motherName: 'Ana Rodriguez', fatherName: 'Carlos Rodriguez', mobilePhone: '(555) 555-5555', address: '789 Pine Ln, Anytown, USA', emergencyName: 'Sofia Rodriguez', emergencyPhone: '(555) 666-6666', vaccination: 'Up to date.' },
-    { id: '4', name: 'Noah Hernandez', age: 2, program: 'Toddler (1 to 3 years)', programType: 'Full time', startDate: '2024-02-01', status: 'Waitlisted', dob: '2022-01-30', motherName: 'Isabella Hernandez', fatherName: 'Mateo Hernandez', mobilePhone: '(555) 777-7777', address: '101 Birch Rd, Anytown, USA', emergencyName: 'Elena Cruz', emergencyPhone: '(555) 888-8888', allergies: 'Dairy, Gluten', vaccination: 'Missing one shot.' },
-    { id: '5', name: 'Ava Lopez', age: 4, program: 'Preschool (3 to 5 years)', programType: 'Full time', startDate: '2023-12-01', status: 'Active', dob: '2020-11-05', motherName: 'Mia Lopez', fatherName: 'James Lopez', mobilePhone: '(555) 999-9999', address: '212 Elm Ct, Anytown, USA', emergencyName: 'Sophia King', emergencyPhone: '(555) 000-0000', vaccination: 'Up to date.' },
-    { id: '6', name: 'James Wilson', age: 6, program: 'Gradeschooler (5 to 12 years)', programType: 'Part time', startDate: '2022-09-01', status: 'Inactive', dob: '2018-03-12', motherName: 'Jessica Wilson', fatherName: 'Brian Wilson', mobilePhone: '(555) 123-7890', address: '333 Cedar Dr, Anytown, USA', emergencyName: 'Robert Johnson', emergencyPhone: '(555) 987-6543' },
+    { id: '1', name: 'Olivia Martin', photoUrl: 'https://placehold.co/100x100.png', photoHint: 'girl face', age: 4, program: 'Preschool (3 to 5 years)', programType: 'Full time', startDate: '2023-09-01', status: 'Active', dob: '2020-05-10', motherName: 'Sarah Martin', fatherName: 'David Martin', mobilePhone: '(555) 111-1111', address: '123 Maple St, Anytown, USA', emergencyName: 'Carol White', emergencyPhone: '(555) 222-2222', allergies: 'Peanuts', vaccination: 'Up to date.' },
+    { id: '2', name: 'Liam Garcia', photoUrl: 'https://placehold.co/100x100.png', photoHint: 'boy face', age: 3, program: 'Toddler (1 to 3 years)', programType: 'Full time', startDate: '2023-09-01', status: 'Active', dob: '2021-08-22', motherName: 'Maria Garcia', fatherName: 'Jose Garcia', mobilePhone: '(555) 333-3333', address: '456 Oak Ave, Anytown, USA', emergencyName: 'Luis Hernandez', emergencyPhone: '(555) 444-4444', notes: 'Loves building blocks.', vaccination: 'Up to date.' },
+    { id: '3', name: 'Emma Rodriguez', photoUrl: 'https://placehold.co/100x100.png', photoHint: 'girl face', age: 5, program: 'Preschool (3 to 5 years)', programType: 'Part time', startDate: '2023-09-01', status: 'Active', dob: '2019-02-15', motherName: 'Ana Rodriguez', fatherName: 'Carlos Rodriguez', mobilePhone: '(555) 555-5555', address: '789 Pine Ln, Anytown, USA', emergencyName: 'Sofia Rodriguez', emergencyPhone: '(555) 666-6666', vaccination: 'Up to date.' },
+    { id: '4', name: 'Noah Hernandez', photoUrl: 'https://placehold.co/100x100.png', photoHint: 'boy face', age: 2, program: 'Toddler (1 to 3 years)', programType: 'Full time', startDate: '2024-02-01', status: 'Waitlisted', dob: '2022-01-30', motherName: 'Isabella Hernandez', fatherName: 'Mateo Hernandez', mobilePhone: '(555) 777-7777', address: '101 Birch Rd, Anytown, USA', emergencyName: 'Elena Cruz', emergencyPhone: '(555) 888-8888', allergies: 'Dairy, Gluten', vaccination: 'Missing one shot.' },
+    { id: '5', name: 'Ava Lopez', photoUrl: 'https://placehold.co/100x100.png', photoHint: 'girl face', age: 4, program: 'Preschool (3 to 5 years)', programType: 'Full time', startDate: '2023-12-01', status: 'Active', dob: '2020-11-05', motherName: 'Mia Lopez', fatherName: 'James Lopez', mobilePhone: '(555) 999-9999', address: '212 Elm Ct, Anytown, USA', emergencyName: 'Sophia King', emergencyPhone: '(555) 000-0000', vaccination: 'Up to date.' },
+    { id: '6', name: 'James Wilson', photoUrl: 'https://placehold.co/100x100.png', photoHint: 'boy face', age: 6, program: 'Gradeschooler (5 to 12 years)', programType: 'Part time', startDate: '2022-09-01', status: 'Inactive', dob: '2018-03-12', motherName: 'Jessica Wilson', fatherName: 'Brian Wilson', mobilePhone: '(555) 123-7890', address: '333 Cedar Dr, Anytown, USA', emergencyName: 'Robert Johnson', emergencyPhone: '(555) 987-6543' },
 ];
 
 
@@ -120,6 +123,8 @@ export default function EnrollmentPage() {
           const newChild: Child = {
             id: String(new Date().getTime()),
             name: state.data.childName,
+            photoUrl: 'https://placehold.co/100x100.png',
+            photoHint: 'child face',
             age: calculateAge(state.data.dob),
             program: state.data.program as Program,
             programType: state.data.programType as ProgramType,
@@ -215,6 +220,7 @@ export default function EnrollmentPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[80px]">Photo</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Age</TableHead>
                     <TableHead>Program Group</TableHead>
@@ -225,6 +231,12 @@ export default function EnrollmentPage() {
                 <TableBody>
                   {enrolledChildren.map((child) => (
                     <TableRow key={child.id}>
+                      <TableCell>
+                        <Avatar>
+                          <AvatarImage src={child.photoUrl} alt={child.name} data-ai-hint={child.photoHint} />
+                          <AvatarFallback>{child.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      </TableCell>
                       <TableCell className="font-medium">{child.name}</TableCell>
                       <TableCell>{child.age}</TableCell>
                       <TableCell>{child.program}</TableCell>
@@ -406,236 +418,247 @@ export default function EnrollmentPage() {
       
       <Dialog open={!!selectedChild} onOpenChange={(isOpen) => { if (!isOpen) { setSelectedChild(null); setIsEditing(false); } }}>
         <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{isEditing ? 'Edit Child Details' : 'Child Details'}</DialogTitle>
-            <DialogDescription>
-              {isEditing ? `Update information for ${editedData?.name}.` : `Detailed information for ${selectedChild?.name}.`}
-            </DialogDescription>
-          </DialogHeader>
           {selectedChild && (
-            isEditing && editedData ? (
-                <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-name">Name</Label>
-                      <Input id="edit-name" name="name" value={editedData.name} onChange={handleEditChange} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="edit-dob">Date of Birth</Label>
-                        <Input id="edit-dob" name="dob" type="date" value={editedData.dob} onChange={handleEditChange} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="edit-startDate">Start Date</Label>
-                        <Input id="edit-startDate" name="startDate" type="date" value={editedData.startDate} onChange={handleEditChange} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="edit-programType">Program Type</Label>
-                        <Select value={editedData.programType} onValueChange={(value: ProgramType) => handleProgramTypeChange(value)}>
-                            <SelectTrigger id="edit-programType">
-                                <SelectValue placeholder="Select a type" />
+            <>
+              <DialogHeader>
+                  <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
+                      <Avatar className="h-24 w-24">
+                          <AvatarImage src={isEditing ? editedData?.photoUrl : selectedChild.photoUrl} alt={selectedChild.name} data-ai-hint={isEditing ? editedData?.photoHint : selectedChild.photoHint} />
+                          <AvatarFallback>{selectedChild.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-1.5">
+                          <DialogTitle>{isEditing ? 'Edit Child Details' : selectedChild.name}</DialogTitle>
+                          <DialogDescription>
+                            {isEditing ? `Update information for ${editedData?.name}.` : `Detailed information for ${selectedChild.name}.`}
+                          </DialogDescription>
+                      </div>
+                  </div>
+              </DialogHeader>
+              {isEditing && editedData ? (
+                  <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-name">Name</Label>
+                        <Input id="edit-name" name="name" value={editedData.name} onChange={handleEditChange} />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="edit-dob">Date of Birth</Label>
+                          <Input id="edit-dob" name="dob" type="date" value={editedData.dob} onChange={handleEditChange} />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="edit-startDate">Start Date</Label>
+                          <Input id="edit-startDate" name="startDate" type="date" value={editedData.startDate} onChange={handleEditChange} />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="edit-programType">Program Type</Label>
+                          <Select value={editedData.programType} onValueChange={(value: ProgramType) => handleProgramTypeChange(value)}>
+                              <SelectTrigger id="edit-programType">
+                                  <SelectValue placeholder="Select a type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  {programTypeOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                              </SelectContent>
+                          </Select>
+                      </div>
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label htmlFor="edit-program">Program Group</Label>
+                        <Select value={editedData.program} onValueChange={(value: Program) => handleProgramChange(value)}>
+                            <SelectTrigger id="edit-program">
+                                <SelectValue placeholder="Select a program" />
                             </SelectTrigger>
                             <SelectContent>
-                                {programTypeOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                                {programOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
                             </SelectContent>
                         </Select>
-                    </div>
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="edit-program">Program Group</Label>
-                      <Select value={editedData.program} onValueChange={(value: Program) => handleProgramChange(value)}>
-                          <SelectTrigger id="edit-program">
-                              <SelectValue placeholder="Select a program" />
-                          </SelectTrigger>
-                          <SelectContent>
-                              {programOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
-                          </SelectContent>
-                      </Select>
-                   </div>
-                  </div>
-                  <Separator />
-                  <h4 className="font-semibold text-base">Parent/Guardian Information</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-motherName">Mother's Name</Label>
-                      <Input id="edit-motherName" name="motherName" value={editedData.motherName} onChange={handleEditChange} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-fatherName">Father's Name</Label>
-                      <Input id="edit-fatherName" name="fatherName" value={editedData.fatherName} onChange={handleEditChange} />
-                    </div>
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="edit-mobilePhone">Mobile Phone</Label>
-                      <Input id="edit-mobilePhone" name="mobilePhone" value={editedData.mobilePhone} onChange={handleEditChange} />
-                    </div>
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="edit-address">Address</Label>
-                      <Textarea id="edit-address" name="address" value={editedData.address} onChange={handleEditChange} />
-                    </div>
-                  </div>
-                  <Separator />
-                  <h4 className="font-semibold text-base">Emergency Contact</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <div className="space-y-2">
-                      <Label htmlFor="edit-emergencyName">Name</Label>
-                      <Input id="edit-emergencyName" name="emergencyName" value={editedData.emergencyName} onChange={handleEditChange} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-emergencyPhone">Phone</Label>
-                      <Input id="edit-emergencyPhone" name="emergencyPhone" value={editedData.emergencyPhone} onChange={handleEditChange} />
-                    </div>
-                  </div>
-                   <Separator />
-                  <h4 className="font-semibold text-base">Health Information</h4>
-                  <div className="grid grid-cols-1 gap-4">
-                     <div className="space-y-2">
-                      <Label htmlFor="edit-vaccination">Vaccination</Label>
-                      <Textarea id="edit-vaccination" name="vaccination" value={editedData.vaccination || ''} onChange={handleEditChange} />
-                    </div>
-                     <div className="space-y-2">
-                      <Label htmlFor="edit-allergies">Allergies</Label>
-                      <Textarea id="edit-allergies" name="allergies" value={editedData.allergies || ''} onChange={handleEditChange} />
-                    </div>
-                     <div className="space-y-2">
-                      <Label htmlFor="edit-notes">Notes</Label>
-                      <Textarea id="edit-notes" name="notes" value={editedData.notes || ''} onChange={handleEditChange} />
-                    </div>
-                  </div>
-                </div>
-            ) : (
-                <div className="space-y-6 py-4 text-sm max-h-[70vh] overflow-y-auto pr-4">
-                    <div>
-                        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                            <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Name</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.name}</dd>
-                            </div>
-                             <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Age</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.age}</dd>
-                            </div>
-                            <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Date of Birth</dt>
-                                <dd className="mt-1 text-foreground">{new Date(selectedChild.dob).toLocaleDateString()}</dd>
-                            </div>
-                            <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Start Date</dt>
-                                <dd className="mt-1 text-foreground">{new Date(selectedChild.startDate).toLocaleDateString()}</dd>
-                            </div>
-                             <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Program Group</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.program}</dd>
-                            </div>
-                            <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Program Type</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.programType}</dd>
-                            </div>
-                             <div className="sm:col-span-2">
-                                <dt className="font-medium text-muted-foreground">Status</dt>
-                                <dd className="mt-1 text-foreground">
-                                    <Badge 
-                                        variant={
-                                            selectedChild.status === 'Active' ? 'default' :
-                                            selectedChild.status === 'Waitlisted' ? 'secondary' :
-                                            'outline'
-                                        } 
-                                        className={cn({'bg-accent text-accent-foreground': selectedChild.status === 'Active'})}>
-                                        {selectedChild.status}
-                                    </Badge>
-                                </dd>
-                            </div>
-                        </dl>
+                     </div>
                     </div>
                     <Separator />
-                    <div>
-                        <h4 className="font-semibold text-base mb-4">Parent/Guardian Information</h4>
-                        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                             <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Mother's Name</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.motherName}</dd>
-                            </div>
-                            <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Father's Name</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.fatherName}</dd>
-                            </div>
-                            <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Mobile Phone</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.mobilePhone}</dd>
-                            </div>
-                            <div className="sm:col-span-2">
-                                <dt className="font-medium text-muted-foreground">Address</dt>
-                                <dd className="mt-1 text-foreground whitespace-pre-wrap">{selectedChild.address}</dd>
-                            </div>
-                        </dl>
+                    <h4 className="font-semibold text-base">Parent/Guardian Information</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-motherName">Mother's Name</Label>
+                        <Input id="edit-motherName" name="motherName" value={editedData.motherName} onChange={handleEditChange} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-fatherName">Father's Name</Label>
+                        <Input id="edit-fatherName" name="fatherName" value={editedData.fatherName} onChange={handleEditChange} />
+                      </div>
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label htmlFor="edit-mobilePhone">Mobile Phone</Label>
+                        <Input id="edit-mobilePhone" name="mobilePhone" value={editedData.mobilePhone} onChange={handleEditChange} />
+                      </div>
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label htmlFor="edit-address">Address</Label>
+                        <Textarea id="edit-address" name="address" value={editedData.address} onChange={handleEditChange} />
+                      </div>
                     </div>
                     <Separator />
-                     <div>
-                        <h4 className="font-semibold text-base mb-4">Emergency Contact</h4>
-                        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                             <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Name</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.emergencyName}</dd>
-                            </div>
-                            <div className="sm:col-span-1">
-                                <dt className="font-medium text-muted-foreground">Phone</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.emergencyPhone}</dd>
-                            </div>
-                        </dl>
+                    <h4 className="font-semibold text-base">Emergency Contact</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                        <Label htmlFor="edit-emergencyName">Name</Label>
+                        <Input id="edit-emergencyName" name="emergencyName" value={editedData.emergencyName} onChange={handleEditChange} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-emergencyPhone">Phone</Label>
+                        <Input id="edit-emergencyPhone" name="emergencyPhone" value={editedData.emergencyPhone} onChange={handleEditChange} />
+                      </div>
                     </div>
-                    <Separator />
-                    <div>
-                        <h4 className="font-semibold text-base mb-4">Health Information</h4>
-                        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-1">
-                             <div>
-                                <dt className="font-medium text-muted-foreground">Vaccination</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.vaccination || 'N/A'}</dd>
-                            </div>
-                             <div>
-                                <dt className="font-medium text-muted-foreground">Allergies</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.allergies || 'None'}</dd>
-                            </div>
-                             <div>
-                                <dt className="font-medium text-muted-foreground">Notes</dt>
-                                <dd className="mt-1 text-foreground">{selectedChild.notes || 'None'}</dd>
-                            </div>
-                        </dl>
+                     <Separator />
+                    <h4 className="font-semibold text-base">Health Information</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                       <div className="space-y-2">
+                        <Label htmlFor="edit-vaccination">Vaccination</Label>
+                        <Textarea id="edit-vaccination" name="vaccination" value={editedData.vaccination || ''} onChange={handleEditChange} />
+                      </div>
+                       <div className="space-y-2">
+                        <Label htmlFor="edit-allergies">Allergies</Label>
+                        <Textarea id="edit-allergies" name="allergies" value={editedData.allergies || ''} onChange={handleEditChange} />
+                      </div>
+                       <div className="space-y-2">
+                        <Label htmlFor="edit-notes">Notes</Label>
+                        <Textarea id="edit-notes" name="notes" value={editedData.notes || ''} onChange={handleEditChange} />
+                      </div>
                     </div>
-                </div>
-             )
-          )}
-          <DialogFooter>
-             {isEditing ? (
-                <>
-                    <Button variant="outline" onClick={() => { setIsEditing(false); setEditedData(null); }}>Cancel</Button>
-                    <Button onClick={handleSaveChanges}>Save Changes</Button>
-                </>
-             ) : (
-                <>
-                    <div className="mr-auto">
-                        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="destructive">Delete</Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the child's record.
-                                </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDeleteChild}>Continue</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
-                    <Button variant="outline" onClick={() => setSelectedChild(null)}>Close</Button>
-                    <Button variant="outline" onClick={handleDeactivateChild}>
-                      {selectedChild?.status === 'Active' ? 'Deactivate' : 'Activate'}
-                    </Button>
-                    <Button onClick={() => { setIsEditing(true); setEditedData(selectedChild); }}>Edit</Button>
-                </>
-             )}
-          </DialogFooter>
+                  </div>
+              ) : (
+                  <div className="space-y-6 py-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
+                      <div>
+                          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                              <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Name</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.name}</dd>
+                              </div>
+                               <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Age</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.age}</dd>
+                              </div>
+                              <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Date of Birth</dt>
+                                  <dd className="mt-1 text-foreground">{new Date(selectedChild.dob).toLocaleDateString()}</dd>
+                              </div>
+                              <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Start Date</dt>
+                                  <dd className="mt-1 text-foreground">{new Date(selectedChild.startDate).toLocaleDateString()}</dd>
+                              </div>
+                               <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Program Group</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.program}</dd>
+                              </div>
+                              <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Program Type</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.programType}</dd>
+                              </div>
+                               <div className="sm:col-span-2">
+                                  <dt className="font-medium text-muted-foreground">Status</dt>
+                                  <dd className="mt-1 text-foreground">
+                                      <Badge 
+                                          variant={
+                                              selectedChild.status === 'Active' ? 'default' :
+                                              selectedChild.status === 'Waitlisted' ? 'secondary' :
+                                              'outline'
+                                          } 
+                                          className={cn({'bg-accent text-accent-foreground': selectedChild.status === 'Active'})}>
+                                          {selectedChild.status}
+                                      </Badge>
+                                  </dd>
+                              </div>
+                          </dl>
+                      </div>
+                      <Separator />
+                      <div>
+                          <h4 className="font-semibold text-base mb-4">Parent/Guardian Information</h4>
+                          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                               <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Mother's Name</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.motherName}</dd>
+                              </div>
+                              <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Father's Name</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.fatherName}</dd>
+                              </div>
+                              <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Mobile Phone</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.mobilePhone}</dd>
+                              </div>
+                              <div className="sm:col-span-2">
+                                  <dt className="font-medium text-muted-foreground">Address</dt>
+                                  <dd className="mt-1 text-foreground whitespace-pre-wrap">{selectedChild.address}</dd>
+                              </div>
+                          </dl>
+                      </div>
+                      <Separator />
+                       <div>
+                          <h4 className="font-semibold text-base mb-4">Emergency Contact</h4>
+                          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                               <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Name</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.emergencyName}</dd>
+                              </div>
+                              <div className="sm:col-span-1">
+                                  <dt className="font-medium text-muted-foreground">Phone</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.emergencyPhone}</dd>
+                              </div>
+                          </dl>
+                      </div>
+                      <Separator />
+                      <div>
+                          <h4 className="font-semibold text-base mb-4">Health Information</h4>
+                          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-1">
+                               <div>
+                                  <dt className="font-medium text-muted-foreground">Vaccination</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.vaccination || 'N/A'}</dd>
+                              </div>
+                               <div>
+                                  <dt className="font-medium text-muted-foreground">Allergies</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.allergies || 'None'}</dd>
+                              </div>
+                               <div>
+                                  <dt className="font-medium text-muted-foreground">Notes</dt>
+                                  <dd className="mt-1 text-foreground">{selectedChild.notes || 'None'}</dd>
+                              </div>
+                          </dl>
+                      </div>
+                  </div>
+               )
+            }
+            <DialogFooter>
+               {isEditing ? (
+                  <>
+                      <Button variant="outline" onClick={() => { setIsEditing(false); setEditedData(null); }}>Cancel</Button>
+                      <Button onClick={handleSaveChanges}>Save Changes</Button>
+                  </>
+               ) : (
+                  <>
+                      <div className="mr-auto">
+                          <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                              <AlertDialogTrigger asChild>
+                                  <Button variant="destructive">Delete</Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                      This action cannot be undone. This will permanently delete the child's record.
+                                  </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleDeleteChild}>Continue</AlertDialogAction>
+                                  </AlertDialogFooter>
+                              </AlertDialogContent>
+                          </AlertDialog>
+                      </div>
+                      <Button variant="outline" onClick={() => setSelectedChild(null)}>Close</Button>
+                      <Button variant="outline" onClick={handleDeactivateChild}>
+                        {selectedChild?.status === 'Active' ? 'Deactivate' : 'Activate'}
+                      </Button>
+                      <Button onClick={() => { setIsEditing(true); setEditedData(selectedChild); }}>Edit</Button>
+                  </>
+               )}
+            </DialogFooter>
+          </>
+        )}
         </DialogContent>
       </Dialog>
     </div>

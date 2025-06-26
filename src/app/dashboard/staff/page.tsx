@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/table';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Badge} from '@/components/ui/badge';
-import {Loader2} from 'lucide-react';
+import {Loader2, ImageUp} from 'lucide-react';
 import {Textarea} from '@/components/ui/textarea';
 import {useToast} from '@/hooks/use-toast';
 import {addStaffMember, type StaffFormData} from './actions';
@@ -69,6 +69,8 @@ type Status = 'Active' | 'On Leave' | 'Inactive';
 type StaffMember = {
   id: string;
   name: string;
+  photoUrl?: string;
+  photoHint?: string;
   role: Role;
   certifications: string;
   status: Status;
@@ -84,6 +86,8 @@ const initialStaffMembers: StaffMember[] = [
   {
     id: '1',
     name: 'Jane Doe',
+    photoUrl: 'https://placehold.co/100x100.png',
+    photoHint: 'woman face',
     role: 'Lead ECE',
     certifications: 'ECE License, First Aid',
     status: 'Active',
@@ -96,6 +100,8 @@ const initialStaffMembers: StaffMember[] = [
   {
     id: '2',
     name: 'John Smith',
+    photoUrl: 'https://placehold.co/100x100.png',
+    photoHint: 'man face',
     role: 'Assistant',
     certifications: 'First Aid',
     status: 'Active',
@@ -108,6 +114,8 @@ const initialStaffMembers: StaffMember[] = [
   {
     id: '3',
     name: 'Emily White',
+    photoUrl: 'https://placehold.co/100x100.png',
+    photoHint: 'woman face',
     role: 'ECE-IT',
     certifications: 'ECE License',
     status: 'Active',
@@ -120,6 +128,8 @@ const initialStaffMembers: StaffMember[] = [
   {
     id: '4',
     name: 'Michael Brown',
+    photoUrl: 'https://placehold.co/100x100.png',
+    photoHint: 'man face',
     role: 'Support Staff',
     certifications: 'Background Check',
     status: 'On Leave',
@@ -132,6 +142,8 @@ const initialStaffMembers: StaffMember[] = [
   {
     id: '5',
     name: 'Sarah Green',
+    photoUrl: 'https://placehold.co/100x100.png',
+    photoHint: 'woman face',
     role: 'Lead ECE',
     certifications: 'ECE License, First Aid',
     status: 'Active',
@@ -194,6 +206,8 @@ export default function StaffPage() {
           const newStaff: StaffMember = {
             id: String(new Date().getTime()),
             name: state.data.name,
+            photoUrl: 'https://placehold.co/100x100.png',
+            photoHint: 'person face',
             role: state.data.role as Role,
             status: 'Active',
             startDate: state.data.startDate,
@@ -311,9 +325,9 @@ export default function StaffPage() {
                         <div className="flex items-center gap-3">
                           <Avatar className="hidden h-9 w-9 sm:flex">
                             <AvatarImage
-                              src={`https://placehold.co/100x100.png`}
-                              alt="Avatar"
-                              data-ai-hint="person face"
+                              src={staff.photoUrl}
+                              alt={staff.name}
+                              data-ai-hint={staff.photoHint}
                             />
                             <AvatarFallback>{staff.name.charAt(0)}</AvatarFallback>
                           </Avatar>
@@ -370,6 +384,21 @@ export default function StaffPage() {
             </CardHeader>
             <CardContent>
               <form ref={formRef} action={formAction} className="space-y-8">
+                <div className="space-y-2">
+                  <Label>Staff Profile Photo</Label>
+                  <Card className="border-2 border-dashed">
+                    <CardContent className="p-6 text-center">
+                      <ImageUp className="mx-auto h-12 w-12 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Drag & drop a photo here, or click to upload.
+                      </p>
+                      <Button variant="outline" size="sm" className="mt-4" type="button">
+                        Upload Photo
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
@@ -477,253 +506,261 @@ export default function StaffPage() {
         }}
       >
         <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {isEditing ? 'Edit Staff Details' : 'Staff Details'}
-            </DialogTitle>
-            <DialogDescription>
-              {isEditing
-                ? `Update information for ${editedData?.name}.`
-                : `Detailed information for ${selectedStaff?.name}.`}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedStaff &&
-            (isEditing && editedData ? (
-              <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+           {selectedStaff && (
+            <>
+              <DialogHeader>
+                  <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
+                      <Avatar className="h-24 w-24">
+                          <AvatarImage src={isEditing ? editedData?.photoUrl : selectedStaff.photoUrl} alt={selectedStaff.name} data-ai-hint={isEditing ? editedData?.photoHint : selectedStaff.photoHint} />
+                          <AvatarFallback>{selectedStaff.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-1.5">
+                          <DialogTitle>{isEditing ? 'Edit Staff Details' : selectedStaff.name}</DialogTitle>
+                          <DialogDescription>
+                              {isEditing ? `Update information for ${editedData?.name}.` : `Detailed information for ${selectedStaff.name}.`}
+                          </DialogDescription>
+                      </div>
+                  </div>
+              </DialogHeader>
+
+              {isEditing && editedData ? (
+                <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-name">Name</Label>
+                      <Input
+                        id="edit-name"
+                        name="name"
+                        value={editedData.name}
+                        onChange={handleEditChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-role">Role</Label>
+                      <Select
+                        value={editedData.role}
+                        onValueChange={(value: Role) => handleRoleChange(value)}
+                      >
+                        <SelectTrigger id="edit-role">
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roleOptions.map(option => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-startDate">Start Date</Label>
+                      <Input
+                        id="edit-startDate"
+                        name="startDate"
+                        type="date"
+                        value={editedData.startDate}
+                        onChange={handleEditChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-phone">Phone</Label>
+                      <Input
+                        id="edit-phone"
+                        name="phone"
+                        value={editedData.phone}
+                        onChange={handleEditChange}
+                      />
+                    </div>
+                  </div>
+                  <Separator />
                   <div className="space-y-2">
-                    <Label htmlFor="edit-name">Name</Label>
-                    <Input
-                      id="edit-name"
-                      name="name"
-                      value={editedData.name}
+                    <Label htmlFor="edit-address">Address</Label>
+                    <Textarea
+                      id="edit-address"
+                      name="address"
+                      value={editedData.address}
                       onChange={handleEditChange}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-role">Role</Label>
-                    <Select
-                      value={editedData.role}
-                      onValueChange={(value: Role) => handleRoleChange(value)}
-                    >
-                      <SelectTrigger id="edit-role">
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roleOptions.map(option => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <Separator />
+                  <h4 className="font-semibold text-base">Emergency Contact</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-emergencyName">Name</Label>
+                      <Input
+                        id="edit-emergencyName"
+                        name="emergencyName"
+                        value={editedData.emergencyName}
+                        onChange={handleEditChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-emergencyPhone">Phone</Label>
+                      <Input
+                        id="edit-emergencyPhone"
+                        name="emergencyPhone"
+                        value={editedData.emergencyPhone}
+                        onChange={handleEditChange}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-startDate">Start Date</Label>
-                    <Input
-                      id="edit-startDate"
-                      name="startDate"
-                      type="date"
-                      value={editedData.startDate}
-                      onChange={handleEditChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-phone">Phone</Label>
-                    <Input
-                      id="edit-phone"
-                      name="phone"
-                      value={editedData.phone}
-                      onChange={handleEditChange}
-                    />
-                  </div>
+                  <Separator />
+                   <h4 className="font-semibold text-base">Qualifications & Notes</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                       <div className="space-y-2">
+                        <Label htmlFor="edit-certifications">Certifications</Label>
+                        <Textarea id="edit-certifications" name="certifications" value={editedData.certifications || ''} onChange={handleEditChange} />
+                      </div>
+                       <div className="space-y-2">
+                        <Label htmlFor="edit-notes">Notes</Label>
+                        <Textarea id="edit-notes" name="notes" value={editedData.notes || ''} onChange={handleEditChange} />
+                      </div>
+                    </div>
                 </div>
-                <Separator />
-                <div className="space-y-2">
-                  <Label htmlFor="edit-address">Address</Label>
-                  <Textarea
-                    id="edit-address"
-                    name="address"
-                    value={editedData.address}
-                    onChange={handleEditChange}
-                  />
-                </div>
-                <Separator />
-                <h4 className="font-semibold text-base">Emergency Contact</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-emergencyName">Name</Label>
-                    <Input
-                      id="edit-emergencyName"
-                      name="emergencyName"
-                      value={editedData.emergencyName}
-                      onChange={handleEditChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-emergencyPhone">Phone</Label>
-                    <Input
-                      id="edit-emergencyPhone"
-                      name="emergencyPhone"
-                      value={editedData.emergencyPhone}
-                      onChange={handleEditChange}
-                    />
-                  </div>
-                </div>
-                <Separator />
-                 <h4 className="font-semibold text-base">Qualifications & Notes</h4>
-                  <div className="grid grid-cols-1 gap-4">
-                     <div className="space-y-2">
-                      <Label htmlFor="edit-certifications">Certifications</Label>
-                      <Textarea id="edit-certifications" name="certifications" value={editedData.certifications || ''} onChange={handleEditChange} />
-                    </div>
-                     <div className="space-y-2">
-                      <Label htmlFor="edit-notes">Notes</Label>
-                      <Textarea id="edit-notes" name="notes" value={editedData.notes || ''} onChange={handleEditChange} />
-                    </div>
-                  </div>
-              </div>
-            ) : (
-              <div className="space-y-6 py-4 text-sm max-h-[70vh] overflow-y-auto pr-4">
-                <div>
-                  <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                    <div className="sm:col-span-1">
-                      <dt className="font-medium text-muted-foreground">Name</dt>
-                      <dd className="mt-1 text-foreground">{selectedStaff.name}</dd>
-                    </div>
-                    <div className="sm:col-span-1">
-                      <dt className="font-medium text-muted-foreground">Role</dt>
-                      <dd className="mt-1 text-foreground">{selectedStaff.role}</dd>
-                    </div>
-                     <div className="sm:col-span-1">
-                        <dt className="font-medium text-muted-foreground">Start Date</dt>
-                        <dd className="mt-1 text-foreground">{new Date(selectedStaff.startDate).toLocaleDateString()}</dd>
-                    </div>
-                    <div className="sm:col-span-1">
-                      <dt className="font-medium text-muted-foreground">Status</dt>
-                      <dd className="mt-1 text-foreground">
-                        <Badge
-                          variant={
-                            selectedStaff.status === 'Active'
-                              ? 'default'
-                              : selectedStaff.status === 'On Leave'
-                              ? 'secondary'
-                              : 'outline'
-                          }
-                           className={cn({'bg-accent text-accent-foreground': selectedStaff.status === 'Active'})}
-                        >
-                          {selectedStaff.status}
-                        </Badge>
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-                <Separator />
-                 <div>
-                    <h4 className="font-semibold text-base mb-4">Contact Information</h4>
+              ) : (
+                <div className="space-y-6 py-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
+                  <div>
                     <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                         <div className="sm:col-span-1">
-                            <dt className="font-medium text-muted-foreground">Phone</dt>
-                            <dd className="mt-1 text-foreground">{selectedStaff.phone}</dd>
-                        </div>
-                        <div className="sm:col-span-2">
-                            <dt className="font-medium text-muted-foreground">Address</dt>
-                            <dd className="mt-1 text-foreground whitespace-pre-wrap">{selectedStaff.address}</dd>
-                        </div>
+                      <div className="sm:col-span-1">
+                        <dt className="font-medium text-muted-foreground">Name</dt>
+                        <dd className="mt-1 text-foreground">{selectedStaff.name}</dd>
+                      </div>
+                      <div className="sm:col-span-1">
+                        <dt className="font-medium text-muted-foreground">Role</dt>
+                        <dd className="mt-1 text-foreground">{selectedStaff.role}</dd>
+                      </div>
+                       <div className="sm:col-span-1">
+                          <dt className="font-medium text-muted-foreground">Start Date</dt>
+                          <dd className="mt-1 text-foreground">{new Date(selectedStaff.startDate).toLocaleDateString()}</dd>
+                      </div>
+                      <div className="sm:col-span-1">
+                        <dt className="font-medium text-muted-foreground">Status</dt>
+                        <dd className="mt-1 text-foreground">
+                          <Badge
+                            variant={
+                              selectedStaff.status === 'Active'
+                                ? 'default'
+                                : selectedStaff.status === 'On Leave'
+                                ? 'secondary'
+                                : 'outline'
+                            }
+                             className={cn({'bg-accent text-accent-foreground': selectedStaff.status === 'Active'})}
+                          >
+                            {selectedStaff.status}
+                          </Badge>
+                        </dd>
+                      </div>
                     </dl>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="font-semibold text-base mb-4">Emergency Contact</h4>
-                  <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                    <div className="sm:col-span-1">
-                      <dt className="font-medium text-muted-foreground">Name</dt>
-                      <dd className="mt-1 text-foreground">
-                        {selectedStaff.emergencyName}
-                      </dd>
-                    </div>
-                    <div className="sm:col-span-1">
-                      <dt className="font-medium text-muted-foreground">Phone</dt>
-                      <dd className="mt-1 text-foreground">
-                        {selectedStaff.emergencyPhone}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-                 <Separator />
-                 <div>
-                    <h4 className="font-semibold text-base mb-4">Qualifications & Notes</h4>
-                    <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-1">
-                         <div>
-                            <dt className="font-medium text-muted-foreground">Certifications</dt>
-                            <dd className="mt-1 text-foreground">{selectedStaff.certifications || 'N/A'}</dd>
-                        </div>
-                         <div>
-                            <dt className="font-medium text-muted-foreground">Notes</dt>
-                            <dd className="mt-1 text-foreground">{selectedStaff.notes || 'None'}</dd>
-                        </div>
+                  </div>
+                  <Separator />
+                   <div>
+                      <h4 className="font-semibold text-base mb-4">Contact Information</h4>
+                      <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                           <div className="sm:col-span-1">
+                              <dt className="font-medium text-muted-foreground">Phone</dt>
+                              <dd className="mt-1 text-foreground">{selectedStaff.phone}</dd>
+                          </div>
+                          <div className="sm:col-span-2">
+                              <dt className="font-medium text-muted-foreground">Address</dt>
+                              <dd className="mt-1 text-foreground whitespace-pre-wrap">{selectedStaff.address}</dd>
+                          </div>
+                      </dl>
+                  </div>
+                  <Separator />
+                  <div>
+                    <h4 className="font-semibold text-base mb-4">Emergency Contact</h4>
+                    <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                      <div className="sm:col-span-1">
+                        <dt className="font-medium text-muted-foreground">Name</dt>
+                        <dd className="mt-1 text-foreground">
+                          {selectedStaff.emergencyName}
+                        </dd>
+                      </div>
+                      <div className="sm:col-span-1">
+                        <dt className="font-medium text-muted-foreground">Phone</dt>
+                        <dd className="mt-1 text-foreground">
+                          {selectedStaff.emergencyPhone}
+                        </dd>
+                      </div>
                     </dl>
+                  </div>
+                   <Separator />
+                   <div>
+                      <h4 className="font-semibold text-base mb-4">Qualifications & Notes</h4>
+                      <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-1">
+                           <div>
+                              <dt className="font-medium text-muted-foreground">Certifications</dt>
+                              <dd className="mt-1 text-foreground">{selectedStaff.certifications || 'N/A'}</dd>
+                          </div>
+                           <div>
+                              <dt className="font-medium text-muted-foreground">Notes</dt>
+                              <dd className="mt-1 text-foreground">{selectedStaff.notes || 'None'}</dd>
+                          </div>
+                      </dl>
+                  </div>
                 </div>
-              </div>
-            ))}
-          <DialogFooter>
-            {isEditing ? (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedData(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveChanges}>Save Changes</Button>
-              </>
-            ) : (
-              <>
-                <div className="mr-auto">
-                  <AlertDialog
-                    open={isDeleteDialogOpen}
-                    onOpenChange={setIsDeleteDialogOpen}
-                  >
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive">Delete</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete
-                          this staff member's record.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteStaff}>
-                          Continue
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-                <Button variant="outline" onClick={() => setSelectedStaff(null)}>
-                  Close
-                </Button>
-                <Button variant="outline" onClick={handleDeactivateStaff}>
-                  {selectedStaff?.status === 'Active' ? 'Deactivate' : 'Activate'}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setIsEditing(true);
-                    setEditedData(selectedStaff);
-                  }}
-                >
-                  Edit
-                </Button>
-              </>
-            )}
-          </DialogFooter>
+              ))}
+              <DialogFooter>
+                {isEditing ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditedData(null);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveChanges}>Save Changes</Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="mr-auto">
+                      <AlertDialog
+                        open={isDeleteDialogOpen}
+                        onOpenChange={setIsDeleteDialogOpen}
+                      >
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive">Delete</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete
+                              this staff member's record.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteStaff}>
+                              Continue
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                    <Button variant="outline" onClick={() => setSelectedStaff(null)}>
+                      Close
+                    </Button>
+                    <Button variant="outline" onClick={handleDeactivateStaff}>
+                      {selectedStaff?.status === 'Active' ? 'Deactivate' : 'Activate'}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setIsEditing(true);
+                        setEditedData(selectedStaff);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </>
+                )}
+              </DialogFooter>
+          </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
