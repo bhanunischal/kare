@@ -1,7 +1,21 @@
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { DashboardNav } from "@/components/dashboard-nav";
+import Link from "next/link";
+import {
+  Menu,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DashboardNav } from "@/components/dashboard-nav";
 
 export default function DashboardLayout({
   children,
@@ -9,34 +23,75 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
-      <div className="min-h-screen">
-        <Sidebar collapsible="icon">
-          <SidebarHeader>
-            <div className="flex items-center gap-2 p-2 justify-between">
-                <Logo />
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <DashboardNav />
-          </SidebarContent>
-        </Sidebar>
-        <SidebarInset>
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-            <SidebarTrigger />
-            <div className="ml-auto flex items-center gap-4">
-              <span className="font-medium text-sm">Jane Doe</span>
-              <Avatar>
-                <AvatarImage src="https://placehold.co/100x100.png" alt="@janedoe" data-ai-hint="woman face" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-            </div>
-          </header>
-          <main className="p-4 sm:px-6 sm:py-0 space-y-6">
-            {children}
-          </main>
-        </SidebarInset>
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+      <div className="hidden border-r bg-muted/40 md:block">
+        <div className="flex h-full max-h-screen flex-col gap-2">
+          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+            <Link href="/" className="flex items-center gap-2 font-semibold">
+              <Logo />
+            </Link>
+          </div>
+          <div className="flex-1">
+            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+              <DashboardNav />
+            </nav>
+          </div>
+        </div>
       </div>
-    </SidebarProvider>
+      <div className="flex flex-col">
+        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="flex flex-col">
+              <nav className="grid gap-2 text-lg font-medium">
+                <Link
+                  href="#"
+                  className="flex items-center gap-2 text-lg font-semibold mb-4"
+                >
+                  <Logo />
+                </Link>
+                <DashboardNav />
+              </nav>
+            </SheetContent>
+          </Sheet>
+          <div className="w-full flex-1">
+            {/* Optional Search */}
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="secondary" size="icon" className="rounded-full">
+                 <Avatar>
+                    <AvatarImage src="https://placehold.co/100x100.png" alt="@janedoe" data-ai-hint="woman face" />
+                    <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
+                <span className="sr-only">Toggle user menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Jane Doe</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuSeparator />
+               <Link href="/login">
+                <DropdownMenuItem>Logout</DropdownMenuItem>
+              </Link>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }
