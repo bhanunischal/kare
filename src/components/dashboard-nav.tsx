@@ -12,7 +12,8 @@ import {
     BadgeDollarSign,
     BrainCircuit,
     FileText,
-    Wallet
+    Wallet,
+    LineChart
 } from "lucide-react";
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
     { href: "/dashboard/communication", icon: <MessageSquare className="h-5 w-5 md:h-4 md:w-4" />, text: "Communication" },
     { href: "/dashboard/billing", icon: <CreditCard className="h-5 w-5 md:h-4 md:w-4" />, text: "Billing" },
     { href: "/dashboard/expenses", icon: <Wallet className="h-5 w-5 md:h-4 md:w-4" />, text: "Expenses" },
+    { href: "/dashboard/reports", icon: <LineChart className="h-5 w-5 md:h-4 md:w-4" />, text: "Reports" },
     { href: "/dashboard/subsidies", icon: <BadgeDollarSign className="h-5 w-5 md:h-4 md:w-4" />, text: "Subsidies" },
     { href: "/dashboard/waitlist-analytics", icon: <BrainCircuit className="h-5 w-5 md:h-4 md:w-4" />, text: "Waitlist Analytics" },
 ];
