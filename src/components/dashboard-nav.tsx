@@ -35,7 +35,7 @@ export function DashboardNav() {
           <Link href={item.href}>
             <SidebarMenuButton tooltip={item.text}>
               {item.icon}
-              <span>{item.text}</span>
+              <span className="group-data-[collapsible=icon]:hidden">{item.text}</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>
