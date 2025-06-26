@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { FileUp } from "lucide-react";
+import { FileUp, ImageUp } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 const enrolledChildren = [
   { id: '1', name: 'Olivia Martin', age: 4, program: 'Preschool', status: 'Active' },
@@ -72,7 +73,22 @@ export default function EnrollmentPage() {
               <CardTitle>New Child Registration</CardTitle>
               <CardDescription>Fill out the form below to register a new child.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8">
+              <div className="space-y-2">
+                <Label>Child's Profile Photo</Label>
+                <Card className="border-2 border-dashed">
+                  <CardContent className="p-6 text-center">
+                    <ImageUp className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Drag & drop a photo here, or click to upload.
+                    </p>
+                    <Button variant="outline" size="sm" className="mt-4">
+                      Upload Photo
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="child-name">Child's Full Name</Label>
@@ -82,33 +98,66 @@ export default function EnrollmentPage() {
                   <Label htmlFor="dob">Date of Birth</Label>
                   <Input id="dob" type="date" />
                 </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="parent-name">Parent/Guardian Name</Label>
-                  <Input id="parent-name" placeholder="e.g., John Smith" />
-                </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="parent-email">Parent/Guardian Email</Label>
-                  <Input id="parent-email" type="email" placeholder="e.g., parent@example.com" />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium border-b pb-2">Parent/Guardian Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="mother-name">Mother's Name</Label>
+                    <Input id="mother-name" placeholder="e.g., Mary Smith" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="father-name">Father's Name</Label>
+                    <Input id="father-name" placeholder="e.g., John Smith" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="home-phone">Home Phone</Label>
+                    <Input id="home-phone" type="tel" placeholder="e.g., (555) 123-4567" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="mobile-phone">Mobile Phone</Label>
+                    <Input id="mobile-phone" type="tel" placeholder="e.g., (555) 987-6543" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Textarea id="address" placeholder="e.g., 123 Main St, Anytown, USA 12345" />
+                  </div>
                 </div>
               </div>
-               <div className="space-y-2">
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium border-b pb-2">Emergency Contact</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency-name">Contact Full Name</Label>
+                    <Input id="emergency-name" placeholder="e.g., Carol Danvers" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency-phone">Contact Phone Number</Label>
+                    <Input id="emergency-phone" type="tel" placeholder="e.g., (555) 111-2222" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <Label>Required Documents</Label>
                 <Card className="border-2 border-dashed">
                   <CardContent className="p-6 text-center">
                     <FileUp className="mx-auto h-12 w-12 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground mt-2">
-                        Drag & drop files here, or click to upload.
+                      Drag & drop files here, or click to upload.
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                        (Birth Certificate, Immunization Records)
+                      (Birth Certificate, Immunization Records)
                     </p>
                     <Button variant="outline" size="sm" className="mt-4">
-                        Upload Files
+                      Upload Files
                     </Button>
                   </CardContent>
                 </Card>
-               </div>
-              <Button>Submit Registration</Button>
+              </div>
+              <Button size="lg">Submit Registration</Button>
             </CardContent>
           </Card>
         </TabsContent>
