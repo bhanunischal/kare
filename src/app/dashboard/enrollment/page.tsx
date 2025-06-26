@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useEffect, useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,7 +38,7 @@ function SubmitButton() {
 }
 
 export default function EnrollmentPage() {
-  const [state, formAction] = useFormState(submitRegistration, initialState);
+  const [state, formAction] = useActionState(submitRegistration, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
