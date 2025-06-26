@@ -1,3 +1,4 @@
+
 'use client';
 
 import {useEffect, useActionState, useState, useRef} from 'react';
@@ -700,7 +701,7 @@ export default function StaffPage() {
                       </dl>
                   </div>
                 </div>
-              ))}
+              )}
               <DialogFooter>
                 {isEditing ? (
                   <>
