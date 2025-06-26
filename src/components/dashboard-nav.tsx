@@ -16,13 +16,15 @@ import {
     Wallet,
     LineChart,
     FolderKanban,
-    Images
+    Images,
+    ClipboardList
 } from "lucide-react";
 
 const navItems = [
     { href: "/dashboard", icon: <LayoutDashboard className="h-5 w-5 md:h-4 md:w-4" />, text: "Dashboard" },
     { href: "/dashboard/enrollment", icon: <FileText className="h-5 w-5 md:h-4 md:w-4" />, text: "Enrollment" },
     { href: "/dashboard/attendance", icon: <ClipboardCheck className="h-5 w-5 md:h-4 md:w-4" />, text: "Attendance" },
+    { href: "/dashboard/activities", icon: <ClipboardList className="h-5 w-5 md:h-4 md:w-4" />, text: "Activities" },
     { href: "/dashboard/staff", icon: <Users2 className="h-5 w-5 md:h-4 md:w-4" />, text: "Staff" },
     { href: "/dashboard/communication", icon: <MessageSquare className="h-5 w-5 md:h-4 md:w-4" />, text: "Communication" },
     { href: "/dashboard/billing", icon: <CreditCard className="h-5 w-5 md:h-4 md:w-4" />, text: "Billing" },
