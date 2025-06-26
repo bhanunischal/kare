@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { MoreHorizontal, LogIn, LogOut, CalendarOff, Plane } from "lucide-react";
+import { MoreHorizontal, LogIn, LogOut, CalendarOff, Plane, RefreshCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
@@ -68,7 +68,7 @@ export default function AttendancePage() {
   const handleCheckIn = (id: string) => {
     const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     const childName = records.find(r => r.id === id)?.name;
-    handleUpdateRecord(id, { status: "Present", checkIn: time, checkOut: null });
+    handleUpdateRecord(id, { status: "Present", checkIn: time, checkOut: null, leaveReason: undefined });
     toast({ title: "Checked In", description: `${childName} has been checked in.` });
   };
 
@@ -83,6 +83,12 @@ export default function AttendancePage() {
     const childName = records.find(r => r.id === id)?.name;
     handleUpdateRecord(id, { status: "Absent", checkIn: null, checkOut: null, leaveReason: undefined });
     toast({ variant: "default", title: "Marked Absent", description: `${childName} has been marked absent.` });
+  };
+
+  const handleResetStatus = (id: string) => {
+    const childName = records.find(r => r.id === id)?.name;
+    handleUpdateRecord(id, { status: "Absent", checkIn: null, checkOut: null, leaveReason: undefined });
+    toast({ title: "Status Reset", description: `The status for ${childName} has been reset.` });
   };
 
   const openLeaveDialog = (child: AttendanceRecord) => {
@@ -187,6 +193,10 @@ export default function AttendancePage() {
                            </DropdownMenuItem>
                            <DropdownMenuItem onClick={() => openLeaveDialog(record)}>
                               <Plane className="mr-2 h-4 w-4" /> Add/Edit Leave
+                           </DropdownMenuItem>
+                           <DropdownMenuSeparator />
+                           <DropdownMenuItem onClick={() => handleResetStatus(record.id)}>
+                              <RefreshCcw className="mr-2 h-4 w-4" /> Reset Status
                            </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
