@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useState, useEffect, useRef } from "react";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,16 +28,21 @@ function SubmitButton() {
 }
 
 export default function WaitlistAnalyticsPage() {
-  const [state, formAction] = useFormState(getWaitlistForecast, initialState);
+  const [state, formAction] = useActionState(getWaitlistForecast, initialState);
   const { toast } = useToast();
+  const stateRef = useRef(initialState);
 
-  if (state.error && !state.output) {
+  useEffect(() => {
+    // Only show toast if the state has changed and there's a new error.
+    if (state !== stateRef.current && state.error) {
       toast({
         variant: "destructive",
         title: "An error occurred",
         description: state.error,
       });
-  }
+      stateRef.current = state;
+    }
+  }, [state, toast]);
 
   return (
     <div className="space-y-6">

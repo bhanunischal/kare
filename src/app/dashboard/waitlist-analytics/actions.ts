@@ -17,9 +17,11 @@ export async function getWaitlistForecast(prevState: any, formData: FormData) {
   });
 
   if (!validatedFields.success) {
+    const error = validatedFields.error.flatten().fieldErrors;
+    const errorMessage = Object.values(error).flat()[0] || "Invalid data provided.";
     return {
       output: null,
-      error: validatedFields.error.flatten().fieldErrors,
+      error: errorMessage,
     };
   }
   
