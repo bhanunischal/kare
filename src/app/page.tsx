@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -122,7 +123,7 @@ export default function Home() {
                                 width={600}
                                 height={450}
                                 className="rounded-lg object-cover w-full h-full"
-                                data-ai-hint="children playing"
+                                data-ai-hint="kids playing"
                             />
                         </CardContent>
                         </Card>
@@ -136,7 +137,7 @@ export default function Home() {
                                 width={600}
                                 height={450}
                                 className="rounded-lg object-cover w-full h-full"
-                                data-ai-hint="daycare classroom"
+                                data-ai-hint="bright classroom"
                             />
                         </CardContent>
                         </Card>
@@ -150,7 +151,7 @@ export default function Home() {
                                 width={600}
                                 height={450}
                                 className="rounded-lg object-cover w-full h-full"
-                                data-ai-hint="teacher kids"
+                                data-ai-hint="teacher reading"
                             />
                         </CardContent>
                         </Card>

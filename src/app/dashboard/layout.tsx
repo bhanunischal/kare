@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import {
   Menu,
@@ -70,7 +71,7 @@ export default function DashboardLayout({
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                  <Avatar>
-                    <AvatarImage src="https://placehold.co/100x100.png" alt="@janedoe" data-ai-hint="woman face" />
+                    <AvatarImage src="https://placehold.co/100x100.png" alt="@janedoe" data-ai-hint="professional woman" />
                     <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>
