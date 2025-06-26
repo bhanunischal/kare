@@ -75,12 +75,15 @@ export default function ReportsPage() {
     const [enrollmentStatus, setEnrollmentStatus] = useState('All');
 
     const [attendanceDateRange, setAttendanceDateRange] = useState<DateRange | undefined>(defaultDateRange);
+    const [isAttendanceCalendarOpen, setIsAttendanceCalendarOpen] = useState(false);
 
     const [billingStatus, setBillingStatus] = useState('All');
     const [billingDateRange, setBillingDateRange] = useState<DateRange | undefined>(defaultDateRange);
+    const [isBillingCalendarOpen, setIsBillingCalendarOpen] = useState(false);
 
     const [expenseCategory, setExpenseCategory] = useState('All');
     const [expenseDateRange, setExpenseDateRange] = useState<DateRange | undefined>(defaultDateRange);
+    const [isExpenseCalendarOpen, setIsExpenseCalendarOpen] = useState(false);
 
     const filteredChildren = useMemo(() => {
         return allChildren.filter(child =>
@@ -124,37 +127,51 @@ export default function ReportsPage() {
         return Object.entries(categoryTotals).map(([name, value]) => ({ name, value }));
     }, [filteredExpenses]);
 
-    const renderDateRangePicker = (dateRange: DateRange | undefined, setDateRange: (range: DateRange | undefined) => void) => (
-        <Popover>
-            <PopoverTrigger asChild>
-                <Button
-                    variant={"outline"}
-                    className={cn("w-full md:w-[280px] justify-start text-left font-normal", !dateRange && "text-muted-foreground")}
-                >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange?.from ? (
-                        dateRange.to ? (
-                            <>{format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}</>
+    const renderDateRangePicker = (
+        dateRange: DateRange | undefined,
+        setDateRange: (range: DateRange | undefined) => void,
+        isOpen: boolean,
+        setIsOpen: (open: boolean) => void
+    ) => {
+        const handleSelect = (range: DateRange | undefined) => {
+            setDateRange(range);
+            if (range?.from && range?.to) {
+                setIsOpen(false);
+            }
+        }
+        
+        return (
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant={"outline"}
+                        className={cn("w-full md:w-[280px] justify-start text-left font-normal", !dateRange && "text-muted-foreground")}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange?.from ? (
+                            dateRange.to ? (
+                                <>{format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}</>
+                            ) : (
+                                format(dateRange.from, "LLL dd, y")
+                            )
                         ) : (
-                            format(dateRange.from, "LLL dd, y")
-                        )
-                    ) : (
-                        <span>Pick a date range</span>
-                    )}
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={dateRange?.from}
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    numberOfMonths={2}
-                />
-            </PopoverContent>
-        </Popover>
-    );
+                            <span>Pick a date range</span>
+                        )}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={handleSelect}
+                        numberOfMonths={2}
+                    />
+                </PopoverContent>
+            </Popover>
+        )
+    };
     
     return (
         <div className="space-y-6">
@@ -219,7 +236,7 @@ export default function ReportsPage() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="flex flex-col md:flex-row gap-4">
-                                {renderDateRangePicker(attendanceDateRange, setAttendanceDateRange)}
+                                {renderDateRangePicker(attendanceDateRange, setAttendanceDateRange, isAttendanceCalendarOpen, setIsAttendanceCalendarOpen)}
                             </div>
                             <Card>
                                 <CardHeader><CardTitle className="text-lg">Daily Attendance</CardTitle></CardHeader>
@@ -247,7 +264,7 @@ export default function ReportsPage() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="flex flex-col md:flex-row gap-4">
-                                {renderDateRangePicker(billingDateRange, setBillingDateRange)}
+                                {renderDateRangePicker(billingDateRange, setBillingDateRange, isBillingCalendarOpen, setIsBillingCalendarOpen)}
                                 <Select value={billingStatus} onValueChange={setBillingStatus}>
                                     <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="Select Status" /></SelectTrigger>
                                     <SelectContent>{invoiceStatusOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
@@ -287,7 +304,7 @@ export default function ReportsPage() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="flex flex-col md:flex-row gap-4">
-                                {renderDateRangePicker(expenseDateRange, setExpenseDateRange)}
+                                {renderDateRangePicker(expenseDateRange, setExpenseDateRange, isExpenseCalendarOpen, setIsExpenseCalendarOpen)}
                                 <Select value={expenseCategory} onValueChange={setExpenseCategory}>
                                     <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="Select Category" /></SelectTrigger>
                                     <SelectContent>{expenseCategoryOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>

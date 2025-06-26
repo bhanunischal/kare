@@ -109,7 +109,8 @@ export default function AttendancePage() {
   
   const handleDateSelect = (range: DateRange | undefined) => {
     setDateRange(range);
-    if (range?.to) {
+    // Automatically close the calendar popover once a full range is selected.
+    if (range?.from && range?.to) {
       setIsCalendarOpen(false);
     }
   };
@@ -280,6 +281,7 @@ export default function AttendancePage() {
                         "w-full justify-start text-left font-normal",
                         !dateRange && "text-muted-foreground"
                       )}
+                      onClick={() => setIsCalendarOpen(true)}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateRange?.from ? (
