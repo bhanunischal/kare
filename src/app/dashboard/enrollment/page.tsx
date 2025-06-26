@@ -16,12 +16,18 @@ import { useToast } from "@/hooks/use-toast";
 import { submitRegistration, type RegistrationFormData } from "./actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+
+type Program = 'Infant (0-12months)' | 'Toddler (1 to 3 years)' | 'Preschool (3 to 5 years)' | 'Gradeschooler (5 to 12 years)';
+
+const programOptions: Program[] = ['Infant (0-12months)', 'Toddler (1 to 3 years)', 'Preschool (3 to 5 years)', 'Gradeschooler (5 to 12 years)'];
 
 type Child = {
   id: string;
   name: string;
   age: number;
-  program: 'Preschool' | 'Toddler' | 'Pre-K';
+  program: Program;
   status: 'Active' | 'Waitlisted';
   dob: string;
   motherName: string;
@@ -36,11 +42,11 @@ type Child = {
 };
 
 const initialEnrolledChildren: Child[] = [
-    { id: '1', name: 'Olivia Martin', age: 4, program: 'Preschool', status: 'Active', dob: '2020-05-10', motherName: 'Sarah Martin', fatherName: 'David Martin', mobilePhone: '(555) 111-1111', address: '123 Maple St, Anytown, USA', emergencyName: 'Carol White', emergencyPhone: '(555) 222-2222', allergies: 'Peanuts', vaccination: 'Up to date.' },
-    { id: '2', name: 'Liam Garcia', age: 3, program: 'Toddler', status: 'Active', dob: '2021-08-22', motherName: 'Maria Garcia', fatherName: 'Jose Garcia', mobilePhone: '(555) 333-3333', address: '456 Oak Ave, Anytown, USA', emergencyName: 'Luis Hernandez', emergencyPhone: '(555) 444-4444', notes: 'Loves building blocks.', vaccination: 'Up to date.' },
-    { id: '3', name: 'Emma Rodriguez', age: 5, program: 'Pre-K', status: 'Active', dob: '2019-02-15', motherName: 'Ana Rodriguez', fatherName: 'Carlos Rodriguez', mobilePhone: '(555) 555-5555', address: '789 Pine Ln, Anytown, USA', emergencyName: 'Sofia Rodriguez', emergencyPhone: '(555) 666-6666', vaccination: 'Up to date.' },
-    { id: '4', name: 'Noah Hernandez', age: 2, program: 'Toddler', status: 'Waitlisted', dob: '2022-01-30', motherName: 'Isabella Hernandez', fatherName: 'Mateo Hernandez', mobilePhone: '(555) 777-7777', address: '101 Birch Rd, Anytown, USA', emergencyName: 'Elena Cruz', emergencyPhone: '(555) 888-8888', allergies: 'Dairy, Gluten', vaccination: 'Missing one shot.' },
-    { id: '5', name: 'Ava Lopez', age: 4, program: 'Preschool', status: 'Active', dob: '2020-11-05', motherName: 'Mia Lopez', fatherName: 'James Lopez', mobilePhone: '(555) 999-9999', address: '212 Elm Ct, Anytown, USA', emergencyName: 'Sophia King', emergencyPhone: '(555) 000-0000', vaccination: 'Up to date.' },
+    { id: '1', name: 'Olivia Martin', age: 4, program: 'Preschool (3 to 5 years)', status: 'Active', dob: '2020-05-10', motherName: 'Sarah Martin', fatherName: 'David Martin', mobilePhone: '(555) 111-1111', address: '123 Maple St, Anytown, USA', emergencyName: 'Carol White', emergencyPhone: '(555) 222-2222', allergies: 'Peanuts', vaccination: 'Up to date.' },
+    { id: '2', name: 'Liam Garcia', age: 3, program: 'Toddler (1 to 3 years)', status: 'Active', dob: '2021-08-22', motherName: 'Maria Garcia', fatherName: 'Jose Garcia', mobilePhone: '(555) 333-3333', address: '456 Oak Ave, Anytown, USA', emergencyName: 'Luis Hernandez', emergencyPhone: '(555) 444-4444', notes: 'Loves building blocks.', vaccination: 'Up to date.' },
+    { id: '3', name: 'Emma Rodriguez', age: 5, program: 'Preschool (3 to 5 years)', status: 'Active', dob: '2019-02-15', motherName: 'Ana Rodriguez', fatherName: 'Carlos Rodriguez', mobilePhone: '(555) 555-5555', address: '789 Pine Ln, Anytown, USA', emergencyName: 'Sofia Rodriguez', emergencyPhone: '(555) 666-6666', vaccination: 'Up to date.' },
+    { id: '4', name: 'Noah Hernandez', age: 2, program: 'Toddler (1 to 3 years)', status: 'Waitlisted', dob: '2022-01-30', motherName: 'Isabella Hernandez', fatherName: 'Mateo Hernandez', mobilePhone: '(555) 777-7777', address: '101 Birch Rd, Anytown, USA', emergencyName: 'Elena Cruz', emergencyPhone: '(555) 888-8888', allergies: 'Dairy, Gluten', vaccination: 'Missing one shot.' },
+    { id: '5', name: 'Ava Lopez', age: 4, program: 'Preschool (3 to 5 years)', status: 'Active', dob: '2020-11-05', motherName: 'Mia Lopez', fatherName: 'James Lopez', mobilePhone: '(555) 999-9999', address: '212 Elm Ct, Anytown, USA', emergencyName: 'Sophia King', emergencyPhone: '(555) 000-0000', vaccination: 'Up to date.' },
 ];
 
 
@@ -80,6 +86,8 @@ function SubmitButton() {
 export default function EnrollmentPage() {
   const [enrolledChildren, setEnrolledChildren] = useState<Child[]>(initialEnrolledChildren);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedData, setEditedData] = useState<Child | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(submitRegistration, initialState);
   const { toast } = useToast();
@@ -105,7 +113,7 @@ export default function EnrollmentPage() {
             id: String(new Date().getTime()),
             name: state.data.childName,
             age: calculateAge(state.data.dob),
-            program: 'Preschool',
+            program: state.data.program as Program,
             status: 'Active',
             dob: state.data.dob,
             motherName: state.data.motherName,
@@ -127,6 +135,27 @@ export default function EnrollmentPage() {
     }
   }, [state, toast]);
 
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (editedData) {
+      const { name, value } = e.target;
+      setEditedData({ ...editedData, [name]: value });
+    }
+  };
+
+  const handleProgramChange = (value: Program) => {
+    if (editedData) {
+      setEditedData({ ...editedData, program: value });
+    }
+  };
+
+  const handleSaveChanges = () => {
+    if (editedData) {
+      setEnrolledChildren(prev => prev.map(child => child.id === editedData.id ? editedData : child));
+      setSelectedChild(editedData);
+      setIsEditing(false);
+      toast({ title: "Success!", description: "Child information updated." });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -212,6 +241,20 @@ export default function EnrollmentPage() {
                   </div>
                 </div>
 
+                 <div className="space-y-2">
+                    <Label htmlFor="program">Program</Label>
+                    <Select name="program" required>
+                        <SelectTrigger id="program">
+                            <SelectValue placeholder="Select a program" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {programOptions.map(option => (
+                                <SelectItem key={option} value={option}>{option}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                 </div>
+
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium border-b pb-2">Parent/Guardian Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
@@ -294,56 +337,139 @@ export default function EnrollmentPage() {
         </TabsContent>
       </Tabs>
       
-      <Dialog open={!!selectedChild} onOpenChange={(isOpen) => !isOpen && setSelectedChild(null)}>
+      <Dialog open={!!selectedChild} onOpenChange={(isOpen) => { if (!isOpen) { setSelectedChild(null); setIsEditing(false); } }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Child Details</DialogTitle>
+            <DialogTitle>{isEditing ? 'Edit Child Details' : 'Child Details'}</DialogTitle>
             <DialogDescription>
-              Detailed information for {selectedChild?.name}.
+              {isEditing ? `Update information for ${editedData?.name}.` : `Detailed information for ${selectedChild?.name}.`}
             </DialogDescription>
           </DialogHeader>
           {selectedChild && (
-            <div className="grid gap-4 py-4 text-sm">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    <div><span className="font-semibold">Name:</span> {selectedChild.name}</div>
-                    <div><span className="font-semibold">Age:</span> {selectedChild.age}</div>
-                    <div><span className="font-semibold">Date of Birth:</span> {new Date(selectedChild.dob).toLocaleDateString()}</div>
-                    <div><span className="font-semibold">Program:</span> {selectedChild.program}</div>
-                    <div className="col-span-2"><span className="font-semibold">Status:</span> 
-                        <Badge variant={selectedChild.status === 'Active' ? 'default' : 'secondary'} className={`${selectedChild.status === 'Active' ? 'bg-accent text-accent-foreground' : ''} ml-2`}>
-                            {selectedChild.status}
-                        </Badge>
+            isEditing && editedData ? (
+                <div className="grid gap-4 py-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-name">Name</Label>
+                      <Input id="edit-name" name="name" value={editedData.name} onChange={handleEditChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-dob">Date of Birth</Label>
+                        <Input id="edit-dob" name="dob" type="date" value={editedData.dob} onChange={handleEditChange} />
+                    </div>
+                  </div>
+                   <div className="space-y-2">
+                      <Label htmlFor="edit-program">Program</Label>
+                      <Select value={editedData.program} onValueChange={(value: Program) => handleProgramChange(value)}>
+                          <SelectTrigger id="edit-program">
+                              <SelectValue placeholder="Select a program" />
+                          </SelectTrigger>
+                          <SelectContent>
+                              {programOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                          </SelectContent>
+                      </Select>
+                   </div>
+                  <Separator />
+                  <h4 className="font-semibold text-base">Parent/Guardian Information</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-motherName">Mother's Name</Label>
+                      <Input id="edit-motherName" name="motherName" value={editedData.motherName} onChange={handleEditChange} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-fatherName">Father's Name</Label>
+                      <Input id="edit-fatherName" name="fatherName" value={editedData.fatherName} onChange={handleEditChange} />
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <Label htmlFor="edit-mobilePhone">Mobile Phone</Label>
+                      <Input id="edit-mobilePhone" name="mobilePhone" value={editedData.mobilePhone} onChange={handleEditChange} />
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <Label htmlFor="edit-address">Address</Label>
+                      <Textarea id="edit-address" name="address" value={editedData.address} onChange={handleEditChange} />
+                    </div>
+                  </div>
+                  <Separator />
+                  <h4 className="font-semibold text-base">Emergency Contact</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                      <Label htmlFor="edit-emergencyName">Name</Label>
+                      <Input id="edit-emergencyName" name="emergencyName" value={editedData.emergencyName} onChange={handleEditChange} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-emergencyPhone">Phone</Label>
+                      <Input id="edit-emergencyPhone" name="emergencyPhone" value={editedData.emergencyPhone} onChange={handleEditChange} />
+                    </div>
+                  </div>
+                   <Separator />
+                  <h4 className="font-semibold text-base">Health Information</h4>
+                  <div className="grid grid-cols-1 gap-4">
+                     <div className="space-y-2">
+                      <Label htmlFor="edit-vaccination">Vaccination</Label>
+                      <Textarea id="edit-vaccination" name="vaccination" value={editedData.vaccination || ''} onChange={handleEditChange} />
+                    </div>
+                     <div className="space-y-2">
+                      <Label htmlFor="edit-allergies">Allergies</Label>
+                      <Textarea id="edit-allergies" name="allergies" value={editedData.allergies || ''} onChange={handleEditChange} />
+                    </div>
+                     <div className="space-y-2">
+                      <Label htmlFor="edit-notes">Notes</Label>
+                      <Textarea id="edit-notes" name="notes" value={editedData.notes || ''} onChange={handleEditChange} />
+                    </div>
+                  </div>
+                </div>
+            ) : (
+                <div className="grid gap-4 py-4 text-sm">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                        <div><span className="font-semibold">Name:</span> {selectedChild.name}</div>
+                        <div><span className="font-semibold">Age:</span> {selectedChild.age}</div>
+                        <div><span className="font-semibold">Date of Birth:</span> {new Date(selectedChild.dob).toLocaleDateString()}</div>
+                        <div><span className="font-semibold">Program:</span> {selectedChild.program}</div>
+                        <div className="col-span-2"><span className="font-semibold">Status:</span> 
+                            <Badge variant={selectedChild.status === 'Active' ? 'default' : 'secondary'} className={`${selectedChild.status === 'Active' ? 'bg-accent text-accent-foreground' : ''} ml-2`}>
+                                {selectedChild.status}
+                            </Badge>
+                        </div>
+                    </div>
+                    <Separator />
+                    <h4 className="font-semibold text-base">Parent/Guardian Information</h4>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                        <div><span className="font-semibold">Mother:</span> {selectedChild.motherName}</div>
+                        <div><span className="font-semibold">Father:</span> {selectedChild.fatherName}</div>
+                        <div className="col-span-2"><span className="font-semibold">Mobile Phone:</span> {selectedChild.mobilePhone}</div>
+                        <div className="col-span-2"><span className="font-semibold">Address:</span> {selectedChild.address}</div>
+                    </div>
+                    <Separator />
+                    <h4 className="font-semibold text-base">Emergency Contact</h4>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                        <div><span className="font-semibold">Name:</span> {selectedChild.emergencyName}</div>
+                        <div><span className="font-semibold">Phone:</span> {selectedChild.emergencyPhone}</div>
+                    </div>
+                    <Separator />
+                    <h4 className="font-semibold text-base">Health Information</h4>
+                    <div className="grid grid-cols-1 gap-y-2">
+                        <div><span className="font-semibold">Vaccination:</span> {selectedChild.vaccination || 'N/A'}</div>
+                        <div><span className="font-semibold">Allergies:</span> {selectedChild.allergies || 'None'}</div>
+                        <div><span className="font-semibold">Notes:</span> {selectedChild.notes || 'None'}</div>
                     </div>
                 </div>
-                <Separator />
-                <h4 className="font-semibold text-base">Parent/Guardian Information</h4>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    <div><span className="font-semibold">Mother:</span> {selectedChild.motherName}</div>
-                    <div><span className="font-semibold">Father:</span> {selectedChild.fatherName}</div>
-                    <div className="col-span-2"><span className="font-semibold">Mobile Phone:</span> {selectedChild.mobilePhone}</div>
-                    <div className="col-span-2"><span className="font-semibold">Address:</span> {selectedChild.address}</div>
-                </div>
-                <Separator />
-                <h4 className="font-semibold text-base">Emergency Contact</h4>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    <div><span className="font-semibold">Name:</span> {selectedChild.emergencyName}</div>
-                    <div><span className="font-semibold">Phone:</span> {selectedChild.emergencyPhone}</div>
-                </div>
-                <Separator />
-                <h4 className="font-semibold text-base">Health Information</h4>
-                <div className="grid grid-cols-1 gap-y-2">
-                    <div><span className="font-semibold">Vaccination:</span> {selectedChild.vaccination || 'N/A'}</div>
-                    <div><span className="font-semibold">Allergies:</span> {selectedChild.allergies || 'None'}</div>
-                    <div><span className="font-semibold">Notes:</span> {selectedChild.notes || 'None'}</div>
-                </div>
-            </div>
+             )
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedChild(null)}>Close</Button>
+             {isEditing ? (
+                <>
+                    <Button variant="outline" onClick={() => { setIsEditing(false); setEditedData(null); }}>Cancel</Button>
+                    <Button onClick={handleSaveChanges}>Save Changes</Button>
+                </>
+             ) : (
+                <>
+                    <Button variant="outline" onClick={() => setSelectedChild(null)}>Close</Button>
+                    <Button onClick={() => { setIsEditing(true); setEditedData(selectedChild); }}>Edit</Button>
+                </>
+             )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-
