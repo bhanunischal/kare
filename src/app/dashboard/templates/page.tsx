@@ -16,17 +16,17 @@ const availableTemplates = [
     {
         name: "Standard Monthly Report",
         description: "A comprehensive monthly summary for parents.",
-        provider: "Provided by CareConnect",
+        provider: "Provided by CareOps",
     },
     {
         name: "Quarterly Progress Snapshot",
         description: "A high-level overview of progress for the quarter.",
-        provider: "Provided by CareConnect",
+        provider: "Provided by CareOps",
     },
     {
         name: "End-of-Year Summary",
         description: "A detailed report covering the entire academic year.",
-        provider: "Provided by CareConnect",
+        provider: "Provided by CareOps",
     },
 ]
 

@@ -10,8 +10,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "CareConnect BC",
-  description: "Modern SaaS for Child Daycares in British Columbia",
+  title: "CareOps",
+  description: "Modern SaaS for Child Daycares",
 };
 
 export default function RootLayout({

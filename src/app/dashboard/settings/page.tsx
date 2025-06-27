@@ -30,9 +30,9 @@ export default function SettingsPage() {
   const [selectedProvider, setSelectedProvider] = useState<StorageProvider>(connectedProvider || 'google-drive');
   
   // State for profile tab
-  const [daycareName, setDaycareName] = useState("CareConnect BC");
+  const [daycareName, setDaycareName] = useState("CareOps");
   const [licenseNumber, setLicenseNumber] = useState("L-123456789");
-  const [contactEmail, setContactEmail] = useState("contact@careconnect.com");
+  const [contactEmail, setContactEmail] = useState("contact@careops.com");
   const [contactPhone, setContactPhone] = useState("(555) 123-4567");
   const [address, setAddress] = useState("123 Sunny Lane, Vancouver, BC V5K 0A1");
 
@@ -262,5 +262,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    

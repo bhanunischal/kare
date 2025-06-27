@@ -48,7 +48,7 @@ export default function AdminSettingsPage() {
                 <Label htmlFor="platform-name">Platform Name</Label>
                 <Input
                   id="platform-name"
-                  defaultValue="CareConnect BC"
+                  defaultValue="CareOps"
                 />
               </div>
               <div className="space-y-2">
@@ -56,7 +56,7 @@ export default function AdminSettingsPage() {
                 <Input
                   id="support-email"
                   type="email"
-                  defaultValue="support@careconnect.com"
+                  defaultValue="support@careops.com"
                 />
               </div>
               <div className="flex items-center space-x-2">

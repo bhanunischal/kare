@@ -35,7 +35,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight font-headline">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Overview of the CareConnect BC platform.</p>
+        <p className="text-muted-foreground">Overview of the CareOps platform.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
