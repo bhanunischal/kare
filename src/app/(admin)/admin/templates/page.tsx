@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -77,10 +78,12 @@ export default function AdminTemplatesPage() {
           <h1 className="text-3xl font-bold tracking-tight font-headline">Report Templates</h1>
           <p className="text-muted-foreground">Create, manage, and assign PDF templates for child assessments.</p>
         </div>
-        <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Create New Template
-        </Button>
+        <Link href="/admin/templates/new">
+            <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Create New Template
+            </Button>
+        </Link>
       </div>
 
        <Card>
