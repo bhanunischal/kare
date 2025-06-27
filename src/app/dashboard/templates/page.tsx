@@ -68,7 +68,7 @@ export default function TemplatesPage() {
         </CardContent>
         <CardFooter>
             <p className="text-xs text-muted-foreground">
-                <strong>Feature Note:</strong> In a live application, this section would allow a SaaS administrator to create and edit PDF templates using a visual editor with dynamic placeholders (e.g., `{{childName}}`, `{{cognitiveSkills}}`). Daycare staff would then be able to select from these templates when downloading an assessment.
+                <strong>Feature Note:</strong> In a live application, this section would allow a SaaS administrator to create and edit PDF templates using a visual editor with dynamic placeholders (e.g., '&#123;&#123;childName&#125;&#125;', '&#123;&#123;cognitiveSkills&#125;&#125;'). Daycare staff would then be able to select from these templates when downloading an assessment.
             </p>
         </CardFooter>
       </Card>
