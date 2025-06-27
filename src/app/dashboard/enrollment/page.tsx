@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { FileUp, ImageUp, Loader2 } from "lucide-react";
+import { FileUp, ImageUp, Loader2, Mail } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { submitRegistration, type RegistrationFormData } from "./actions";
@@ -209,6 +209,15 @@ export default function EnrollmentPage() {
       setSelectedChild(null);
       setIsDeleteDialogOpen(false);
       toast({ title: "Success!", description: "Child record has been deleted." });
+    }
+  };
+
+  const handleOfferSpot = () => {
+    if (selectedChild) {
+      toast({
+        title: "Offer Sent",
+        description: `An offer notification has been sent to the parents of ${selectedChild.name}. You can activate this child once they accept the offer.`,
+      });
     }
   };
 
@@ -691,10 +700,16 @@ export default function EnrollmentPage() {
                           </AlertDialog>
                       </div>
                       <Button variant="outline" onClick={() => setSelectedChild(null)}>Close</Button>
+                      <Button variant="outline" onClick={() => { setIsEditing(true); setEditedData(selectedChild); }}>Edit</Button>
                       <Button variant="outline" onClick={handleDeactivateChild}>
                         {selectedChild?.status === 'Active' ? 'Deactivate' : 'Activate'}
                       </Button>
-                      <Button onClick={() => { setIsEditing(true); setEditedData(selectedChild); }}>Edit</Button>
+                       {selectedChild.status === 'Waitlisted' && (
+                        <Button onClick={handleOfferSpot}>
+                          <Mail className="mr-2 h-4 w-4" />
+                          Offer Spot
+                        </Button>
+                      )}
                   </>
                )}
             </DialogFooter>
