@@ -1,326 +1,272 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-  provider = "prisma-client-js"
-}
+// prisma/schema.prisma
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// ==========================================
-// SAAS ADMIN MODELS
-// ==========================================
+generator client {
+  provider = "prisma-client-js"
+}
 
+// SaaS Admin Models
 model SaaSAdmin {
-  id           String @id @default(cuid())
-  email        String @unique
-  name         String
-  passwordHash String
+  id       String @id @default(cuid())
+  email    String @unique
+  name     String
+  password String
+}
+
+// Daycare Models
+model Daycare {
+  id                String @id @default(cuid())
+  name              String
+  status            String @default("PENDING") // Was DaycareStatus enum
+  plan              String @default("BASIC")   // Was SubscriptionPlan enum
+  joinDate          DateTime @default(now())
+  contactEmail      String   @unique
+  contactPhone      String?
+  address           String?
+  licenseNumber     String?  @unique
+  logoUrl           String?
+  bannerUrl         String?
+  infantCapacity    Int?
+  toddlerCapacity   Int?
+  preschoolCapacity Int?
+  gradeschoolerCapacity Int?
+  
+  // Relations
+  children           Child[]
+  staffMembers       StaffMember[]
+  invoices           Invoice[]
+  activities         Activity[]
+  announcements      Announcement[]
+  sharedDocuments    SharedDocument[]
+  galleryPhotos      GalleryPhoto[]
+  expenses           Expense[]
+  reportTemplates    TemplateAssignment[]
+  cloudStorageConfig CloudStorageConfig?
+}
+
+model CloudStorageConfig {
+  id          String   @id @default(cuid())
+  provider    String   // e.g., 'google-drive', 'aws-s3'
+  credentials String   // Store encrypted credentials as a JSON string
+  daycare     Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycareId   String   @unique
 }
 
 model ReportTemplate {
-  id          String               @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  description String
-  content     String // Storing template structure as a string (e.g., JSON)
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
-  assignments TemplateAssignment[]
+  description String?
+  content     String?   // JSON content of the template stored as a string
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  daycares    TemplateAssignment[]
 }
 
-// Join table for assigning templates to daycares
 model TemplateAssignment {
-  template   ReportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  templateId String
-  daycare    Daycare        @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId  String
+  daycareId    String
+  templateId   String
+  assignedAt   DateTime @default(now())
+  
+  daycare      Daycare      @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  template     ReportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
-  @@id([templateId, daycareId])
+  @@id([daycareId, templateId])
 }
 
 
-// ==========================================
-// DAYCARE-SPECIFIC (TENANT) MODELS
-// ==========================================
-
-model Daycare {
-  id                String               @id @default(cuid())
-  name              String
-  status            DaycareStatus        @default(Pending)
-  plan              SubscriptionPlan     @default(Basic)
-  location          String
-  joinDate          DateTime             @default(now())
-  licenseNumber     String?
-  contactEmail      String?
-  contactPhone      String?
-  address           String?
-  logoUrl           String?
-  bannerUrl         String?
-  storageProvider   String? // e.g., 'google-drive', 'aws-s3'
-
-  // Relationships
-  children          Child[]
-  staff             StaffMember[]
-  invoices          BillingInvoice[]
-  expenses          FinancialExpense[]
-  documents         SharedDocument[]
-  galleryItems      GalleryItem[]
-  activities        DaycareActivity[]
-  assessments       ChildAssessment[]
-  announcements     GeneralAnnouncement[]
-  directMessages    ParentMessage[]
-  guardians         Guardian[]
-  templateAssignments TemplateAssignment[]
-}
-
-enum DaycareStatus {
-  Active
-  Inactive
-  Pending
-  Archived
-}
-
-enum SubscriptionPlan {
-  Basic
-  Premium
-  Enterprise
-}
-
-// Child and Parent Models
+// Child-related Models
 model Child {
-  id              String            @id @default(cuid())
-  name            String
-  dob             DateTime
-  startDate       DateTime
-  status          ChildStatus
-  program         Program
-  programType     ProgramType
-  photoUrl        String?
-  allergies       String?
-  notes           String?
+  id             String      @id @default(cuid())
+  name           String
+  dob            DateTime
+  startDate      DateTime
+  status         String      // Was ChildStatus enum
+  program        String      // Was Program enum
+  programType    String      // Was ProgramType enum
+  photoUrl       String?
   vaccinationInfo String?
-  daycare         Daycare           @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId       String
-  parents         Guardian[]
-  assessments     ChildAssessment[]
-  attendance      AttendanceRecord[]
+  allergies      String?
+  notes          String?
+  
+  // Relations
+  daycare        Daycare       @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycareId      String
+  guardians      Guardian[]
+  attendance     AttendanceRecord[]
+  assessments    Assessment[]
+  emergencyContacts EmergencyContact[]
 }
 
 model Guardian {
-  id           String  @id @default(cuid())
-  name         String
-  email        String  @unique
-  passwordHash String? // For potential parent portal login
-  phone        String
-  daycare      Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId    String
-  children     Child[]
-}
+  id          String  @id @default(cuid())
+  name        String
+  relationship String // e.g., Mother, Father, Guardian
+  phone       String
+  email       String?
+  address     String?
 
-enum ChildStatus {
-  Active
-  Waitlisted
-  Inactive
-}
-
-enum Program {
-  Infant
-  Toddler
-  Preschool
-  Gradeschooler
-}
-
-enum ProgramType {
-  FullTime
-  PartTime
-  AdHoc
-}
-
-// Attendance and Activity Models
-model AttendanceRecord {
-  id          String           @id @default(cuid())
-  date        DateTime
-  status      AttendanceStatus
-  checkIn     DateTime?
-  checkOut    DateTime?
-  leaveReason String?
-  leaveType   LeaveType?
-  child       Child            @relation(fields: [childId], references: [id], onDelete: Cascade)
+  // Relations
+  child       Child   @relation(fields: [childId], references: [id], onDelete: Cascade)
   childId     String
 }
 
-enum AttendanceStatus {
-  Present
-  Absent
-  OnLeave
-  Pending
+model EmergencyContact {
+  id           String @id @default(cuid())
+  name         String
+  relationship String
+  phone        String
+
+  // Relations
+  child        Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+  childId      String
 }
 
-enum LeaveType {
-  Daily
-  ShortTerm
-  LongTerm
+
+model AttendanceRecord {
+  id          String           @id @default(cuid())
+  date        DateTime         @db.Date
+  checkIn     DateTime?
+  checkOut    DateTime?
+  status      String           // Was AttendanceStatus enum
+  leaveReason String?
+  leaveFrom   DateTime?        @db.Date
+  leaveTo     DateTime?        @db.Date
+
+  // Relations
+  child       Child   @relation(fields: [childId], references: [id], onDelete: Cascade)
+  childId     String
+  daycare     Daycare @relation(fields: [daycareId], references: [id])
+  daycareId   String
+  
+  @@index([daycareId, date])
 }
 
-model DaycareActivity {
+model Assessment {
+  id               String   @id @default(cuid())
+  reportingPeriod  String
+  observations     String
+  generatedReport  String   // The full AI-generated report JSON
+  createdAt        DateTime @default(now())
+
+  // Relations
+  child            Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  childId          String
+  daycare          Daycare  @relation(fields: [daycareId], references: [id])
+  daycareId        String
+}
+
+
+// Staff-related Models
+model StaffMember {
+  id             String   @id @default(cuid())
+  name           String
+  role           String   // Was Role enum
+  status         String   // Was StaffStatus enum
+  startDate      DateTime @db.Date
+  phone          String
+  address        String
+  photoUrl       String?
+  certifications String?
+  notes          String?
+  payType        String   // Was PayType enum
+  payRate        Float
+
+  // Relations
+  daycare        Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycareId      String
+  emergencyContact EmergencyContactStaff?
+}
+
+model EmergencyContactStaff {
+  id           String      @id @default(cuid())
+  name         String
+  relationship String
+  phone        String
+  staffMember  StaffMember @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
+  staffMemberId String     @unique
+}
+
+
+// Operations Models
+model Activity {
   id          String   @id @default(cuid())
-  date        DateTime
-  time        String
+  date        DateTime @db.Date
+  time        String   // e.g., "10:00 AM"
   title       String
-  category    String
+  category    String   // Was ActivityCategory enum
   description String?
   materials   String?
-  domains     String? // Comma-separated LearningDomain values
-  daycare     Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  domains     String?  // Was LearningDomain enum array, now a comma-separated string
+
+  // Relations
+  daycare     Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
   daycareId   String
 }
 
-enum LearningDomain {
-  Cognitive
-  FineMotor
-  GrossMotor
-  SocialEmotional
-  Language
-}
-
-// Assessment Model
-model ChildAssessment {
-  id                     String   @id @default(cuid())
-  reportingPeriod        String
-  observations           String
-  socialEmotional        String
-  cognitiveSkills        String
-  languageCommunication  String
-  motorSkills            String
-  summaryRecommendations String
-  createdAt              DateTime @default(now())
-  child                  Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
-  childId                String
-  daycare                Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId              String
-}
-
-// Staff Model
-model StaffMember {
-  id              String      @id @default(cuid())
-  name            String
-  role            StaffRole
-  status          StaffStatus
-  startDate       DateTime
-  phone           String
-  address         String
-  emergencyName   String
-  emergencyPhone  String
-  payType         StaffPayType
-  payRate         Float
-  certifications  String?
-  notes           String?
-  photoUrl        String?
-  daycare         Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId       String
-}
-
-enum StaffRole {
-  LeadECE
-  Assistant
-  ECEIT
-  SupportStaff
-}
-
-enum StaffStatus {
-  Active
-  OnLeave
-  Inactive
-}
-
-enum StaffPayType {
-  MonthlySalary
-  HourlyRate
-}
-
-// Billing and Expense Models
-model BillingInvoice {
-  id        String        @id @default(cuid())
-  amount    Float
-  dueDate   DateTime
-  status    InvoiceStatus
-  daycare   Daycare       @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId String
-}
-
-enum InvoiceStatus {
-  Paid
-  Due
-  Overdue
-}
-
-model FinancialExpense {
-  id          String          @id @default(cuid())
-  date        DateTime
-  category    ExpenseCategory
-  description String
-  amount      Float
-  vendor      String?
-  daycare     Daycare         @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId   String
-}
-
-enum ExpenseCategory {
-  Supplies
-  Utilities
-  Rent
-  Salaries
-  Food
-  Maintenance
-  Other
-}
-
-// Document and Gallery Models
-model SharedDocument {
-  id        String             @id @default(cuid())
-  name      String
-  type      SharedDocumentType
-  url       String
-  size      String
-  dateAdded DateTime           @default(now())
-  daycare   Daycare            @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId String
-}
-
-enum SharedDocumentType {
-  PDF
-  Word
-  Image
-  Other
-}
-
-model GalleryItem {
-  id        String   @id @default(cuid())
-  url       String
-  altText   String?
-  dateAdded DateTime @default(now())
-  daycare   Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId String
-}
-
-// Communication Models
-model GeneralAnnouncement {
+model Announcement {
   id        String   @id @default(cuid())
   title     String
   content   String
   createdAt DateTime @default(now())
-  daycare   Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+
+  // Relations
+  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
   daycareId String
 }
 
-model ParentMessage {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
-  daycare   Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+model Invoice {
+  id        String        @id @default(cuid())
+  childName String
+  parentName String
+  amount    Float
+  dueDate   DateTime      @db.Date
+  status    String        // Was InvoiceStatus enum
+  program   String
+
+  // Relations
+  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
   daycareId String
-  // Add relation to parent/guardian and child
+}
+
+model Expense {
+  id          String         @id @default(cuid())
+  date        DateTime       @db.Date
+  category    String         // Was ExpenseCategory enum
+  description String
+  amount      Float
+  vendor      String?
+
+  // Relations
+  daycare     Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycareId   String
+}
+
+model SharedDocument {
+  id          String   @id @default(cuid())
+  name        String
+  fileUrl     String
+  type        String   // Was SharedDocumentType enum
+  size        String   // e.g., "1.2 MB"
+  dateAdded   DateTime @default(now())
+  
+  // Relations
+  daycare     Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycareId   String
+}
+
+model GalleryPhoto {
+  id          String   @id @default(cuid())
+  imageUrl    String
+  altText     String?
+  dateAdded   DateTime @default(now())
+  
+  // Relations
+  daycare     Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycareId   String
 }
