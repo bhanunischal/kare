@@ -12,7 +12,7 @@ import type { GenerateAssessmentOutput } from "@/ai/flows/generate-assessment-fl
 import { generateAssessment } from "./actions";
 import { Loader2, Bot, Share2, Download, BookUser, Brain, MessageSquare, PersonStanding } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { initialEnrolledChildren } from "../enrollment/page";
+import { initialEnrolledChildren } from "../enrollment/data";
 
 const initialState: { output: GenerateAssessmentOutput | null; error: string | null; } = {
   output: null,

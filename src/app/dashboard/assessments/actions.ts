@@ -3,7 +3,7 @@
 
 import { generateAssessmentFlow } from "@/ai/flows/generate-assessment-flow";
 import { z } from "zod";
-import { initialEnrolledChildren } from "../enrollment/page";
+import { initialEnrolledChildren } from "../enrollment/data";
 
 const AssessmentFormSchema = z.object({
   childId: z.string().min(1, { message: "Please select a child." }),

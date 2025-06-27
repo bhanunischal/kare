@@ -32,6 +32,7 @@ import { MoreHorizontal, Mail, CheckCircle, CircleOff, FileText, Bot } from "luc
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { initialEnrolledChildren } from "../enrollment/data";
 
 type InvoiceStatus = "Paid" | "Due" | "Overdue";
 
@@ -59,14 +60,6 @@ const feeStructure = {
   'Preschool (3 to 5 years)': { 'Full time': 850, 'Part time': 600, 'Ad-hoc daily basis': 70 },
   'Gradeschooler (5 to 12 years)': { 'Full time': 750, 'Part time': 500, 'Ad-hoc daily basis': 60 },
 };
-
-// Mock data representing enrolled children to simulate invoice generation
-const activeChildren = [
-    { id: '1', name: 'Olivia Martin', parent: 'The Martins', program: 'Preschool (3 to 5 years)', programType: 'Full time', status: 'Active' },
-    { id: '2', name: 'Liam Garcia', parent: 'The Garcias', program: 'Toddler (1 to 3 years)', programType: 'Full time', status: 'Active' },
-    { id: '3', name: 'Emma Rodriguez', parent: 'The Rodriguezes', program: 'Preschool (3 to 5 years)', programType: 'Full time', status: 'Active' },
-    { id: '5', name: 'Ava Lopez', parent: 'The Lopezes', program: 'Preschool (3 to 5 years)', programType: 'Full time', status: 'Active' },
-];
 
 export default function BillingPage() {
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
@@ -96,7 +89,9 @@ export default function BillingPage() {
     let newInvoicesGenerated = 0;
     const newInvoices: Invoice[] = [];
 
-    activeChildren.forEach(child => {
+    const activeChildrenForGeneration = initialEnrolledChildren.filter(c => c.status === 'Active');
+
+    activeChildrenForGeneration.forEach(child => {
         const alreadyHasInvoice = invoices.some(inv => 
             inv.childName === child.name && 
             new Date(inv.dueDate).getMonth() === today.getMonth() + 1 &&
@@ -107,12 +102,15 @@ export default function BillingPage() {
             const programKey = child.program as keyof typeof feeStructure;
             const programTypeKey = child.programType as keyof typeof feeStructure[typeof programKey];
             const amount = feeStructure[programKey]?.[programTypeKey] || 0;
+            
+            const lastName = child.fatherName.split(' ').pop() || child.name.split(' ').pop();
+            const parentName = lastName?.endsWith('z') ? `The ${lastName}es` : `The ${lastName}s`;
 
             if (amount > 0) {
                 newInvoices.push({
                     id: `INV${(Math.random() * 9000 + 1000).toFixed(0)}`,
                     childName: child.name,
-                    parent: child.parent,
+                    parent: parentName,
                     amount,
                     dueDate,
                     status: "Due",
