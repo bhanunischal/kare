@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useActionState, useState, useRef } from "react";
+import { useEffect, useActionState, useState, useRef, useMemo } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,8 @@ const programOptions: Program[] = ['Infant (0-12months)', 'Toddler (1 to 3 years
 type ProgramType = 'Full time' | 'Part time' | 'Ad-hoc daily basis';
 const programTypeOptions: ProgramType[] = ['Full time', 'Part time', 'Ad-hoc daily basis'];
 
+type ChildStatus = 'Active' | 'Waitlisted' | 'Inactive';
+
 type Child = {
   id: string;
   name: string;
@@ -36,7 +38,7 @@ type Child = {
   age: number;
   program: Program;
   programType: ProgramType;
-  status: 'Active' | 'Waitlisted' | 'Inactive';
+  status: ChildStatus;
   dob: string;
   startDate: string;
   motherName: string;
@@ -103,6 +105,19 @@ export default function EnrollmentPage() {
   const [state, formAction] = useActionState(submitRegistration, initialState);
   const { toast } = useToast();
   
+  const [activeFilter, setActiveFilter] = useState<string>('All');
+
+  const filteredChildren = useMemo(() => {
+    if (activeFilter === 'All') {
+      // Sort by name for the "All" tab
+      return [...enrolledChildren].sort((a, b) => a.name.localeCompare(b.name));
+    }
+    // Filter by status and then sort
+    return enrolledChildren
+      .filter(child => child.status === activeFilter)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [activeFilter, enrolledChildren]);
+
   const processedStateRef = useRef(initialState);
 
   useEffect(() => {
@@ -128,7 +143,7 @@ export default function EnrollmentPage() {
             age: calculateAge(state.data.dob),
             program: state.data.program as Program,
             programType: state.data.programType as ProgramType,
-            status: 'Active',
+            status: state.data.status as ChildStatus,
             dob: state.data.dob,
             startDate: state.data.startDate,
             motherName: state.data.motherName,
@@ -205,16 +220,28 @@ export default function EnrollmentPage() {
         <p className="text-muted-foreground">Manage child registrations and documentation.</p>
       </div>
 
-      <Tabs defaultValue="all">
+      <Tabs defaultValue="directory">
         <TabsList>
-          <TabsTrigger value="all">Enrolled Children</TabsTrigger>
+          <TabsTrigger value="directory">Child Directory</TabsTrigger>
           <TabsTrigger value="new">Add New Child</TabsTrigger>
         </TabsList>
-        <TabsContent value="all">
+        <TabsContent value="directory">
           <Card>
             <CardHeader>
-              <CardTitle>Enrolled Children</CardTitle>
-              <CardDescription>A list of all children currently enrolled or on the waitlist.</CardDescription>
+               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <CardTitle>Child Directory</CardTitle>
+                        <CardDescription>A list of all children, filterable by status.</CardDescription>
+                    </div>
+                     <Tabs defaultValue="All" onValueChange={setActiveFilter} className="w-full sm:w-auto">
+                        <TabsList className="grid w-full grid-cols-4">
+                            <TabsTrigger value="All">All</TabsTrigger>
+                            <TabsTrigger value="Active">Active</TabsTrigger>
+                            <TabsTrigger value="Waitlisted">Waitlisted</TabsTrigger>
+                            <TabsTrigger value="Inactive">Inactive</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+               </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -229,7 +256,7 @@ export default function EnrollmentPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {enrolledChildren.map((child) => (
+                  {filteredChildren.map((child) => (
                     <TableRow key={child.id}>
                       <TableCell>
                         <Avatar>
@@ -320,18 +347,32 @@ export default function EnrollmentPage() {
                     </div>
                 </div>
 
-                 <div className="space-y-2">
-                    <Label htmlFor="program">Program Group</Label>
-                    <Select name="program" required>
-                        <SelectTrigger id="program">
-                            <SelectValue placeholder="Select a program group" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {programOptions.map(option => (
-                                <SelectItem key={option} value={option}>{option}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div className="space-y-2">
+                        <Label htmlFor="program">Program Group</Label>
+                        <Select name="program" required>
+                            <SelectTrigger id="program">
+                                <SelectValue placeholder="Select a program group" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {programOptions.map(option => (
+                                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                     </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="status">Status</Label>
+                        <Select name="status" required>
+                            <SelectTrigger id="status">
+                                <SelectValue placeholder="Select initial status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Active">Active</SelectItem>
+                                <SelectItem value="Waitlisted">Waitlisted</SelectItem>
+                            </SelectContent>
+                        </Select>
+                     </div>
                  </div>
 
                 <div className="space-y-4">
