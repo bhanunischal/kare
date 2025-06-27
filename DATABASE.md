@@ -29,15 +29,11 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
 
 **Important:** The `.gitignore` file in this project is already configured to ignore `.env` files, so your credentials will not be committed to version control.
 
-## 3. Initialize Prisma
+## 3. Create Database Tables
 
-We have added Prisma to this project. Prisma is a modern database toolkit that makes it easy to work with your database.
+Prisma has already been initialized in this project. The database schema, which defines all your tables and columns, is located in the `prisma/schema.prisma` file. This file is the single source of truth for your database structure.
 
-The schema for the database is defined in `prisma/schema.prisma`. This file is the single source of truth for your database structure.
-
-## 4. Generate Database Tables
-
-Now, you can use the Prisma CLI to create the database tables based on the schema.
+Now, you can use the Prisma CLI to create the tables in your PostgreSQL database based on this schema.
 
 Run the following command in your terminal:
 
@@ -46,13 +42,13 @@ npx prisma db push
 ```
 
 This command will:
-1.  Connect to your database using the `DATABASE_URL`.
+1.  Connect to your database using the `DATABASE_URL` from your `.env` file.
 2.  Compare the Prisma schema to the state of the database.
 3.  Create all the necessary tables and columns to match the schema.
 
-## 5. Generate Prisma Client
+## 4. Generate Prisma Client
 
-After pushing the schema, you need to generate the Prisma Client. This is a type-safe query builder that you will use in your application code to interact with the database.
+After creating the tables, you need to generate the Prisma Client. This is a type-safe query builder that you will use in your application code to interact with the database.
 
 Run this command:
 
@@ -62,7 +58,7 @@ npx prisma generate
 
 You only need to run this command again if you make changes to your `prisma/schema.prisma` file.
 
-## 6. Using the Prisma Client
+## 5. Using the Prisma Client
 
 A pre-configured Prisma Client instance is available at `src/lib/prisma.ts`. You can import it into your server-side files (Server Components, API Routes, Server Actions) to query the database.
 
@@ -81,7 +77,3 @@ async function getChildrenForDaycare(daycareId: string) {
   return children;
 }
 ```
-
-## Next Steps
-
-With the database connected, the next step is to refactor the application's pages and actions to use the Prisma client instead of the mock data files (e.g., `src/app/dashboard/enrollment/data.ts`).
