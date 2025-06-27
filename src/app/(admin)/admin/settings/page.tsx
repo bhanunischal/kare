@@ -4,6 +4,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -11,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CheckCircle, Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminSettingsPage() {
   return (
@@ -68,18 +71,125 @@ export default function AdminSettingsPage() {
 
         <TabsContent value="billing" className="mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Billing Plans</CardTitle>
-              <CardDescription>
-                Manage subscription plans and pricing.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Billing Plans</CardTitle>
+                <CardDescription>
+                  Manage subscription plans and pricing for daycares.
+                </CardDescription>
+              </div>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> Add New Plan
+              </Button>
             </CardHeader>
-            <CardContent>
-              <p>
-                This section would allow managing different subscription tiers
-                (e.g., Basic, Premium, Enterprise), including setting prices,
-                features per plan, and trial periods. This is a placeholder for a future feature.
-              </p>
+            <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Basic</CardTitle>
+                  <CardDescription>
+                    For small daycares getting started.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-4xl font-bold">
+                    $49<span className="text-xl font-normal text-muted-foreground">/mo</span>
+                  </div>
+                  <ul className="space-y-2 pt-4 text-sm">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      Up to 25 children
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      Core features
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      Email support
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" className="w-full">
+                    Edit Plan
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card className="border-primary shadow-lg">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Premium</CardTitle>
+                    <Badge>Most Popular</Badge>
+                  </div>
+                  <CardDescription>
+                    For growing daycares with more needs.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-4xl font-bold">
+                    $99<span className="text-xl font-normal text-muted-foreground">/mo</span>
+                  </div>
+                  <ul className="space-y-2 pt-4 text-sm">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      Up to 75 children
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      All core features
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      AI-powered features
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      Priority support
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button className="w-full">Edit Plan</Button>
+                </CardFooter>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Enterprise</CardTitle>
+                  <CardDescription>
+                    For large organizations and multi-location daycares.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-4xl font-bold">
+                    Custom
+                  </div>
+                  <ul className="space-y-2 pt-4 text-sm">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      Unlimited children
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      All features included
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      Dedicated account manager
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      Custom branding
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" className="w-full">
+                    Edit Plan
+                  </Button>
+                </CardFooter>
+              </Card>
             </CardContent>
           </Card>
         </TabsContent>
