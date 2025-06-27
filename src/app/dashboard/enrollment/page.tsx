@@ -52,7 +52,7 @@ type Child = {
   vaccination?: string;
 };
 
-const initialEnrolledChildren: Child[] = [
+export const initialEnrolledChildren: Child[] = [
     { id: '1', name: 'Olivia Martin', photoUrl: 'https://placehold.co/100x100.png', photoHint: 'smiling girl', age: 4, program: 'Preschool (3 to 5 years)', programType: 'Full time', startDate: '2023-09-01', status: 'Active', dob: '2020-05-10', motherName: 'Sarah Martin', fatherName: 'David Martin', mobilePhone: '(555) 111-1111', address: '123 Maple St, Anytown, USA', emergencyName: 'Carol White', emergencyPhone: '(555) 222-2222', allergies: 'Peanuts', vaccination: 'Up to date.' },
     { id: '2', name: 'Liam Garcia', photoUrl: 'https://placehold.co/100x100.png', photoHint: 'laughing boy', age: 3, program: 'Toddler (1 to 3 years)', programType: 'Full time', startDate: '2023-09-01', status: 'Active', dob: '2021-08-22', motherName: 'Maria Garcia', fatherName: 'Jose Garcia', mobilePhone: '(555) 333-3333', address: '456 Oak Ave, Anytown, USA', emergencyName: 'Luis Hernandez', emergencyPhone: '(555) 444-4444', notes: 'Loves building blocks.', vaccination: 'Up to date.' },
     { id: '3', name: 'Emma Rodriguez', photoUrl: 'https://placehold.co/100x100.png', photoHint: 'girl pigtails', age: 5, program: 'Preschool (3 to 5 years)', programType: 'Part time', startDate: '2023-09-01', status: 'Active', dob: '2019-02-15', motherName: 'Ana Rodriguez', fatherName: 'Carlos Rodriguez', mobilePhone: '(555) 555-5555', address: '789 Pine Ln, Anytown, USA', emergencyName: 'Sofia Rodriguez', emergencyPhone: '(555) 666-6666', vaccination: 'Up to date.' },
