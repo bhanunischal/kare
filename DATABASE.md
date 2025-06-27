@@ -86,7 +86,7 @@ Cloud databases like AWS RDS are secure by default and reject all incoming traff
 
 ### d. Enforce SSL/TLS Connection
 
-Some cloud databases require a secure SSL connection. You can enforce this by adding `?sslmode=require` to the end of your database connection string in the `.env` file.
+Some cloud databases require a secure SSL connection. You can enforce this by adding `?sslmode=require` to the end of your database connection string in the `.env` file. This often resolves SSL/TLS-related `Schema engine error` issues.
 
 **Example:**
 ```env
