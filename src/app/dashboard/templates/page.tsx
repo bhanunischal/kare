@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -16,17 +15,17 @@ const availableTemplates = [
     {
         name: "Standard Monthly Report",
         description: "A comprehensive monthly summary for parents.",
-        provider: "Provided by CareOps",
+        provider: "Provided by Child Care Ops",
     },
     {
         name: "Quarterly Progress Snapshot",
         description: "A high-level overview of progress for the quarter.",
-        provider: "Provided by CareOps",
+        provider: "Provided by Child Care Ops",
     },
     {
         name: "End-of-Year Summary",
         description: "A detailed report covering the entire academic year.",
-        provider: "Provided by CareOps",
+        provider: "Provided by Child Care Ops",
     },
 ]
 

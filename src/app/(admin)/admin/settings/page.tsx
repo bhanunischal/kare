@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -48,7 +47,7 @@ export default function AdminSettingsPage() {
                 <Label htmlFor="platform-name">Platform Name</Label>
                 <Input
                   id="platform-name"
-                  defaultValue="CareOps"
+                  defaultValue="Child Care Ops"
                 />
               </div>
               <div className="space-y-2">
@@ -56,7 +55,7 @@ export default function AdminSettingsPage() {
                 <Input
                   id="support-email"
                   type="email"
-                  defaultValue="support@careops.com"
+                  defaultValue="support@childcareops.com"
                 />
               </div>
               <div className="flex items-center space-x-2">

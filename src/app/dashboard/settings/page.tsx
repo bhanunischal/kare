@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -30,9 +29,9 @@ export default function SettingsPage() {
   const [selectedProvider, setSelectedProvider] = useState<StorageProvider>(connectedProvider || 'google-drive');
   
   // State for profile tab
-  const [daycareName, setDaycareName] = useState("CareOps");
+  const [daycareName, setDaycareName] = useState("Child Care Ops");
   const [licenseNumber, setLicenseNumber] = useState("L-123456789");
-  const [contactEmail, setContactEmail] = useState("contact@careops.com");
+  const [contactEmail, setContactEmail] = useState("contact@childcareops.com");
   const [contactPhone, setContactPhone] = useState("(555) 123-4567");
   const [address, setAddress] = useState("123 Sunny Lane, Vancouver, BC V5K 0A1");
 

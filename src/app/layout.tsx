@@ -10,7 +10,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "CareOps",
+  title: "Child Care Ops",
   description: "Modern SaaS for Child Daycares",
 };
 
