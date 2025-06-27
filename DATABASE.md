@@ -97,19 +97,19 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
 
 If `prisma db push` still fails, you can test your database connection and permissions directly from the command line using `psql`, the standard PostgreSQL client. This often provides more specific error messages than Prisma.
 
-Run the following single-line command from your project's root directory:
+Run the following single-line command from your project's root directory. This version uses a standard SQL query to avoid shell escaping issues with backslashes.
 
 ```bash
-psql "$(grep DATABASE_URL .env | cut -d '=' -f2- | sed 's/"//g')" -c "\\dt"
+psql "$(grep DATABASE_URL .env | cut -d '=' -f2- | sed 's/"//g')" -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
 ```
 
 **How it works:**
 *   This command securely reads the `DATABASE_URL` from your `.env` file.
 *   It connects to your database using that URL.
-*   The `-c "\\dt"` part asks the database to list all tables in the public schema.
+*   The `-c "SELECT ..."` part runs a standard SQL query to list all tables in the `public` schema.
 
 **What to look for:**
-*   **Success:** If the connection and basic permissions are correct, you will either see a list of tables (if you've run `db push` successfully before) or a message like `Did not find any relations.`. Either of these means the connection is working.
+*   **Success:** If the connection and basic permissions are correct, you will see a `table_name` header followed by a list of tables (if any exist) and a row count, like `(0 rows)`. This means the connection is working.
 *   **Failure:** If there's a problem, `psql` will give a specific error. Look for clues in the message:
     *   `psql: error: connection to server ... failed: FATAL: password authentication failed for user "..."`: The password in your `.env` file is incorrect.
     *   `psql: error: connection to server ... failed: timeout expired`: Your IP address is likely not allowed in the database's firewall or security group rules.
