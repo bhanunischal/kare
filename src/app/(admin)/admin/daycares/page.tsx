@@ -27,7 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Plus, CheckCircle, XCircle } from "lucide-react";
+import { MoreHorizontal, Plus, CheckCircle, XCircle, Archive, ArchiveRestore } from "lucide-react";
 import { allDaycares, Daycare } from "./data";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -36,14 +36,28 @@ export default function AdminDaycaresPage() {
   const [daycares, setDaycares] = useState<Daycare[]>(allDaycares);
   const { toast } = useToast();
 
-  const handleStatusChange = (id: string, newStatus: "Active" | "Inactive") => {
+  const handleStatusChange = (id: string, newStatus: Daycare['status']) => {
     const daycareName = daycares.find(dc => dc.id === id)?.name || "The daycare";
+    const oldStatus = daycares.find(dc => dc.id === id)?.status;
+
     setDaycares(daycares.map(dc => 
         dc.id === id ? { ...dc, status: newStatus } : dc
     ));
+
+    let description = `${daycareName} has been set to ${newStatus}.`;
+    if (newStatus === 'Inactive' && oldStatus === 'Active') {
+        description = `${daycareName} has been deactivated.`;
+    } else if (newStatus === 'Active' && (oldStatus === 'Inactive' || oldStatus === 'Pending')) {
+        description = `${daycareName} has been activated.`;
+    } else if (newStatus === 'Archived') {
+        description = `${daycareName} has been archived.`;
+    } else if (newStatus === 'Inactive' && oldStatus === 'Archived') {
+        description = `${daycareName} has been restored. You can now activate it.`;
+    }
+
     toast({
         title: "Status Updated",
-        description: `${daycareName} has been ${newStatus.toLowerCase()}.`,
+        description: description,
     });
   };
 
@@ -84,8 +98,16 @@ export default function AdminDaycaresPage() {
                     <TableCell className="font-medium">{daycare.name}</TableCell>
                     <TableCell>
                       <Badge 
-                        variant={daycare.status === "Active" ? "default" : daycare.status === "Pending" ? "secondary" : "destructive"}
-                        className={cn(daycare.status === 'Active' && 'bg-accent text-accent-foreground')}
+                        variant={
+                            daycare.status === "Active" ? "default" :
+                            daycare.status === "Pending" ? "secondary" :
+                            daycare.status === "Inactive" ? "destructive" :
+                            "outline" // for Archived
+                        }
+                        className={cn(
+                            daycare.status === 'Active' && 'bg-accent text-accent-foreground',
+                            daycare.status === 'Archived' && 'border-dashed text-muted-foreground'
+                        )}
                       >
                         {daycare.status}
                       </Badge>
@@ -110,7 +132,7 @@ export default function AdminDaycaresPage() {
                            <DropdownMenuItem>View Details</DropdownMenuItem>
                            <DropdownMenuItem>Manage Subscription</DropdownMenuItem>
                            <DropdownMenuSeparator />
-                           {daycare.status === 'Active' ? (
+                           {daycare.status === 'Active' && (
                                 <DropdownMenuItem 
                                     className="text-destructive focus:text-destructive"
                                     onClick={() => handleStatusChange(daycare.id, 'Inactive')}
@@ -118,10 +140,23 @@ export default function AdminDaycaresPage() {
                                     <XCircle className="mr-2 h-4 w-4" />
                                     Deactivate
                                 </DropdownMenuItem>
-                            ) : (
+                            )}
+                            {(daycare.status === 'Inactive' || daycare.status === 'Pending') && (
                                 <DropdownMenuItem onClick={() => handleStatusChange(daycare.id, 'Active')}>
                                     <CheckCircle className="mr-2 h-4 w-4" />
                                     Activate
+                                </DropdownMenuItem>
+                            )}
+                            {daycare.status === 'Inactive' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(daycare.id, 'Archived')}>
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    Archive
+                                </DropdownMenuItem>
+                            )}
+                            {daycare.status === 'Archived' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(daycare.id, 'Inactive')}>
+                                    <ArchiveRestore className="mr-2 h-4 w-4" />
+                                    Restore
                                 </DropdownMenuItem>
                             )}
                         </DropdownMenuContent>

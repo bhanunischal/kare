@@ -2,7 +2,7 @@
 export type Daycare = {
   id: string;
   name: string;
-  status: 'Active' | 'Inactive' | 'Pending';
+  status: 'Active' | 'Inactive' | 'Pending' | 'Archived';
   plan: 'Basic' | 'Premium' | 'Enterprise';
   childrenCount: number;
   staffCount: number;
@@ -16,4 +16,5 @@ export const allDaycares: Daycare[] = [
   { id: 'dc_3', name: 'Kiddie Cove', status: 'Inactive', plan: 'Premium', childrenCount: 50, staffCount: 8, location: 'Richmond, BC', joinDate: '2022-11-01' },
   { id: 'dc_4', name: 'Happy Trails Childcare', status: 'Active', plan: 'Enterprise', childrenCount: 120, staffCount: 25, location: 'Surrey, BC', joinDate: '2023-05-10' },
   { id: 'dc_5', name: 'The Learning Tree', status: 'Pending', plan: 'Basic', childrenCount: 0, staffCount: 0, location: 'Coquitlam, BC', joinDate: '2024-07-28' },
+  { id: 'dc_6', name: 'Old Schoolhouse', status: 'Archived', plan: 'Basic', childrenCount: 40, staffCount: 6, location: 'Langley, BC', joinDate: '2021-08-12' },
 ];
