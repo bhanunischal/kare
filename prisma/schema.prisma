@@ -1,0 +1,256 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String // In a real app, this should be a hash
+  role      Role     @default(DAYCARE_OWNER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  daycare   Daycare?
+}
+
+enum Role {
+  SAAS_ADMIN
+  DAYCARE_OWNER
+  STAFF
+}
+
+model Daycare {
+  id                    String           @id @default(cuid())
+  name                  String
+  status                DaycareStatus    @default(PENDING)
+  plan                  DaycarePlan      @default(BASIC)
+  location              String
+  joinDate              DateTime         @default(now())
+  ownerId               String           @unique
+  owner                 User             @relation(fields: [ownerId], references: [id])
+  children              Child[]
+  staff                 StaffMember[]
+  expenses              Expense[]
+  documents             Document[]
+  galleryPhotos         GalleryPhoto[]
+  announcements         Announcement[]
+  templates             ReportTemplate[] @relation("DaycareTemplates")
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  licenseNumber         String?
+  contactEmail          String?
+  contactPhone          String?
+  address               String?
+  logoUrl               String?
+  bannerUrl             String?
+  infantCapacity        Int?
+  toddlerCapacity       Int?
+  preschoolCapacity     Int?
+  gradeschoolerCapacity Int?
+}
+
+enum DaycareStatus {
+  ACTIVE @map("Active")
+  INACTIVE @map("Inactive")
+  PENDING @map("Pending")
+  ARCHIVED @map("Archived")
+}
+
+enum DaycarePlan {
+  BASIC @map("Basic")
+  PREMIUM @map("Premium")
+  ENTERPRISE @map("Enterprise")
+}
+
+model Child {
+  id              String             @id @default(cuid())
+  name            String
+  photoUrl        String?
+  photoHint       String?
+  dob             DateTime
+  startDate       DateTime
+  status          ChildStatus
+  program         Program
+  programType     ProgramType
+  motherName      String
+  fatherName      String
+  mobilePhone     String
+  address         String
+  emergencyName   String
+  emergencyPhone  String
+  vaccination     String?
+  allergies       String?
+  notes           String?
+  daycareId       String
+  daycare         Daycare            @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  attendance      AttendanceRecord[]
+  invoices        Invoice[]
+  assessments     AssessmentReport[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+enum ChildStatus {
+  ACTIVE @map("Active")
+  WAITLISTED @map("Waitlisted")
+  INACTIVE @map("Inactive")
+}
+
+enum Program {
+  INFANT_0_12_MONTHS @map("Infant (0-12months)")
+  TODDLER_1_3_YEARS @map("Toddler (1 to 3 years)")
+  PRESCHOOL_3_5_YEARS @map("Preschool (3 to 5 years)")
+  GRADESCHOOLER_5_12_YEARS @map("Gradeschooler (5 to 12 years)")
+}
+
+enum ProgramType {
+  FULL_TIME @map("Full time")
+  PART_TIME @map("Part time")
+  ADHOC @map("Ad-hoc daily basis")
+}
+
+model StaffMember {
+  id               String      @id @default(cuid())
+  name             String
+  photoUrl         String?
+  photoHint        String?
+  role             String
+  certifications   String
+  status           StaffStatus
+  startDate        DateTime
+  phone            String
+  address          String
+  emergencyName    String
+  emergencyPhone   String
+  payType          PayType
+  payRate          Float
+  notes            String?
+  daycareId        String
+  daycare          Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+}
+
+enum StaffStatus {
+  ACTIVE @map("Active")
+  ON_LEAVE @map("On Leave")
+  INACTIVE @map("Inactive")
+}
+
+enum PayType {
+  MONTHLY_SALARY @map("Monthly Salary")
+  HOURLY_RATE @map("Hourly Rate")
+}
+
+model AttendanceRecord {
+  id          String           @id @default(cuid())
+  date        DateTime         @db.Date
+  checkIn     DateTime?
+  checkOut    DateTime?
+  status      AttendanceStatus
+  leaveReason String?
+  leaveType   String?
+  childId     String
+  child       Child            @relation(fields: [childId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([childId, date])
+}
+
+enum AttendanceStatus {
+  PRESENT @map("Present")
+  ABSENT @map("Absent")
+  ON_LEAVE @map("On Leave")
+  PENDING @map("Pending")
+}
+
+model Invoice {
+  id        String        @id @default(cuid())
+  amount    Float
+  dueDate   DateTime
+  status    InvoiceStatus
+  childId   String
+  child     Child         @relation(fields: [childId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+enum InvoiceStatus {
+  PAID @map("Paid")
+  DUE @map("Due")
+  OVERDUE @map("Overdue")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  date        DateTime
+  category    String
+  description String
+  amount      Float
+  vendor      String?
+  daycareId   String
+  daycare     Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  type      String
+  sizeKB    Float
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model GalleryPhoto {
+  id        String   @id @default(cuid())
+  url       String
+  alt       String?
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model AssessmentReport {
+  id                     String   @id @default(cuid())
+  childId                String
+  child                  Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  reportingPeriod        String
+  socialEmotional        String
+  cognitiveSkills        String
+  languageCommunication  String
+  motorSkills            String
+  summaryRecommendations String
+  createdAt              DateTime @default(now())
+}
+
+model ReportTemplate {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  content     Json // Store template structure as JSON
+  isGlobal    Boolean   @default(false)
+  daycares    Daycare[] @relation("DaycareTemplates")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
