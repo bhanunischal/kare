@@ -13,6 +13,7 @@ import { CheckCircle, Cloud, ImageUp, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from 'next/image';
+import { Separator } from '@/components/ui/separator';
 
 type StorageProvider = 'google-drive' | 'one-drive' | 'aws-s3' | 'azure-blob';
 
@@ -41,6 +42,13 @@ export default function SettingsPage() {
     { id: 2, src: 'https://placehold.co/600x450.png', alt: 'Daycare classroom', hint: 'bright classroom' },
     { id: 3, src: 'https://placehold.co/600x450.png', alt: 'Teacher reading to kids', hint: 'teacher reading' },
   ]);
+  
+  // State for capacities
+  const [infantCapacity, setInfantCapacity] = useState(10);
+  const [toddlerCapacity, setToddlerCapacity] = useState(20);
+  const [preschoolCapacity, setPreschoolCapacity] = useState(30);
+  const [gradeschoolerCapacity, setGradeschoolerCapacity] = useState(15);
+
 
   const { toast } = useToast();
 
@@ -64,7 +72,7 @@ export default function SettingsPage() {
   const handleProfileSave = (e: React.FormEvent) => {
     e.preventDefault();
     // In a real app, save this data to the backend
-    console.log({ daycareName, licenseNumber, contactEmail, contactPhone, address });
+    console.log({ daycareName, licenseNumber, contactEmail, contactPhone, address, infantCapacity, toddlerCapacity, preschoolCapacity, gradeschoolerCapacity });
     toast({
         title: "Profile Updated",
         description: "Your daycare's profile information has been saved.",
@@ -114,6 +122,31 @@ export default function SettingsPage() {
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="address">Address</Label>
                     <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                  </div>
+                </div>
+
+                <Separator />
+                
+                <div>
+                  <h3 className="text-lg font-medium">Program Capacity</h3>
+                  <p className="text-sm text-muted-foreground mt-1 mb-4">Set the maximum number of children for each program group.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <div className="space-y-2">
+                          <Label htmlFor="infant-capacity">Infant (0-12months)</Label>
+                          <Input id="infant-capacity" type="number" value={infantCapacity} onChange={(e) => setInfantCapacity(Number(e.target.value))} />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="toddler-capacity">Toddler (1 to 3 years)</Label>
+                          <Input id="toddler-capacity" type="number" value={toddlerCapacity} onChange={(e) => setToddlerCapacity(Number(e.target.value))} />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="preschool-capacity">Preschool (3 to 5 years)</Label>
+                          <Input id="preschool-capacity" type="number" value={preschoolCapacity} onChange={(e) => setPreschoolCapacity(Number(e.target.value))} />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="gradeschooler-capacity">Gradeschooler (5 to 12 years)</Label>
+                          <Input id="gradeschooler-capacity" type="number" value={gradeschoolerCapacity} onChange={(e) => setGradeschoolerCapacity(Number(e.target.value))} />
+                      </div>
                   </div>
                 </div>
 
@@ -229,3 +262,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    
