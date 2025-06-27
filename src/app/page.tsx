@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Users, Activity, MessageCircle, CreditCard, BarChart, FileText, Menu, X } from "lucide-react";
+import { CheckCircle, Users, MessageCircle, CreditCard, BarChart, FileText, Menu, X } from "lucide-react";
 import { Logo } from "@/components/logo";
 import {
   Carousel,
@@ -16,41 +16,47 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
+const features = [
+  {
+    icon: <FileText className="h-8 w-8 text-primary" />,
+    title: "Child Enrollment",
+    description: "Streamlined child registration process with digital document submission.",
+  },
+  {
+    icon: <CheckCircle className="h-8 w-8 text-primary" />,
+    title: "Attendance Tracking",
+    description: "Track attendance via digital check-in/check-out.",
+  },
+  {
+    icon: <Users className="h-8 w-8 text-primary" />,
+    title: "Staff Management",
+    description: "Manage staff schedules and track certifications.",
+  },
+  {
+    icon: <MessageCircle className="h-8 w-8 text-primary" />,
+    title: "Parent Communication",
+    description: "A dedicated portal for announcements and updates.",
+  },
+  {
+    icon: <CreditCard className="h-8 w-8 text-primary" />,
+    title: "Billing & Payments",
+    description: "Automated tuition billing and online payment processing.",
+  },
+  {
+    icon: <BarChart className="h-8 w-8 text-primary" />,
+    title: "Waitlist Analytics",
+    description: "Forecast demand and optimize enrollment using AI.",
+  },
+];
+
+const homeCarouselImages = [
+  { id: 1, src: 'https://placehold.co/600x450.png', alt: 'Children playing', hint: 'kids playing' },
+  { id: 2, src: 'https://placehold.co/600x450.png', alt: 'Daycare classroom', hint: 'bright classroom' },
+  { id: 3, src: 'https://placehold.co/600x450.png', alt: 'Teacher reading to kids', hint: 'teacher reading' },
+];
+
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const features = [
-    {
-      icon: <FileText className="h-8 w-8 text-primary" />,
-      title: "Child Enrollment",
-      description: "Streamlined child registration process with digital document submission.",
-    },
-    {
-      icon: <CheckCircle className="h-8 w-8 text-primary" />,
-      title: "Attendance Tracking",
-      description: "Track attendance via digital check-in/check-out.",
-    },
-    {
-      icon: <Users className="h-8 w-8 text-primary" />,
-      title: "Staff Management",
-      description: "Manage staff schedules and track certifications.",
-    },
-    {
-      icon: <MessageCircle className="h-8 w-8 text-primary" />,
-      title: "Parent Communication",
-      description: "A dedicated portal for announcements and updates.",
-    },
-    {
-      icon: <CreditCard className="h-8 w-8 text-primary" />,
-      title: "Billing & Payments",
-      description: "Automated tuition billing and online payment processing.",
-    },
-    {
-      icon: <BarChart className="h-8 w-8 text-primary" />,
-      title: "Waitlist Analytics",
-      description: "Forecast demand and optimize enrollment using AI.",
-    },
-  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -114,48 +120,22 @@ export default function Home() {
               </div>
                <Carousel className="w-full max-w-lg mx-auto relative">
                     <CarouselContent>
-                    <CarouselItem>
-                        <Card>
-                        <CardContent className="flex aspect-[4/3] items-center justify-center p-0">
-                            <Image
-                                src="https://placehold.co/600x450.png"
-                                alt="Children playing"
-                                width={600}
-                                height={450}
-                                className="rounded-lg object-cover w-full h-full"
-                                data-ai-hint="kids playing"
-                            />
-                        </CardContent>
-                        </Card>
-                    </CarouselItem>
-                    <CarouselItem>
-                        <Card>
-                        <CardContent className="flex aspect-[4/3] items-center justify-center p-0">
-                            <Image
-                                src="https://placehold.co/600x450.png"
-                                alt="Daycare classroom"
-                                width={600}
-                                height={450}
-                                className="rounded-lg object-cover w-full h-full"
-                                data-ai-hint="bright classroom"
-                            />
-                        </CardContent>
-                        </Card>
-                    </CarouselItem>
-                    <CarouselItem>
-                        <Card>
-                        <CardContent className="flex aspect-[4/3] items-center justify-center p-0">
-                            <Image
-                                src="https://placehold.co/600x450.png"
-                                alt="Teacher reading to kids"
-                                width={600}
-                                height={450}
-                                className="rounded-lg object-cover w-full h-full"
-                                data-ai-hint="teacher reading"
-                            />
-                        </CardContent>
-                        </Card>
-                    </CarouselItem>
+                      {homeCarouselImages.map((image) => (
+                        <CarouselItem key={image.id}>
+                          <Card>
+                            <CardContent className="flex aspect-[4/3] items-center justify-center p-0">
+                                <Image
+                                    src={image.src}
+                                    alt={image.alt}
+                                    width={600}
+                                    height={450}
+                                    className="rounded-lg object-cover w-full h-full"
+                                    data-ai-hint={image.hint}
+                                />
+                            </CardContent>
+                          </Card>
+                        </CarouselItem>
+                      ))}
                     </CarouselContent>
                     <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
                     <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />

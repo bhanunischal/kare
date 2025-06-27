@@ -9,9 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Cloud, ImageUp } from 'lucide-react';
+import { CheckCircle, Cloud, ImageUp, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Image from 'next/image';
 
 type StorageProvider = 'google-drive' | 'one-drive' | 'aws-s3' | 'azure-blob';
 
@@ -33,6 +34,13 @@ export default function SettingsPage() {
   const [contactEmail, setContactEmail] = useState("contact@careconnect.com");
   const [contactPhone, setContactPhone] = useState("(555) 123-4567");
   const [address, setAddress] = useState("123 Sunny Lane, Vancouver, BC V5K 0A1");
+
+  // State for homepage tab
+  const [carouselImages, setCarouselImages] = useState([
+    { id: 1, src: 'https://placehold.co/600x450.png', alt: 'Children playing', hint: 'kids playing' },
+    { id: 2, src: 'https://placehold.co/600x450.png', alt: 'Daycare classroom', hint: 'bright classroom' },
+    { id: 3, src: 'https://placehold.co/600x450.png', alt: 'Teacher reading to kids', hint: 'teacher reading' },
+  ]);
 
   const { toast } = useToast();
 
@@ -73,9 +81,10 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
+          <TabsTrigger value="homepage">Homepage</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
           <Card>
@@ -189,6 +198,32 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        <TabsContent value="homepage">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Homepage Content</CardTitle>
+                    <CardDescription>Manage the content displayed on your public-facing homepage.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <h3 className="font-medium">Carousel Images</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {carouselImages.map((image, index) => (
+                            <Card key={image.id}>
+                                <CardContent className="p-2">
+                                    <div className="aspect-[4/3] bg-muted rounded-md overflow-hidden mb-2">
+                                        <img src={image.src} alt={image.alt} data-ai-hint={image.hint} className="w-full h-full object-cover" />
+                                    </div>
+                                    <Button variant="outline" className="w-full">
+                                        <Upload className="mr-2 h-4 w-4" />
+                                        Replace Image {index + 1}
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
         </TabsContent>
       </Tabs>
     </div>
