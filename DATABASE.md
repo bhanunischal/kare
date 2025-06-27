@@ -97,16 +97,12 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
 
 If `prisma db push` still fails, you can test your database connection and permissions directly from the command line using `psql`, the standard PostgreSQL client. This often provides more specific error messages than Prisma.
 
-Run the following single-line command from your project's root directory. This version uses a standard SQL query to avoid shell escaping issues with backslashes.
+Run the following command from your project's root directory. You must replace `YOUR_DATABASE_URL_HERE` with the full database connection URL from your `.env` file.
 
 ```bash
-psql "$(grep DATABASE_URL .env | cut -d '=' -f2- | sed 's/"//g')" -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
+# Example: psql "postgresql://user:pass@host:port/db?sslmode=require" -c "SELECT 1;"
+psql "YOUR_DATABASE_URL_HERE" -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
 ```
-
-**How it works:**
-*   This command securely reads the `DATABASE_URL` from your `.env` file.
-*   It connects to your database using that URL.
-*   The `-c "SELECT ..."` part runs a standard SQL query to list all tables in the `public` schema.
 
 **What to look for:**
 *   **Success:** If the connection and basic permissions are correct, you will see a `table_name` header followed by a list of tables (if any exist) and a row count, like `(0 rows)`. This means the connection is working.
