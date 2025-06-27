@@ -100,13 +100,13 @@ If `prisma db push` still fails, you can test your database connection and permi
 Run the following single-line command from your project's root directory:
 
 ```bash
-psql "$(grep DATABASE_URL .env | cut -d '=' -f2- | sed 's/"//g')" -c "\dt"
+psql "$(grep DATABASE_URL .env | cut -d '=' -f2- | sed 's/"//g')" -c "\\dt"
 ```
 
 **How it works:**
 *   This command securely reads the `DATABASE_URL` from your `.env` file.
 *   It connects to your database using that URL.
-*   The `-c "\dt"` part asks the database to list all tables in the public schema.
+*   The `-c "\\dt"` part asks the database to list all tables in the public schema.
 
 **What to look for:**
 *   **Success:** If the connection and basic permissions are correct, you will either see a list of tables (if you've run `db push` successfully before) or a message like `Did not find any relations.`. Either of these means the connection is working.
