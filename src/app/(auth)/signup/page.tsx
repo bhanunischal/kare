@@ -1,3 +1,4 @@
+
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -48,7 +49,7 @@ export default function SignupPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" required />
             </div>
-            <Link href="/dashboard">
+            <Link href="/pending">
                 <Button type="submit" className="w-full">
                 Create an account
                 </Button>

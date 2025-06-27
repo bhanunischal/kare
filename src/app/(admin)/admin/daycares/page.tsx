@@ -27,12 +27,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Plus, FilePenLine } from "lucide-react";
+import { MoreHorizontal, Plus, CheckCircle, XCircle } from "lucide-react";
 import { allDaycares, Daycare } from "./data";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminDaycaresPage() {
   const [daycares, setDaycares] = useState<Daycare[]>(allDaycares);
+  const { toast } = useToast();
+
+  const handleStatusChange = (id: string, newStatus: "Active" | "Inactive") => {
+    const daycareName = daycares.find(dc => dc.id === id)?.name || "The daycare";
+    setDaycares(daycares.map(dc => 
+        dc.id === id ? { ...dc, status: newStatus } : dc
+    ));
+    toast({
+        title: "Status Updated",
+        description: `${daycareName} has been ${newStatus.toLowerCase()}.`,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -97,7 +110,20 @@ export default function AdminDaycaresPage() {
                            <DropdownMenuItem>View Details</DropdownMenuItem>
                            <DropdownMenuItem>Manage Subscription</DropdownMenuItem>
                            <DropdownMenuSeparator />
-                           <DropdownMenuItem className="text-destructive focus:text-destructive">Deactivate</DropdownMenuItem>
+                           {daycare.status === 'Active' ? (
+                                <DropdownMenuItem 
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => handleStatusChange(daycare.id, 'Inactive')}
+                                >
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Deactivate
+                                </DropdownMenuItem>
+                            ) : (
+                                <DropdownMenuItem onClick={() => handleStatusChange(daycare.id, 'Active')}>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Activate
+                                </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
