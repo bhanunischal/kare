@@ -10,251 +10,266 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ================================================= //
-//                 SAAS Admin Models                 //
-// ================================================= //
+// ================================= //
+//         SaaS Admin Models         //
+// ================================= //
 
 model SaaSAdmin {
   id       String @id @default(cuid())
   email    String @unique
   password String // Hashed password
+  name     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ================================= //
+//         Core Tenancy Models       //
+// ================================= //
+
+model Daycare {
+  id           String  @id @default(cuid())
+  name         String
+  licenseNumber String?
+  email        String  @unique
+  password     String  // Hashed password
+  phone        String?
+  address      String?
+  logoUrl      String?
+  bannerUrl    String?
+
+  status DaycareStatus @default(PENDING)
+  plan   BillingPlan   @default(BASIC)
+
+  children   Child[]
+  staff      StaffMember[]
+  invoices   Invoice[]
+  expenses   Expense[]
+  activities Activity[]
+  documents  Document[]
+  gallery    GalleryItem[]
+  
+  // Explicit many-to-many relationship with ReportTemplate
+  templateAssignments TemplateAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ReportTemplate {
   id          String   @id @default(cuid())
   name        String
-  description String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  description String?
+  content     String // Storing as a JSON string for simplicity and compatibility
 
-  // A template can be assigned to multiple daycares via the join table
-  assignments TemplateAssignment[]
+  // Explicit many-to-many relationship with Daycare
+  assignedDaycares TemplateAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// ================================================= //
-//               Daycare-Specific Models             //
-// ================================================= //
-
-model Daycare {
-  id            String   @id @default(cuid())
-  name          String
-  licenseNumber String?
-  email         String   @unique
-  phone         String?
-  address       String?
-  logoUrl       String?
-  bannerUrl     String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Tenancy Control
-  status DaycareStatus @default(PENDING)
-  plan   BillingPlan   @default(BASIC)
-
-  // Relationships
-  children       Child[]
-  staff          StaffMember[]
-  invoices       Invoice[]
-  expenses       Expense[]
-  documents      Document[]
-  galleryItems   GalleryPhoto[]
-  activities     Activity[]
-  attendance     AttendanceRecord[]
-  communications Communication[]
-
-  // Template assignments for this daycare via the join table
-  templateAssignments TemplateAssignment[]
-}
-
-// Explicit join table for many-to-many relationship between ReportTemplate and Daycare
+// Explicit join table for ReportTemplate and Daycare
 model TemplateAssignment {
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-
   templateId String
-  template   ReportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  daycareId  String
+  
+  template ReportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  daycare  Daycare        @relation(fields: [daycareId], references: [id], onDelete: Cascade)
 
   assignedAt DateTime @default(now())
-
-  @@id([daycareId, templateId])
+  
+  @@id([templateId, daycareId])
 }
 
 
+// ================================= //
+//       Daycare-Specific Models     //
+// ================================= //
+
 model Child {
-  id             String      @id @default(cuid())
-  name           String
-  dob            DateTime
-  startDate      DateTime
-  status         ChildStatus @default(ACTIVE)
-  photoUrl       String?
-  allergies      String?
-  notes          String?
-  vaccination    String?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  program        Program
-  programType    ProgramType
+  id        String      @id @default(cuid())
+  daycareId String
+  daycare   Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  
+  name        String
+  photoUrl    String?
+  dob         DateTime
+  startDate   DateTime
+  
+  program     ProgramGroup
+  programType ProgramType
+  status      ChildStatus
 
   motherName String
   fatherName String
+
+  homePhone   String?
   mobilePhone String
-  address    String
-  emergencyName String
-  emergencyPhone String
+  address     String
 
-  // Foreign Key to Daycare
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  emergencyName   String
+  emergencyPhone  String
 
-  // Relationships
-  attendance AttendanceRecord[]
-  assessments ChildAssessment[]
+  vaccinationInfo String?
+  allergies       String?
+  notes           String?
+
+  attendanceRecords AttendanceRecord[]
+  assessments       Assessment[]
+  invoices          Invoice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model StaffMember {
-  id             String   @id @default(cuid())
-  name           String
-  role           StaffRole
-  certifications String?
-  status         StaffStatus @default(ACTIVE)
-  startDate      DateTime
-  phone          String
-  address        String
-  emergencyName  String
-  emergencyPhone String
-  payType        PayType
-  payRate        Float
-  notes          String?
-  photoUrl       String?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-
-  // Foreign Key to Daycare
+  id        String  @id @default(cuid())
   daycareId String
   daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  
+  name      String
+  photoUrl  String?
+  role      StaffRole
+  status    StaffStatus
+
+  certifications String?
+  startDate      DateTime
+  
+  phone   String
+  address String
+
+  emergencyName  String
+  emergencyPhone String
+
+  payType PayType
+  payRate Float
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AttendanceRecord {
-  id          String           @id @default(cuid())
-  date        DateTime         @db.Date
-  checkIn     DateTime?
-  checkOut    DateTime?
-  status      AttendanceStatus
+  id        String   @id @default(cuid())
+  childId   String
+  child     Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id]) // No cascade here to avoid cycles
+
+  date     DateTime
+  checkIn  DateTime?
+  checkOut DateTime?
+  status   AttendanceStatus
+  
   leaveReason String?
   leaveFrom   DateTime?
   leaveTo     DateTime?
   leaveType   LeaveType?
 
-  // Foreign Key to Child
-  childId String
-  child   Child @relation(fields: [childId], references: [id], onDelete: Cascade)
-
-  // Foreign Key to Daycare
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Activity {
-  id          String           @id @default(cuid())
+  id          String   @id @default(cuid())
+  daycareId   String
+  daycare     Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  
   date        DateTime
-  time        String // Storing as string, could be DateTime as well
+  time        String // Storing time as string e.g., "10:00 AM" might be better as DateTime if timezone matters
   title       String
   category    ActivityCategory
   description String?
   materials   String?
-  domains     LearningDomain[]
+  domains     String? // Storing as a comma-separated string for simplicity and compatibility
 
-  // Foreign Key to Daycare
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+model Assessment {
+  id              String   @id @default(cuid())
+  childId         String
+  child           Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  daycareId       String
+  daycare         Daycare  @relation(fields: [daycareId], references: [id]) // No cascade here to avoid cycles
+  
+  reportingPeriod String
+  observations    String
 
-model ChildAssessment {
-  id                      String   @id @default(cuid())
-  reportingPeriod         String
-  observations            String
-  socialEmotional         String
-  cognitiveSkills         String
-  languageCommunication   String
-  motorSkills             String
-  summaryRecommendations  String
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  // AI Generated fields
+  socialEmotional      String
+  cognitiveSkills      String
+  languageCommunication String
+  motorSkills          String
+  summaryRecommendations String
 
-  // Foreign Key to Child
-  childId String
-  child   Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+  generatedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Invoice {
   id        String        @id @default(cuid())
-  amount    Float
-  dueDate   DateTime
-  status    InvoiceStatus
-  program   String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  // Foreign Key to Daycare
+  childId   String
+  child     Child         @relation(fields: [childId], references: [id], onDelete: Cascade)
   daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycare   Daycare       @relation(fields: [daycareId], references: [id]) // No cascade here to avoid cycles
+  
+  amount  Float
+  dueDate DateTime
+  status  InvoiceStatus
+  program ProgramGroup
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Expense {
-  id          String          @id @default(cuid())
+  id          String         @id @default(cuid())
+  daycareId   String
+  daycare     Daycare        @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  
   date        DateTime
   category    ExpenseCategory
   description String
   amount      Float
   vendor      String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  // Foreign Key to Daycare
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Document {
   id        String   @id @default(cuid())
-  name      String
-  type      String // e.g., 'PDF', 'Word'
-  size      String // e.g., '1.2 MB'
-  url       String   // URL to the file in cloud storage
-  dateAdded DateTime @default(now())
-
-  // Foreign Key to Daycare
   daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycare   Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  
+  name      String
+  url       String // URL to the file in cloud storage
+  type      String // e.g., 'PDF', 'Word', 'Image'
+  size      Float // in KB
+  
+  uploadedAt DateTime @default(now())
 }
 
-model GalleryPhoto {
+model GalleryItem {
   id        String   @id @default(cuid())
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  
   url       String
   altText   String?
-  dateAdded DateTime @default(now())
-
-  // Foreign Key to Daycare
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-}
-
-model Communication {
-  id        String            @id @default(cuid())
-  type      CommunicationType // BROADCAST or DIRECT
-  content   String
-  createdAt DateTime          @default(now())
   
-  // Foreign Key to Daycare
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  uploadedAt DateTime @default(now())
 }
 
 
-// ================================================= //
-//                      Enums                        //
-// ================================================= //
+// ================================= //
+//               Enums               //
+// ================================= //
 
 enum DaycareStatus {
   ACTIVE
@@ -275,35 +290,10 @@ enum ChildStatus {
   INACTIVE
 }
 
-enum Program {
-  INFANT
-  TODDLER
-  PRESCHOOL
-  GRADESCHOOLER
-}
-
-enum ProgramType {
-  FULL_TIME
-  PART_TIME
-  ADHOC
-}
-
 enum StaffStatus {
   ACTIVE
   ON_LEAVE
   INACTIVE
-}
-
-enum StaffRole {
-  LEAD_ECE
-  ASSISTANT
-  ECE_IT
-  SUPPORT_STAFF
-}
-
-enum PayType {
-  MONTHLY_SALARY
-  HOURLY_RATE
 }
 
 enum AttendanceStatus {
@@ -319,26 +309,35 @@ enum LeaveType {
   LONG_TERM
 }
 
-enum ActivityCategory {
-  ART_AND_CRAFT
-  MUSIC_AND_MOVEMENT
-  OUTDOOR_PLAY
-  STORY_TIME
-  SCIENCE_AND_DISCOVERY
-}
-
-enum LearningDomain {
-  COGNITIVE
-  FINE_MOTOR
-  GROSS_MOTOR
-  SOCIAL_EMOTIONAL
-  LANGUAGE
-}
-
 enum InvoiceStatus {
   PAID
   DUE
   OVERDUE
+}
+
+enum ProgramGroup {
+  INFANT
+  TODDLER
+  PRESCHOOL
+  GRADESCHOOLER
+}
+
+enum ProgramType {
+  FULL_TIME
+  PART_TIME
+  ADHOC
+}
+
+enum StaffRole {
+  LEAD_ECE
+  ASSISTANT
+  ECE_IT
+  SUPPORT_STAFF
+}
+
+enum PayType {
+  MONTHLY_SALARY
+  HOURLY_RATE
 }
 
 enum ExpenseCategory {
@@ -351,7 +350,10 @@ enum ExpenseCategory {
   OTHER
 }
 
-enum CommunicationType {
-  BROADCAST
-  DIRECT
+enum ActivityCategory {
+  ART_CRAFT
+  MUSIC_MOVEMENT
+  OUTDOOR_PLAY
+  STORY_TIME
+  SCIENCE_DISCOVERY
 }
