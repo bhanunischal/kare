@@ -1,6 +1,8 @@
 
 import Link from "next/link";
 import {
+  LifeBuoy,
+  LogOut,
   Menu,
   Settings,
 } from "lucide-react";
@@ -87,10 +89,16 @@ export default function DashboardLayout({
                   Settings
                 </DropdownMenuItem>
               </Link>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem>
+                <LifeBuoy className="mr-2 h-4 w-4" />
+                Support
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
                <Link href="/login">
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+                <DropdownMenuItem>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
