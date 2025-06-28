@@ -1,36 +1,15 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client-js"
+  provider = "prisma-client-js"
+  // This is the crucial part for fixing the engine error in this environment
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-model Child {
-  id             String    @id @default(cuid())
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  name           String
-  dateOfBirth    DateTime
-  startDate      DateTime
-  program        String
-  programType    String
-  status         String
-  motherName     String
-  fatherName     String
-  homePhone      String?
-  mobilePhone    String
-  address        String
-  emergencyName  String
-  emergencyPhone String
-  vaccination    String?
-  allergies      String?
-  notes          String?
-  photoUrl       String?
-  photoHint      String?
 }
 
 model User {
@@ -43,4 +22,28 @@ model User {
   verificationToken String?   @unique
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+}
+
+model Child {
+  id             String   @id @default(cuid())
+  name           String
+  photoUrl       String?
+  photoHint      String?
+  dateOfBirth    DateTime
+  startDate      DateTime
+  program        String
+  programType    String
+  status         String // 'Active', 'Waitlisted', 'Inactive'
+  motherName     String
+  fatherName     String
+  homePhone      String?
+  mobilePhone    String
+  address        String
+  emergencyName  String
+  emergencyPhone String
+  vaccination    String?
+  allergies      String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
