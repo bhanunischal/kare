@@ -3,6 +3,8 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Use linux-musl binary for environments with LibreSSL instead of OpenSSL
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -10,69 +12,142 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Represents a user who can log in. This could be an admin or a daycare owner.
-model User {
-  id    String   @id @default(cuid())
-  email String   @unique
-  name  String?
-
-  // A user might own a daycare. The relationship is one-to-one.
-  daycare Daycare?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// The main entity for a daycare center.
 model Daycare {
-  id      String   @id @default(cuid())
-  name    String
-  address String?
-  phone   String?
+  id            String         @id @default(cuid())
+  name          String
+  ownerId       String         @unique
+  owner         User           @relation(fields: [ownerId], references: [id])
+  status        String         @default("Pending") // Pending, Active, Inactive
+  plan          String         @default("Basic") // Basic, Premium, Enterprise
+  address       String?
+  phone         String?
+  licenseNumber String?
 
-  // Each Daycare must be owned by one User. This is the defining side of the one-to-one relation.
-  // The `ownerId` field must be unique to enforce this.
-  ownerId String  @unique
-  owner   User    @relation(fields: [ownerId], references: [id])
+  children      Child[]
+  staff         StaffMember[]
+  invoices      Invoice[]
+  announcements Announcement[]
 
-  // A daycare has many children and staff members.
-  children Child[]
-  staff    Staff[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
-// Represents a child enrolled in a daycare.
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  role         String        @default("Parent") // Parent, Staff, Admin
+
+  daycare      Daycare?
+
+  // For parents
+  children     Child[]       @relation("ParentChildren")
+
+  // For staff
+  staffProfile StaffMember?
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+
 model Child {
+  id                String   @id @default(cuid())
+  name              String
+  dob               DateTime
+  status            String   @default("Waitlisted") // Active, Waitlisted, Inactive
+
+  daycareId         String
+  daycare           Daycare  @relation(fields: [daycareId], references: [id])
+
+  parentId          String
+  parent            User     @relation("ParentChildren", fields: [parentId], references: [id])
+
+  program           String // Infant, Toddler, etc.
+  programType       String // Full time, Part time
+
+  allergies         String?
+  notes             String?
+
+  attendanceRecords Attendance[]
+  invoices          Invoice[]
+  assessments       Assessment[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model StaffMember {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id])
+
+  daycareId      String
+  daycare        Daycare   @relation(fields: [daycareId], references: [id])
+
+  role           String    // Lead ECE, Assistant, etc.
+  certifications String?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Attendance {
+  id       String    @id @default(cuid())
+  childId  String
+  child    Child     @relation(fields: [childId], references: [id])
+  date     DateTime  @db.Date
+  checkIn  DateTime?
+  checkOut DateTime?
+  status   String // Present, Absent, On Leave
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([childId, date])
+}
+
+model Invoice {
   id        String   @id @default(cuid())
-  name      String
-  dob       DateTime
-  status    String   @default("Active") // e.g., Active, Inactive, Waitlisted
-
-  // The child belongs to one daycare.
+  childId   String
+  child     Child    @relation(fields: [childId], references: [id])
   daycareId String
-  daycare   Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycare   Daycare  @relation(fields: [daycareId], references: [id])
 
-  // For simplicity, parent info is stored as simple fields for now.
-  parentName  String
-  parentPhone String
+  amount    Float
+  dueDate   DateTime
+  status    String // Due, Paid, Overdue
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// Represents a staff member at a daycare.
-model Staff {
-  id    String @id @default(cuid())
-  name  String
-  role  String // e.g., "Lead ECE", "Assistant"
-  phone String?
-
-  // The staff member belongs to one daycare.
+model Announcement {
+  id        String   @id @default(cuid())
   daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycare   Daycare  @relation(fields: [daycareId], references: [id])
+
+  title     String
+  content   String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Assessment {
+  id                     String   @id @default(cuid())
+  childId                String
+  child                  Child    @relation(fields: [childId], references: [id])
+
+  reportingPeriod        String
+
+  // AI-generated fields
+  socialEmotional        String
+  cognitiveSkills        String
+  languageCommunication  String
+  motorSkills            String
+  summaryRecommendations String
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }

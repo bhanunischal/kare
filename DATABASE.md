@@ -22,46 +22,37 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
 
 **Important:** The `.gitignore` file in this project is already configured to ignore `.env` files, so your credentials will not be committed to version control.
 
-## 3. Fixing Persistent `Schema engine error` on Ubuntu
+## 3. Fixing Persistent `Schema engine error`
 
-If you can connect to your database with a command-line tool like `psql` but `npx prisma db push` consistently fails with a `Schema engine error` and a `Prisma failed to detect the libssl/openssl version` warning, it means Prisma's query engine cannot establish a secure connection. This is a common environmental issue on fresh Ubuntu servers.
+If you can connect to your database with a command-line tool like `psql` but `npx prisma db push` consistently fails with a `Schema engine error` and a `Prisma failed to detect the libssl/openssl version` warning, it means Prisma's query engine is incompatible with the libraries in your Firebase Studio development environment.
 
-Follow these steps precisely to fix it.
+This often happens in specific Linux environments (like this one) that use alternatives to OpenSSL, such as LibreSSL.
 
-### Step 1: Install Required Libraries on Your Ubuntu Server
+### The Fix: Use a Compatible Prisma Engine
 
-First, SSH into your Ubuntu server that is running PostgreSQL. Run the following commands to update its package list and install the necessary development headers for OpenSSL and the PostgreSQL client.
+The solution is to tell Prisma to use a more portable query engine that doesn't rely on specific system libraries. This is done by adding `binaryTargets = ["native", "linux-musl"]` to your `prisma/schema.prisma` file. **I have already made this change for you.**
 
-```bash
-# SSH into your Ubuntu server and run these:
-sudo apt update
-sudo apt install -y libssl-dev postgresql-client
-```
-These libraries are essential for Prisma's engine to compile and connect correctly.
+### Applying the Fix
 
-### Step 2: Rebuild Prisma in Your Project
+After I've applied the fix to your schema, you need to force Prisma to download this new engine.
 
-This is the most critical step. After installing the libraries on your server, you must force Prisma to re-evaluate the environment and download the correct engine.
-
-Return to your **Firebase Studio terminal** and run these commands from your project's root directory (`/home/user/studio`):
+Run these commands from your project's root directory (`/home/user/studio`):
 
 ```bash
 # In your Firebase Studio project directory:
 
-# 1. Remove the old Prisma engine binaries
+# 1. A thorough way to ensure a clean slate for the Prisma client
+rm -rf node_modules/@prisma
 rm -rf node_modules/.prisma
 
-# 2. A thorough way to ensure a clean slate for the client
-rm -rf node_modules/@prisma/client
-
-# 3. Re-run npm install to download and link the correct Prisma engine
+# 2. Re-run npm install to download and link the correct Prisma engine
 npm install
 ```
-This process ensures that `npm` detects the newly available system libraries and installs the compatible Prisma engine.
+This process ensures that `npm` re-evaluates the `binaryTargets` in your schema and installs the compatible engine.
 
-### Step 3: Generate Prisma Client and Push the Schema
+### Push the Schema
 
-Now that the environment is fixed and the correct engine is installed, you can generate the client and push the schema.
+Now that the compatible engine is installed, you can generate the client and push the schema.
 
 ```bash
 # In your Firebase Studio project directory:
