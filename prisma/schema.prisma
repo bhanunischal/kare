@@ -2,8 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -12,222 +11,181 @@ datasource db {
 }
 
 model Daycare {
-  id                    String                 @id @default(cuid())
-  name                  String
-  licenseNumber         String?
-  contactEmail          String?
-  contactPhone          String?
-  address               String?
-  status                String                 @default("Active") // e.g., Active, Inactive, Pending
-  plan                  String                 @default("Basic") // e.g., Basic, Premium, Enterprise
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  children              Child[]
-  staff                 StaffMember[]
-  invoices              Invoice[]
-  expenses              Expense[]
-  announcements         Announcement[]
-  documents             SharedDocument[]
-  galleryPhotos         GalleryPhoto[]
-  calendarEvents        CalendarEvent[]
-  waitlistEntries       WaitlistEntry[]
-  subsidyRecords        SubsidyRecord[]
-  storageProvider       String? // e.g., 'google-drive', 'aws-s3'
-  storageConfig         Json?
-  carouselImages        Json? // JSON array of image URLs
-  infantCapacity        Int?
-  toddlerCapacity       Int?
-  preschoolCapacity     Int?
-  gradeschoolerCapacity Int?
-  admin                 AdminUser?
+  id              String         @id @default(cuid())
+  name            String
+  status          String
+  plan            String
+  location        String
+  ownerId         String
+  owner           User           @relation(fields: [ownerId], references: [id])
+  children        Child[]
+  staff           Staff[]
+  announcements   Announcement[]
+  invoices        Invoice[]
+  expenses        Expense[]
+  documents       Document[]
+  galleryPhotos   GalleryPhoto[]
+  calendarEvents  CalendarEvent[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
-model AdminUser {
+model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String // Hashed password
-  daycareId String   @unique
-  daycare   Daycare  @relation(fields: [daycareId], references: [id])
+  name      String?
+  password  String
+  role      String // e.g., 'DAYCARE_OWNER', 'STAFF', 'ADMIN'
+  daycare   Daycare?
+  staff     Staff?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Child {
-  id               String          @id @default(cuid())
-  name             String
-  dob              DateTime
-  startDate        DateTime
-  status           String // Active, Waitlisted, Inactive
-  program          String // Infant, Toddler, Preschool, Gradeschooler
-  programType      String // Full time, Part time, Ad-hoc
-  photoUrl         String?
-  address          String?
-  allergies        String?
-  notes            String?
-  vaccinationInfo  String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  daycareId        String
-  daycare          Daycare         @relation(fields: [daycareId], references: [id])
-  parents          Guardian[]
-  attendance       Attendance[]
-  assessments      Assessment[]
-  invoices         Invoice[]
-  waitlistEntry    WaitlistEntry?
-  emergencyContact Json? // { name: string, phone: string, relationship: string }
+  id              String         @id @default(cuid())
+  name            String
+  dob             DateTime
+  status          String // e.g., 'Active', 'Inactive', 'Waitlisted'
+  program         String
+  programType     String
+  startDate       DateTime
+  motherName      String
+  fatherName      String
+  mobilePhone     String
+  address         String
+  emergencyName   String
+  emergencyPhone  String
+  vaccinationInfo String?
+  allergies       String?
+  notes           String?
+  daycareId       String
+  daycare         Daycare        @relation(fields: [daycareId], references: [id])
+  attendance      Attendance[]
+  invoices        Invoice[]
+  assessments     Assessment[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
-model Guardian {
-  id        String   @id @default(cuid())
-  name      String
-  phone     String
-  email     String?
-  address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  children  Child[]
-}
-
-model StaffMember {
-  id               String       @id @default(cuid())
-  name             String
-  role             String // Lead ECE, Assistant, etc.
-  status           String // Active, On Leave, Inactive
-  startDate        DateTime
-  phone            String
-  address          String?
-  certifications   String? // Comma-separated list
-  notes            String?
-  payType          String // Monthly Salary, Hourly Rate
-  payRate          Float
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  daycareId        String
-  daycare          Daycare      @relation(fields: [daycareId], references: [id])
-  emergencyContact Json?
+model Staff {
+  id              String         @id @default(cuid())
+  name            String
+  role            String
+  status          String // e.g., 'Active', 'Inactive', 'On Leave'
+  startDate       DateTime
+  phone           String
+  address         String
+  emergencyName   String
+  emergencyPhone  String
+  certifications  String?
+  notes           String?
+  payType         String
+  payRate         Float
+  daycareId       String
+  daycare         Daycare        @relation(fields: [daycareId], references: [id])
+  userId          String         @unique
+  user            User           @relation(fields: [userId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 model Attendance {
   id        String   @id @default(cuid())
+  childId   String
+  child     Child    @relation(fields: [childId], references: [id])
   date      DateTime
-  status    String // Present, Absent, On Leave
+  status    String // e.g., 'Present', 'Absent', 'On Leave'
   checkIn   DateTime?
   checkOut  DateTime?
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  childId   String
-  child     Child    @relation(fields: [childId], references: [id])
 }
 
-model Assessment {
-  id                     String   @id @default(cuid())
-  reportingPeriod        String
-  socialEmotional        String
-  cognitiveSkills        String
-  languageCommunication  String
-  motorSkills            String
-  summaryRecommendations String
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-  childId                String
-  child                  Child    @relation(fields: [childId], references: [id])
+model Announcement {
+  id        String   @id @default(cuid())
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id])
+  title     String
+  content   String
+  createdAt DateTime @default(now())
 }
 
 model Invoice {
   id        String   @id @default(cuid())
-  amount    Float
-  dueDate   DateTime
-  status    String // Paid, Due, Overdue
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
   childId   String
   child     Child    @relation(fields: [childId], references: [id])
   daycareId String
   daycare   Daycare  @relation(fields: [daycareId], references: [id])
+  amount    Float
+  dueDate   DateTime
+  status    String // e.g., 'Paid', 'Due', 'Overdue'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Expense {
   id          String   @id @default(cuid())
+  daycareId   String
+  daycare     Daycare  @relation(fields: [daycareId], references: [id])
   date        DateTime
   category    String
   description String
   amount      Float
   vendor      String?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  daycareId   String
-  daycare     Daycare  @relation(fields: [daycareId], references: [id])
 }
 
-model Announcement {
+model Document {
   id        String   @id @default(cuid())
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
   daycareId String
   daycare   Daycare  @relation(fields: [daycareId], references: [id])
-}
-
-model SharedDocument {
-  id        String   @id @default(cuid())
   name      String
-  type      String // PDF, Word, Image
-  url       String // Link to the file in cloud storage
-  size      Float // in KB
+  url       String
+  type      String
+  size      Int
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  daycareId String
-  daycare   Daycare  @relation(fields: [daycareId], references: [id])
 }
 
 model GalleryPhoto {
   id        String   @id @default(cuid())
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id])
   url       String
   caption   String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  daycareId String
-  daycare   Daycare  @relation(fields: [daycareId], references: [id])
+}
+
+model Assessment {
+  id                      String   @id @default(cuid())
+  childId                 String
+  child                   Child    @relation(fields: [childId], references: [id])
+  reportingPeriod         String
+  socialEmotional         String
+  cognitiveSkills         String
+  languageCommunication   String
+  motorSkills             String
+  summaryRecommendations  String
+  createdAt               DateTime @default(now())
 }
 
 model CalendarEvent {
   id          String   @id @default(cuid())
-  date        DateTime
-  title       String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
   daycareId   String
   daycare     Daycare  @relation(fields: [daycareId], references: [id])
+  title       String
+  description String?
+  date        DateTime
+  createdAt   DateTime @default(now())
 }
 
-model WaitlistEntry {
-  id                  String   @id @default(cuid())
-  childId             String   @unique
-  child               Child    @relation(fields: [childId], references: [id])
-  applicationDate     DateTime @default(now())
-  requestedStartDate  DateTime
-  status              String   @default("Pending") // Pending, Offered, Accepted, Declined
-  notes               String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  daycareId           String
-  daycare             Daycare  @relation(fields: [daycareId], references: [id])
-}
-
-model SubsidyRecord {
-  id                  String   @id @default(cuid())
-  childName           String
-  program             String
-  applicationDate     DateTime
-  approvalDate        DateTime?
-  status              String // Applied, Approved, Denied, Expired
-  amount              Float?
-  notes               String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  daycareId           String
-  daycare             Daycare  @relation(fields: [daycareId], references: [id])
+model ReportTemplate {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  content     String // HTML/Liquid content of the template
+  isGlobal    Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
