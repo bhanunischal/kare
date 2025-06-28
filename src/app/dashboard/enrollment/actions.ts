@@ -2,6 +2,8 @@
 "use server";
 
 import { z } from "zod";
+import prisma from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 const RegistrationFormSchema = z.object({
   childName: z.string().min(1, { message: "Child's name is required." }),
@@ -53,12 +55,43 @@ export async function submitRegistration(prevState: any, formData: FormData) {
     };
   }
 
-  // In a real application, you would save validatedFields.data to your database.
-  console.log("New child registration submitted:", validatedFields.data);
+  try {
+    await prisma.child.create({
+      data: {
+        name: validatedFields.data.childName,
+        dateOfBirth: new Date(validatedFields.data.dob),
+        startDate: new Date(validatedFields.data.startDate),
+        program: validatedFields.data.program,
+        programType: validatedFields.data.programType,
+        status: validatedFields.data.status,
+        motherName: validatedFields.data.motherName,
+        fatherName: validatedFields.data.fatherName,
+        homePhone: validatedFields.data.homePhone,
+        mobilePhone: validatedFields.data.mobilePhone,
+        address: validatedFields.data.address,
+        emergencyName: validatedFields.data.emergencyName,
+        emergencyPhone: validatedFields.data.emergencyPhone,
+        vaccination: validatedFields.data.vaccination,
+        allergies: validatedFields.data.allergies,
+        notes: validatedFields.data.notes,
+        photoUrl: 'https://placehold.co/100x100.png',
+        photoHint: 'child portrait',
+      }
+    });
 
-  return {
-    message: "Registration submitted successfully!",
-    errors: null,
-    data: validatedFields.data,
-  };
+    revalidatePath('/dashboard/enrollment');
+
+    return {
+      message: "Registration submitted successfully!",
+      errors: null,
+      data: validatedFields.data,
+    };
+  } catch (error) {
+    console.error("Database Error:", error);
+    return {
+      message: "Failed to save registration to the database.",
+      errors: { _form: ["An unexpected error occurred."] },
+      data: null,
+    };
+  }
 }
