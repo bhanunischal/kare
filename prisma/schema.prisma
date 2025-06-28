@@ -1,6 +1,8 @@
+// prisma/schema.prisma
+
 generator client {
-  provider        = "prisma-client-js"
-  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -8,38 +10,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Child {
-  id              String      @id @default(cuid())
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  name            String
-  dateOfBirth     DateTime
-  startDate       DateTime
-  program         String
-  programType     String
-  status          String
-  motherName      String
-  fatherName      String
-  homePhone       String?
-  mobilePhone     String
-  address         String
-  emergencyName   String
-  emergencyPhone  String
-  vaccination     String?
-  allergies       String?
-  notes           String?
-  photoUrl        String?
-  photoHint       String?
-}
-
+// User model for authentication
 model User {
-  id                String      @id @default(cuid())
+  id                String    @id @default(cuid())
   name              String
   daycareName       String
-  email             String      @unique
+  email             String    @unique
   password          String
   emailVerified     DateTime?
-  verificationToken String?     @unique
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  verificationToken String?   @unique
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+// Child model for enrollment
+model Child {
+  id             String    @id @default(cuid())
+  name           String
+  dateOfBirth    DateTime
+  startDate      DateTime
+  program        String
+  programType    String
+  status         String
+  motherName     String
+  fatherName     String
+  homePhone      String?
+  mobilePhone    String
+  address        String
+  emergencyName  String
+  emergencyPhone String
+  vaccination    String?
+  allergies      String?
+  notes          String?
+  photoUrl       String?
+  photoHint      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
