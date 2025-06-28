@@ -1,10 +1,10 @@
 # Integrating with a PostgreSQL Backend
 
-This guide provides step-by-step instructions for connecting the Child Care Ops application to a real PostgreSQL database using Prisma ORM. This will replace the current mock data with a persistent, production-ready backend.
+This guide provides step-by-step instructions for connecting the Child Care Ops application to a real PostgreSQL database using Prisma ORM.
 
 ## 1. Set Up a PostgreSQL Database
 
-First, you need a PostgreSQL database. You can use a cloud provider like [Supabase](https://supabase.com/), [Neon](https://neon.tech/), or run your own instance on a server like you are doing with Ubuntu.
+First, you need a PostgreSQL database. You can use a cloud provider like [Supabase](https://supabase.com/), [Neon](https://neon.tech/), or run your own instance on a server.
 
 Once your database is created, you will get a **Database Connection URL**. It will look something like this:
 `postgresql://USER:PASSWORD@HOST:PORT/DATABASE`
@@ -22,15 +22,13 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
 
 **Important:** The `.gitignore` file in this project is already configured to ignore `.env` files, so your credentials will not be committed to version control.
 
-## 3. Fixing Persistent `Schema engine error`
+## 3. The Definitive Fix for the `Schema engine error`
 
-If you can connect to your database with a command-line tool like `psql` but `npx prisma db push` consistently fails with a `Schema engine error` and a `Prisma failed to detect the libssl/openssl version` warning, it means Prisma's query engine is incompatible with the libraries in your Firebase Studio development environment.
+If `npx prisma db push` consistently fails with a `Schema engine error` and a `Prisma failed to detect the libssl/openssl version` warning, it means Prisma's query engine is incompatible with the system libraries in your development environment. This often happens in specific Linux environments (like this one) that use alternatives to OpenSSL, such as LibreSSL.
 
-This often happens in specific Linux environments (like this one) that use alternatives to OpenSSL, such as LibreSSL.
+**The Fix:** Use a Compatible Prisma Engine
 
-### The Fix: Use a Compatible Prisma Engine
-
-The solution is to tell Prisma to use a more portable query engine that doesn't rely on specific system libraries. This is done by adding `binaryTargets = ["native", "linux-musl-openssl-3.0.x"]` to your `prisma/schema.prisma` file. **I have already made this change for you.**
+The solution is to tell Prisma to use a more portable query engine that doesn't rely on the system's specific libraries. This is done by adding `binaryTargets = ["native", "linux-musl-openssl-3.0.x"]` to your `prisma/schema.prisma` file. **I have already made this change for you.**
 
 ### Applying the Fix
 
@@ -60,7 +58,7 @@ npx prisma generate
 npx prisma db push
 ```
 
-If the push is successful, your database tables will be created.
+If the push is successful, your database tables will be created, and the `Schema engine error:` will be resolved.
 
 ---
 
