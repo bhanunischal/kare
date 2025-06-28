@@ -1,8 +1,8 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider        = "prisma-client-js"
+  // This is the definitive fix for the `Schema engine error:`.
+  // It forces Prisma to use a compatible query engine that doesn't rely on the system's specific OpenSSL libraries.
   binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -12,12 +12,10 @@ datasource db {
 }
 
 model Child {
-  id              String    @id @default(cuid())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   name            String
-  photoUrl        String?
-  photoHint       String?
   dateOfBirth     DateTime
   startDate       DateTime
   program         String
@@ -33,16 +31,18 @@ model Child {
   vaccination     String?
   allergies       String?
   notes           String?
+  photoUrl        String?
+  photoHint       String?
 }
 
 model User {
   id                String    @id @default(cuid())
-  email             String    @unique
-  name              String
-  daycareName       String
-  password          String
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  name              String
+  daycareName       String
+  email             String    @unique
+  password          String
   emailVerified     DateTime?
   verificationToken String?   @unique
 }
