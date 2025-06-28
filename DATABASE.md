@@ -148,3 +148,55 @@ async function getChildrenForDaycare(daycareId: string) {
   return children;
 }
 ```
+
+---
+
+## 7. Fixing Prisma `libssl` and Schema Engine Errors on Ubuntu
+
+If you are consistently seeing `Schema engine error` along with `Prisma failed to detect the libssl/openssl version`, it means Prisma's query engine cannot establish a secure connection to your database. This is common on fresh Ubuntu servers that may not have all the necessary development libraries installed.
+
+Follow these steps **on your Ubuntu server** to install the required packages and force Prisma to use them.
+
+### Step 1: Update Package Lists
+
+First, ensure your server's package manager has the latest list of available software.
+
+```bash
+sudo apt update
+```
+
+### Step 2: Install OpenSSL Development and PostgreSQL Client Libraries
+
+This is the most critical step. It installs the `libssl-dev` package, which contains the header files that Prisma needs to correctly compile its engine against OpenSSL. It also installs the standard PostgreSQL client, which ensures all necessary communication libraries are present.
+
+```bash
+sudo apt install -y libssl-dev postgresql-client
+```
+
+### Step 3: Clean and Reinstall Prisma in Your Project
+
+Now, back in your **project's terminal in Firebase Studio**, you need to clear out the old, problematic Prisma engine and reinstall it. This will force `npm` to download a new engine that can link against the libraries you just installed on your server.
+
+Run these commands from your project's root directory (`/home/user/studio`):
+
+```bash
+# Remove the old Prisma engine binaries
+rm -rf node_modules/.prisma
+
+# A thorough way to ensure a clean slate for the client
+rm -rf node_modules/@prisma/client
+
+# Re-run npm install to download and link the correct Prisma engine
+npm install
+```
+
+### Step 4: Generate Prisma Client and Push the Schema
+
+After the re-installation is complete, generate the Prisma client and try pushing the database schema again.
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+Following these steps should resolve the underlying library issue and allow Prisma to connect to your database successfully.
