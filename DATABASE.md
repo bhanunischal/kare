@@ -35,6 +35,8 @@ Prisma has already been initialized in this project. The database schema, which 
 
 Now, you can use the Prisma CLI to create the tables in your PostgreSQL database based on this schema.
 
+**Important:** Make sure you are in the root directory of your project (e.g., `~/studio`) before running the next command.
+
 Run the following command in your terminal:
 
 ```bash
