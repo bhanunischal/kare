@@ -2,9 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
-  // Use linux-musl binary for environments with LibreSSL instead of OpenSSL
-  binaryTargets = ["native", "linux-musl"]
+  provider        = "prisma-client-js"
+  // This is the important part for fixing the LibreSSL issue in Firebase Studio
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -13,141 +13,60 @@ datasource db {
 }
 
 model Daycare {
-  id            String         @id @default(cuid())
-  name          String
-  ownerId       String         @unique
-  owner         User           @relation(fields: [ownerId], references: [id])
-  status        String         @default("Pending") // Pending, Active, Inactive
-  plan          String         @default("Basic") // Basic, Premium, Enterprise
-  address       String?
-  phone         String?
-  licenseNumber String?
+  id        String   @id @default(cuid())
+  name      String
+  status    String // Active, Inactive, Pending, Archived
+  plan      String // Basic, Premium, Enterprise
+  location  String
+  joinDate  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  children      Child[]
-  staff         StaffMember[]
-  invoices      Invoice[]
-  announcements Announcement[]
-
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  children Child[]
+  staff    StaffMember[]
 }
-
-model User {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  name         String
-  role         String        @default("Parent") // Parent, Staff, Admin
-
-  daycare      Daycare?
-
-  // For parents
-  children     Child[]       @relation("ParentChildren")
-
-  // For staff
-  staffProfile StaffMember?
-
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-}
-
 
 model Child {
-  id                String   @id @default(cuid())
-  name              String
-  dob               DateTime
-  status            String   @default("Waitlisted") // Active, Waitlisted, Inactive
+  id             String   @id @default(cuid())
+  name           String
+  dob            DateTime
+  startDate      DateTime
+  status         String // Active, Waitlisted, Inactive
+  program        String
+  programType    String
+  motherName     String
+  fatherName     String
+  mobilePhone    String
+  address        String
+  emergencyName  String
+  emergencyPhone String
+  allergies      String?
+  notes          String?
+  vaccination    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  daycareId         String
-  daycare           Daycare  @relation(fields: [daycareId], references: [id])
-
-  parentId          String
-  parent            User     @relation("ParentChildren", fields: [parentId], references: [id])
-
-  program           String // Infant, Toddler, etc.
-  programType       String // Full time, Part time
-
-  allergies         String?
-  notes             String?
-
-  attendanceRecords Attendance[]
-  invoices          Invoice[]
-  assessments       Assessment[]
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  daycare   Daycare @relation(fields: [daycareId], references: [id])
+  daycareId String
 }
 
 model StaffMember {
-  id             String    @id @default(cuid())
-  userId         String    @unique
-  user           User      @relation(fields: [userId], references: [id])
-
-  daycareId      String
-  daycare        Daycare   @relation(fields: [daycareId], references: [id])
-
-  role           String    // Lead ECE, Assistant, etc.
+  id             String   @id @default(cuid())
+  name           String
+  role           String
   certifications String?
+  status         String // Active, On Leave, Inactive
+  startDate      DateTime
+  phone          String
+  address        String
+  emergencyName  String
+  emergencyPhone String
+  payType        String // Monthly Salary, Hourly Rate
+  payRate        Float
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-}
-
-model Attendance {
-  id       String    @id @default(cuid())
-  childId  String
-  child    Child     @relation(fields: [childId], references: [id])
-  date     DateTime  @db.Date
-  checkIn  DateTime?
-  checkOut DateTime?
-  status   String // Present, Absent, On Leave
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([childId, date])
-}
-
-model Invoice {
-  id        String   @id @default(cuid())
-  childId   String
-  child     Child    @relation(fields: [childId], references: [id])
+  daycare   Daycare @relation(fields: [daycareId], references: [id])
   daycareId String
-  daycare   Daycare  @relation(fields: [daycareId], references: [id])
-
-  amount    Float
-  dueDate   DateTime
-  status    String // Due, Paid, Overdue
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Announcement {
-  id        String   @id @default(cuid())
-  daycareId String
-  daycare   Daycare  @relation(fields: [daycareId], references: [id])
-
-  title     String
-  content   String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Assessment {
-  id                     String   @id @default(cuid())
-  childId                String
-  child                  Child    @relation(fields: [childId], references: [id])
-
-  reportingPeriod        String
-
-  // AI-generated fields
-  socialEmotional        String
-  cognitiveSkills        String
-  languageCommunication  String
-  motorSkills            String
-  summaryRecommendations String
-
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
 }

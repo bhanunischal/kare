@@ -30,7 +30,7 @@ This often happens in specific Linux environments (like this one) that use alter
 
 ### The Fix: Use a Compatible Prisma Engine
 
-The solution is to tell Prisma to use a more portable query engine that doesn't rely on specific system libraries. This is done by adding `binaryTargets = ["native", "linux-musl"]` to your `prisma/schema.prisma` file. **I have already made this change for you.**
+The solution is to tell Prisma to use a more portable query engine that doesn't rely on specific system libraries. This is done by adding `binaryTargets = ["native", "linux-musl-openssl-3.0.x"]` to your `prisma/schema.prisma` file. **I have already made this change for you.**
 
 ### Applying the Fix
 
