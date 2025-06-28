@@ -64,7 +64,7 @@ If the push is successful, your database tables will be created, and the `Schema
 
 ## 4. Test Database Connection (Optional)
 
-If you are still facing issues, you can test your database connection URL directly from the Studio terminal using `psql`. This can provide more specific error messages than Prisma.
+If you are still facing issues, you can test your database connection URL directly from the Studio terminal using `psql`. This is a useful debugging step that can provide more specific error messages than Prisma.
 
 **Important:** This command may prompt you to install `psql` inside the development environment. It's safe to proceed.
 
