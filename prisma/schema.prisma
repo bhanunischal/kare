@@ -2,9 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  // This is the crucial line for compatibility in this environment
-  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  provider = "prisma-client-js"
+  // This is the crucial line that forces Prisma to use a compatible engine
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -22,6 +22,8 @@ model Child {
   program         String
   programType     String
   status          String
+  photoUrl        String?
+  photoHint       String?
   motherName      String
   fatherName      String
   homePhone       String?
@@ -32,18 +34,16 @@ model Child {
   vaccination     String?
   allergies       String?
   notes           String?
-  photoUrl        String?
-  photoHint       String?
 }
 
 model User {
-  id                 String    @id @default(cuid())
-  name               String
-  daycareName        String
-  email              String    @unique
-  password           String
-  emailVerified      DateTime?
-  verificationToken  String?   @unique
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  email             String    @unique
+  name              String
+  daycareName       String
+  password          String
+  emailVerified     DateTime?
+  verificationToken String?   @unique
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
