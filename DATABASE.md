@@ -24,7 +24,7 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
 
 ## 3. The Definitive Fix for the `Schema engine error`
 
-If `npx prisma db push` consistently fails with a `Schema engine error` and a `Prisma failed to detect the libssl/openssl version` warning, it means Prisma's query engine is incompatible with the system libraries in your development environment. This often happens in specific Linux environments (like this one) that use alternatives to OpenSSL, such as LibreSSL.
+If `npx prisma db push` consistently fails with a `Schema engine error:` and a `Prisma failed to detect the libssl/openssl version` warning, it means Prisma's query engine is incompatible with the system libraries in your development environment. This often happens in specific Linux environments (like this one) that use alternatives to OpenSSL, such as LibreSSL.
 
 **The Fix:** Use a Compatible Prisma Engine
 
