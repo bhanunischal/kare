@@ -3,6 +3,7 @@
 
 generator client {
   provider      = "prisma-client-js"
+  // This is the key fix for the Firebase Studio environment
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -16,6 +17,8 @@ model Child {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   name           String
+  photoUrl       String?
+  photoHint      String?
   dateOfBirth    DateTime
   startDate      DateTime
   program        String
@@ -31,8 +34,6 @@ model Child {
   vaccination    String?
   allergies      String?
   notes          String?
-  photoUrl       String?
-  photoHint      String?
 }
 
 model User {
