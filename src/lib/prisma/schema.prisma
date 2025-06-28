@@ -1,0 +1,263 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // The `pgbouncer=true` flag is essential for Prisma to work correctly with many
+  // cloud-hosted PostgreSQL providers like AWS RDS, Supabase, etc.
+  url      = env("DATABASE_URL")
+}
+
+model SaaSAdmin {
+  id       String @id @default(cuid())
+  email    String @unique
+  password String // Hashed password
+}
+
+model Daycare {
+  id            String @id @default(cuid())
+  name          String
+  licenseNumber String?
+  contactEmail  String?
+  contactPhone  String?
+  address       String?
+  logoUrl       String?
+  bannerUrl     String?
+  status        String @default("Pending") // Pending, Active, Inactive
+
+  // Capacities
+  infantCapacity      Int @default(0)
+  toddlerCapacity     Int @default(0)
+  preschoolCapacity   Int @default(0)
+  gradeschoolerCapacity Int @default(0)
+
+  // Relations
+  ownerId String
+  owner   SaaSAdmin @relation(fields: [ownerId], references: [id])
+
+  children          Child[]
+  staff             StaffMember[]
+  invoices          Invoice[]
+  expenses          Expense[]
+  sharedDocuments   SharedDocument[]
+  galleryPhotos     GalleryPhoto[]
+  announcements     Announcement[]
+  directMessages    DirectMessage[]
+  activities        Activity[]
+  assessments       Assessment[]
+  templateAssignments TemplateAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Child {
+  id             String @id @default(cuid())
+  name           String
+  photoUrl       String?
+  dob            DateTime
+  startDate      DateTime
+  program        String // e.g., 'Infant', 'Toddler'
+  programType    String // e.g., 'Full time', 'Part time'
+  status         String // Active, Waitlisted, Inactive
+  allergies      String?
+  notes          String?
+  vaccinationInfo String?
+
+  daycareId String
+  daycare   Daycare @relation(fields: [daycareId], references: [id])
+
+  // Relations
+  parents         Guardian[]
+  attendance      AttendanceRecord[]
+  invoices        Invoice[]
+  assessments     Assessment[]
+  directMessages  DirectMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Guardian {
+  id          String  @id @default(cuid())
+  name        String
+  phone       String
+  email       String?
+  address     String?
+  relationship String // e.g., 'Mother', 'Father', 'Guardian'
+
+  childId String
+  child   Child  @relation(fields: [childId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StaffMember {
+  id             String  @id @default(cuid())
+  name           String
+  photoUrl       String?
+  role           String // e.g., 'Lead ECE', 'Assistant'
+  certifications String?
+  status         String // Active, On Leave, Inactive
+  startDate      DateTime
+  phone          String
+  address        String
+  emergencyName  String
+  emergencyPhone String
+  payType        String // Monthly Salary, Hourly Rate
+  payRate        Float
+  notes          String?
+
+  daycareId String
+  daycare   Daycare @relation(fields: [daycareId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AttendanceRecord {
+  id        String    @id @default(cuid())
+  childId   String
+  child     Child     @relation(fields: [childId], references: [id])
+  date      DateTime
+  status    String // Present, Absent, On Leave
+  checkIn   DateTime?
+  checkOut  DateTime?
+  leaveReason String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  childId   String
+  child     Child    @relation(fields: [childId], references: [id])
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id])
+  amount    Float
+  dueDate   DateTime
+  status    String // Due, Paid, Overdue
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  daycareId   String
+  daycare     Daycare  @relation(fields: [daycareId], references: [id])
+  date        DateTime
+  category    String
+  description String
+  amount      Float
+  vendor      String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SharedDocument {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  type      String // PDF, Word, Image
+  size      Float // in KB
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+model GalleryPhoto {
+  id        String   @id @default(cuid())
+  url       String
+  caption   String?
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+model DirectMessage {
+  id        String   @id @default(cuid())
+  content   String
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id])
+  childId   String
+  child     Child    @relation(fields: [childId], references: [id])
+  isFromParent Boolean
+  
+  createdAt DateTime @default(now())
+}
+
+model Activity {
+  id           String @id @default(cuid())
+  date         DateTime
+  time         String // e.g., "10:00 AM"
+  title        String
+  category     String // e.g., 'Art & Craft'
+  description  String?
+  materials    String?
+  domains      String? // Comma-separated list of LearningDomain values
+
+  daycareId String
+  daycare   Daycare  @relation(fields: [daycareId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Assessment {
+  id           String @id @default(cuid())
+  childId      String
+  child        Child  @relation(fields: [childId], references: [id])
+  daycareId    String
+  daycare      Daycare @relation(fields: [daycareId], references: [id])
+  date         DateTime
+  generatedReport String // JSON string of the report
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReportTemplate {
+  id            String @id @default(cuid())
+  name          String
+  description   String?
+  content       String // JSON string representing the template structure
+  isGlobal      Boolean @default(false)
+  
+  assignments TemplateAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Explicit join table for ReportTemplates and Daycares
+model TemplateAssignment {
+  templateId String
+  template   ReportTemplate @relation(fields: [templateId], references: [id])
+  daycareId  String
+  daycare    Daycare @relation(fields: [daycareId], references: [id])
+
+  assignedAt DateTime @default(now())
+  assignedBy String // Could be a SaaSAdmin ID
+
+  @@id([templateId, daycareId])
+}
