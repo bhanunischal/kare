@@ -9,6 +9,7 @@ import {
 import { Users } from 'lucide-react'
 
 export default function DashboardPage() {
+  console.log("Rendering DashboardPage...");
   return (
     <div className="space-y-6">
       <div className="space-y-2">
