@@ -1,10 +1,13 @@
 
 import { EnrollmentClient } from './components/enrollment-client';
-import { initialEnrolledChildren } from './data';
+import prisma from '@/lib/prisma';
 
 export default async function EnrollmentPage() {
-  // const enrolledChildren = await prisma.child.findMany();
-  const enrolledChildren = initialEnrolledChildren;
+  const enrolledChildren = await prisma.child.findMany({
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
 
   return <EnrollmentClient initialEnrolledChildren={enrolledChildren} />;
 }
