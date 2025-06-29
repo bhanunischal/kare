@@ -3,7 +3,6 @@
 
 import { useEffect, useActionState, useState, useRef, useMemo } from "react";
 import { useFormStatus } from "react-dom";
-import type { Child } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,15 +20,8 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
-// Types and options moved from data.ts
-export type Program = 'Infant (0-12months)' | 'Toddler (1 to 3 years)' | 'Preschool (3 to 5 years)' | 'Gradeschooler (5 to 12 years)';
-export const programOptions: Program[] = ['Infant (0-12months)', 'Toddler (1 to 3 years)', 'Preschool (3 to 5 years)', 'Gradeschooler (5 to 12 years)'];
-
-export type ProgramType = 'Full time' | 'Part time' | 'Ad-hoc daily basis';
-export const programTypeOptions: ProgramType[] = ['Full time', 'Part time', 'Ad-hoc daily basis'];
-
-export type ChildStatus = 'Active' | 'Waitlisted' | 'Inactive';
+import type { Child } from "@prisma/client";
+import { programOptions, programTypeOptions, type Program, type ProgramType } from '../data';
 
 const initialState: {
   message: string | null;
@@ -41,7 +33,7 @@ const initialState: {
   data: null,
 };
 
-function calculateAge(dob: Date): number {
+function calculateAge(dob: Date | string): number {
   if (!dob) return 0;
   const birthDate = new Date(dob);
   if (isNaN(birthDate.getTime())) return 0; // Invalid date
@@ -106,6 +98,33 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
             title: "Success!",
             description: state.message,
           });
+          
+          // Optimistically add to the list
+          const newChild: Child = {
+            id: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            name: state.data.childName,
+            dateOfBirth: new Date(state.data.dob),
+            startDate: new Date(state.data.startDate),
+            program: state.data.program,
+            programType: state.data.programType,
+            status: state.data.status,
+            motherName: state.data.motherName,
+            fatherName: state.data.fatherName,
+            homePhone: state.data.homePhone || null,
+            mobilePhone: state.data.mobilePhone,
+            address: state.data.address,
+            emergencyName: state.data.emergencyName,
+            emergencyPhone: state.data.emergencyPhone,
+            vaccination: state.data.vaccination || null,
+            allergies: state.data.allergies || null,
+            notes: state.data.notes || null,
+            photoUrl: 'https://placehold.co/100x100.png',
+            photoHint: 'child portrait',
+          };
+          setEnrolledChildren(prev => [newChild, ...prev]);
+
           formRef.current?.reset();
         }
       }
@@ -134,7 +153,6 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
 
   const handleSaveChanges = () => {
     if (editedData) {
-      // This should be a server action in a real app
       setEnrolledChildren(prev => prev.map(child => child.id === editedData.id ? editedData : child));
       setSelectedChild(editedData);
       setIsEditing(false);
@@ -144,7 +162,6 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
 
   const handleDeactivateChild = () => {
     if (selectedChild) {
-      // This should be a server action in a real app
       const newStatus = selectedChild.status === 'Active' ? 'Inactive' : 'Active';
       const updatedChild = { ...selectedChild, status: newStatus };
       setEnrolledChildren(prev => prev.map(child => child.id === selectedChild.id ? updatedChild : child));
@@ -155,7 +172,6 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
 
   const handleDeleteChild = () => {
     if (selectedChild) {
-      // This should be a server action in a real app
       setEnrolledChildren(prev => prev.filter(child => child.id !== selectedChild.id));
       setSelectedChild(null);
       setIsDeleteDialogOpen(false);

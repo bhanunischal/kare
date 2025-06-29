@@ -55,43 +55,43 @@ export async function submitRegistration(prevState: any, formData: FormData) {
     };
   }
 
-  try {
-    await prisma.child.create({
-      data: {
-        name: validatedFields.data.childName,
-        dateOfBirth: new Date(validatedFields.data.dob),
-        startDate: new Date(validatedFields.data.startDate),
-        program: validatedFields.data.program,
-        programType: validatedFields.data.programType,
-        status: validatedFields.data.status,
-        motherName: validatedFields.data.motherName,
-        fatherName: validatedFields.data.fatherName,
-        homePhone: validatedFields.data.homePhone,
-        mobilePhone: validatedFields.data.mobilePhone,
-        address: validatedFields.data.address,
-        emergencyName: validatedFields.data.emergencyName,
-        emergencyPhone: validatedFields.data.emergencyPhone,
-        vaccination: validatedFields.data.vaccination,
-        allergies: validatedFields.data.allergies,
-        notes: validatedFields.data.notes,
-        photoUrl: 'https://placehold.co/100x100.png',
-        photoHint: 'child portrait',
-      }
-    });
+  // try {
+  //   await prisma.child.create({
+  //     data: {
+  //       name: validatedFields.data.childName,
+  //       dateOfBirth: new Date(validatedFields.data.dob),
+  //       startDate: new Date(validatedFields.data.startDate),
+  //       program: validatedFields.data.program,
+  //       programType: validatedFields.data.programType,
+  //       status: validatedFields.data.status,
+  //       motherName: validatedFields.data.motherName,
+  //       fatherName: validatedFields.data.fatherName,
+  //       homePhone: validatedFields.data.homePhone,
+  //       mobilePhone: validatedFields.data.mobilePhone,
+  //       address: validatedFields.data.address,
+  //       emergencyName: validatedFields.data.emergencyName,
+  //       emergencyPhone: validatedFields.data.emergencyPhone,
+  //       vaccination: validatedFields.data.vaccination,
+  //       allergies: validatedFields.data.allergies,
+  //       notes: validatedFields.data.notes,
+  //       photoUrl: 'https://placehold.co/100x100.png',
+  //       photoHint: 'child portrait',
+  //     }
+  //   });
 
-    revalidatePath('/dashboard/enrollment');
+  //   revalidatePath('/dashboard/enrollment');
+  // } catch (error) {
+  //   console.error("Database Error:", error);
+  //   return {
+  //     message: "Failed to save registration to the database.",
+  //     errors: { _form: ["An unexpected error occurred."] },
+  //     data: null,
+  //   };
+  // }
 
-    return {
-      message: "Registration submitted successfully!",
-      errors: null,
-      data: validatedFields.data,
-    };
-  } catch (error) {
-    console.error("Database Error:", error);
-    return {
-      message: "Failed to save registration to the database.",
-      errors: { _form: ["An unexpected error occurred."] },
-      data: null,
-    };
-  }
+  return {
+    message: "Registration submitted successfully! (Mock)",
+    errors: null,
+    data: validatedFields.data,
+  };
 }
