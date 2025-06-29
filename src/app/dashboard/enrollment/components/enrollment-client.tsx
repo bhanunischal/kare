@@ -443,11 +443,11 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                       </div>
                       <div className="space-y-2">
                           <Label htmlFor="edit-dob">Date of Birth</Label>
-                          <Input id="edit-dob" name="dateOfBirth" type="date" value={editedData.dateOfBirth.toISOString().split('T')[0]} onChange={handleEditChange} />
+                          <Input id="edit-dob" name="dateOfBirth" type="date" value={new Date(editedData.dateOfBirth).toISOString().split('T')[0]} onChange={handleEditChange} />
                       </div>
                       <div className="space-y-2">
                           <Label htmlFor="edit-startDate">Start Date</Label>
-                          <Input id="edit-startDate" name="startDate" type="date" value={editedData.startDate.toISOString().split('T')[0]} onChange={handleEditChange} />
+                          <Input id="edit-startDate" name="startDate" type="date" value={new Date(editedData.startDate).toISOString().split('T')[0]} onChange={handleEditChange} />
                       </div>
                       <div className="space-y-2">
                           <Label htmlFor="edit-programType">Program Type</Label>
