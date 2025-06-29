@@ -1,14 +1,21 @@
-'use client'
+'use client';
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Logo } from "@/components/logo"
-import { useToast } from "@/hooks/use-toast"
-import { useFormStatus } from "react-dom"
-import { Loader2 } from "lucide-react"
+import { useActionState, useEffect } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Logo } from '@/components/logo';
+import { useToast } from '@/hooks/use-toast';
+import { login, type LoginFormState } from './actions';
+import { useFormStatus } from 'react-dom';
+import { Loader2 } from 'lucide-react';
+
+const initialState: LoginFormState = {
+  message: '',
+  errors: {},
+};
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -20,17 +27,19 @@ function SubmitButton() {
     );
 }
 
-
 export default function LoginPage() {
+  const [state, formAction] = useActionState(login, initialState);
   const { toast } = useToast();
 
-  async function loginAction(formData: FormData) {
-    // TODO: Implement real login logic
-    toast({
-      title: "Feature Not Implemented",
-      description: "Login functionality is not yet available.",
-    });
-  }
+  useEffect(() => {
+    if (state.message && state.errors?._form) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: state.errors._form[0],
+      });
+    }
+  }, [state, toast]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary/50">
@@ -45,15 +54,17 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={loginAction} className="grid gap-4">
+          <form action={formAction} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="m@example.com"
                 required
               />
+              {state.errors?.email && <p className="text-xs text-destructive">{state.errors.email[0]}</p>}
             </div>
             <div className="grid gap-2">
               <div className="flex items-center">
@@ -63,8 +74,10 @@ export default function LoginPage() {
                 </Link>
               </div>
               <Input id="password" name="password" type="password" required />
+              {state.errors?.password && <p className="text-xs text-destructive">{state.errors.password[0]}</p>}
             </div>
             <SubmitButton />
+             {state.errors?._form && <p className="text-xs text-destructive text-center">{state.errors._form[0]}</p>}
             <Button variant="outline" className="w-full">
               Login with Google
             </Button>
