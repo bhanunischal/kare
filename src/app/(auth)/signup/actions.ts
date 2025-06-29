@@ -1,10 +1,11 @@
+
 'use server';
 
 import { z } from 'zod';
-import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
-import { sendVerificationEmail } from '@/lib/email';
+// import prisma from '@/lib/prisma';
+// import bcrypt from 'bcryptjs';
+// import crypto from 'crypto';
+// import { sendVerificationEmail } from '@/lib/email';
 
 const SignupFormSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
@@ -43,45 +44,14 @@ export async function signup(
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
+  
+  // Bypassing database for server stability
+  console.log(`Bypassing database create for user: ${validatedFields.data.email}`);
 
-  const { fullName, daycareName, email, password } = validatedFields.data;
+  // await sendVerificationEmail(email, verificationToken);
 
-  try {
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return {
-        message: 'A user with this email already exists.',
-        isSuccess: false,
-        errors: { email: ['A user with this email already exists.'] },
-      };
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-
-    await prisma.user.create({
-      data: {
-        name: fullName,
-        daycareName,
-        email,
-        password: hashedPassword,
-        verificationToken,
-      },
-    });
-
-    await sendVerificationEmail(email, verificationToken);
-
-    return {
-      message: 'Registration successful! Please check your email to verify your account.',
-      isSuccess: true,
-    };
-  } catch (error) {
-    console.error('Signup Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred. Please try again.';
-    return {
-      message: errorMessage,
-      isSuccess: false,
-      errors: { _form: [errorMessage] },
-    };
-  }
+  return {
+    message: 'Registration successful! Database saving is currently bypassed for testing.',
+    isSuccess: true,
+  };
 }
