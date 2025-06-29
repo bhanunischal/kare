@@ -1,7 +1,8 @@
 "use server";
 
-import { forecastWaitlist } from "@/ai/flows/waitlist-forecasting";
+// import { forecastWaitlist } from "@/ai/flows/waitlist-forecasting";
 import { z } from "zod";
+import type { ForecastWaitlistOutput } from "@/ai/flows/waitlist-forecasting";
 
 const WaitlistFormSchema = z.object({
   historicalData: z.string().min(10, { message: "Historical data is too short." }),
@@ -24,7 +25,19 @@ export async function getWaitlistForecast(prevState: any, formData: FormData) {
       error: errorMessage,
     };
   }
+
+  // MOCK IMPLEMENTATION to prevent compilation hangs
+  await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate AI processing time
+
+  const mockOutput: ForecastWaitlistOutput = {
+    forecastedDemand: "Based on your data, we forecast an increase in demand of 10-15 children for the next quarter, peaking in September. (This is mock data)",
+    enrollmentStrategies: "Consider starting a promotional campaign in early August. Prioritize applicants who have siblings already enrolled to improve retention. (This is mock data)",
+    resourceAllocation: "It may be necessary to allocate an additional staff member to the toddler group to maintain required ratios during the peak season. (This is mock data)"
+  };
+
+  return { output: mockOutput, error: null };
   
+  /*
   try {
     const result = await forecastWaitlist(validatedFields.data);
     return { output: result, error: null };
@@ -36,4 +49,5 @@ export async function getWaitlistForecast(prevState: any, formData: FormData) {
       error: `AI forecast failed: ${errorMessage}`,
     };
   }
+  */
 }
