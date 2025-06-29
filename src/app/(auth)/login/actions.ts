@@ -58,7 +58,8 @@ export async function login(
 
   } catch (error) {
     console.error('Login Error:', error);
-    return { message: 'An unexpected error occurred.', errors: { _form: ['An unexpected error occurred.'] } };
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    return { message: errorMessage, errors: { _form: [errorMessage] } };
   }
   
   redirect('/dashboard');

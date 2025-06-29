@@ -77,10 +77,11 @@ export async function signup(
     };
   } catch (error) {
     console.error('Signup Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred. Please try again.';
     return {
-      message: 'An unexpected error occurred. Please try again.',
+      message: errorMessage,
       isSuccess: false,
-      errors: { _form: ['An unexpected error occurred.'] },
+      errors: { _form: [errorMessage] },
     };
   }
 }
