@@ -1,9 +1,9 @@
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
-  // This is the crucial line that forces Prisma to use a compatible engine
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -12,38 +12,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Child {
-  id              String    @id @default(cuid())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  name            String
-  dateOfBirth     DateTime
-  startDate       DateTime
-  program         String
-  programType     String
-  status          String
-  photoUrl        String?
-  photoHint       String?
-  motherName      String
-  fatherName      String
-  homePhone       String?
-  mobilePhone     String
-  address         String
-  emergencyName   String
-  emergencyPhone  String
-  vaccination     String?
-  allergies       String?
-  notes           String?
-}
-
 model User {
   id                String    @id @default(cuid())
-  email             String    @unique
   name              String
   daycareName       String
+  email             String    @unique
   password          String
   emailVerified     DateTime?
   verificationToken String?   @unique
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+}
+
+model Child {
+  id             String    @id @default(cuid())
+  name           String
+  photoUrl       String?
+  photoHint      String?
+  dateOfBirth    DateTime
+  startDate      DateTime
+  program        String
+  programType    String
+  status         String
+  motherName     String
+  fatherName     String
+  homePhone      String?
+  mobilePhone    String
+  address        String
+  emergencyName  String
+  emergencyPhone String
+  vaccination    String?
+  allergies      String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
