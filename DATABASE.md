@@ -1,9 +1,9 @@
 
 # How to Reset and Recreate Your Database
 
-If you suspect your database schema is out of sync or corrupted, this guide provides a single, reliable command to completely reset it.
+If your database schema is out of sync, corrupted, or needs to be updated with new tables, this guide provides a single, reliable command to completely reset it.
 
-**IMPORTANT:** This process will **permanently delete all data** in your database and recreate it from scratch based on the latest schema. This is useful for getting a clean slate.
+**IMPORTANT:** This process will **permanently delete all data** in your database and recreate it from scratch based on the latest schema. This is required when making schema changes, such as adding the new `VerificationToken` table.
 
 ## Step-by-Step Instructions
 
@@ -27,4 +27,3 @@ This command will automatically:
 - Generate a new Prisma Client for your application to use.
 
 After the command completes, your database will be fresh, empty, and perfectly matched with your application's code. You can now restart your application and begin with a clean slate.
-```

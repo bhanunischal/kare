@@ -2,16 +2,29 @@
 'use server';
 
 import { z } from 'zod';
-// import prisma from '@/lib/prisma';
-// import bcrypt from 'bcryptjs';
-// import crypto from 'crypto';
-// import { sendVerificationEmail } from '@/lib/email';
+import prisma from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { sendVerificationEmail } from '@/lib/email';
 
 const SignupFormSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
   daycareName: z.string().min(2, { message: 'Daycare name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  password: z.string()
+    .min(8, { message: 'Password must be at least 8 characters long.' })
+    .refine((password) => /[a-z]/.test(password), {
+      message: 'Password must contain at least one lowercase letter.',
+    })
+    .refine((password) => /[A-Z]/.test(password), {
+      message: 'Password must contain at least one uppercase letter.',
+    })
+    .refine((password) => /\d/.test(password), {
+      message: 'Password must contain at least one number.',
+    })
+    .refine((password) => /[@$!%*?&]/.test(password), {
+      message: 'Password must contain at least one special character (@$!%*?&).',
+    }),
 });
 
 export type SignupFormState = {
@@ -44,14 +57,57 @@ export async function signup(
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
-  
-  // Bypassing database for server stability
-  console.log(`Bypassing database create for user: ${validatedFields.data.email}`);
 
-  // await sendVerificationEmail(email, verificationToken);
+  const { fullName, daycareName, email, password } = validatedFields.data;
 
-  return {
-    message: 'Registration successful! Database saving is currently bypassed for testing.',
-    isSuccess: true,
-  };
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return {
+        message: 'An account with this email already exists.',
+        isSuccess: false,
+        errors: { email: ['An account with this email already exists.'] },
+      };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        name: fullName,
+        daycareName: daycareName,
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const tokenExpiration = new Date(Date.now() + 3600 * 1000); // 1 hour from now
+
+    await prisma.verificationToken.create({
+      data: {
+        email,
+        token: verificationToken,
+        expires: tokenExpiration,
+      },
+    });
+
+    await sendVerificationEmail(email, verificationToken);
+
+    return {
+      message: 'Registration successful! Please check your email to verify your account.',
+      isSuccess: true,
+    };
+
+  } catch (error) {
+    console.error('Signup Error:', error);
+    return {
+      message: 'An unexpected error occurred. Please try again.',
+      isSuccess: false,
+      errors: { _form: ['Could not create account.'] },
+    };
+  }
 }

@@ -1,9 +1,12 @@
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -11,58 +14,67 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
-  id                String    @id @default(cuid())
-  name              String
-  daycareName       String
-  email             String    @unique
-  password          String
-  emailVerified     DateTime?
-  verificationToken String?   @unique
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  email         String    @unique
+  password      String
+  name          String?
+  daycareName   String?
+  emailVerified DateTime?
+}
+
+model VerificationToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
 }
 
 model Child {
-  id             String    @id @default(cuid())
-  name           String
-  dateOfBirth    DateTime
-  startDate      DateTime
-  program        String
-  programType    String
-  status         String
-  motherName     String
-  fatherName     String
-  homePhone      String?
-  mobilePhone    String
-  address        String
-  emergencyName  String
-  emergencyPhone String
-  vaccination    String?
-  allergies      String?
-  notes          String?
-  photoUrl       String?
-  photoHint      String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  name            String
+  dateOfBirth     DateTime
+  startDate       DateTime
+  program         String
+  programType     String
+  status          String
+  motherName      String
+  fatherName      String
+  homePhone       String?
+  mobilePhone     String
+  address         String
+  emergencyName   String
+  emergencyPhone  String
+  vaccination     String?
+  allergies       String?
+  notes           String?
+  photoUrl        String?
+  photoHint       String?
 }
 
 model Staff {
-  id             String    @id @default(cuid())
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   name           String
   role           String
+  certifications String?
   status         String
   startDate      DateTime
   phone          String
   address        String
   emergencyName  String
   emergencyPhone String
-  certifications String
-  notes          String?
   payType        String
   payRate        Float
+  notes          String?
   photoUrl       String?
   photoHint      String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
 }
