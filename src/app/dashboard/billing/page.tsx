@@ -32,7 +32,7 @@ import { MoreHorizontal, Mail, CheckCircle, CircleOff, FileText, Bot } from "luc
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { initialEnrolledChildren } from "../enrollment/data";
+import type { Child } from "@prisma/client";
 
 type InvoiceStatus = "Paid" | "Due" | "Overdue";
 
@@ -46,14 +46,6 @@ type Invoice = {
   program: string;
 };
 
-const initialInvoices: Invoice[] = [
-    { id: "INV001", childName: "Olivia Martin", parent: "The Martins", amount: 850.00, dueDate: "2024-07-01", status: "Paid", program: "Preschool (3 to 5 years)" },
-    { id: "INV002", childName: "Liam Garcia", parent: "The Garcias", amount: 1200.00, dueDate: "2024-07-01", status: "Paid", program: "Toddler (1 to 3 years)" },
-    { id: "INV003", childName: "Emma Rodriguez", parent: "The Rodriguezes", amount: 850.00, dueDate: "2024-08-01", status: "Due", program: "Preschool (3 to 5 years)" },
-    { id: "INV004", childName: "Noah Hernandez", parent: "The Hernandezes", amount: 1500.00, dueDate: "2024-07-01", status: "Overdue", program: "Infant (0-12months)" },
-    { id: "INV005", childName: "Ava Lopez", parent: "The Lopezes", amount: 850.00, dueDate: "2024-08-01", status: "Due", program: "Preschool (3 to 5 years)" },
-];
-
 const feeStructure = {
   'Infant (0-12months)': { 'Full time': 1500, 'Part time': 1000, 'Ad-hoc daily basis': 100 },
   'Toddler (1 to 3 years)': { 'Full time': 1200, 'Part time': 800, 'Ad-hoc daily basis': 85 },
@@ -61,8 +53,8 @@ const feeStructure = {
   'Gradeschooler (5 to 12 years)': { 'Full time': 750, 'Part time': 500, 'Ad-hoc daily basis': 60 },
 };
 
-export default function BillingPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+export default function BillingPage({ children: initialEnrolledChildren }: { children: Child[] }) {
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const { toast } = useToast();
 
   const handleInvoiceAction = (id: string, action: "paid" | "unpaid" | "remind") => {
@@ -209,7 +201,7 @@ export default function BillingPage() {
                     </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {invoices.sort((a,b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice) => (
+                    {invoices.length > 0 ? invoices.sort((a,b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice) => (
                         <TableRow key={invoice.id}>
                         <TableCell className="font-medium">
                             <div>{invoice.childName}</div>
@@ -262,7 +254,13 @@ export default function BillingPage() {
                             </DropdownMenu>
                         </TableCell>
                         </TableRow>
-                    ))}
+                    )) : (
+                        <TableRow>
+                            <TableCell colSpan={5} className="text-center h-24">
+                                No invoices found. Generate invoices to get started.
+                            </TableCell>
+                        </TableRow>
+                    )}
                     </TableBody>
                 </Table>
                 </CardContent>

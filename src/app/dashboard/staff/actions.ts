@@ -1,6 +1,9 @@
+
 'use server';
 
 import {z} from 'zod';
+import prisma from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 const StaffFormSchema = z.object({
   name: z.string().min(1, {message: "Staff member's name is required."}),
@@ -47,12 +50,43 @@ export async function addStaffMember(prevState: any, formData: FormData) {
     };
   }
 
-  // In a real application, you would save validatedFields.data to your database.
-  console.log('New staff member added:', validatedFields.data);
+  // TODO: Replace with daycareId from the user's session once implemented.
+  const daycare = await prisma.daycare.findFirst();
 
-  return {
-    message: 'Staff member added successfully!',
-    errors: null,
-    data: validatedFields.data,
-  };
+  if (!daycare) {
+      return {
+          message: 'No active daycare found to associate this staff member with. Please contact support.',
+          errors: { _form: ['System error: No daycare available.'] },
+          data: null,
+      };
+  }
+
+  try {
+    const { startDate, ...rest } = validatedFields.data;
+    await prisma.staff.create({
+      data: {
+        ...rest,
+        startDate: new Date(startDate),
+        status: 'Active',
+        daycareId: daycare.id,
+        photoUrl: 'https://placehold.co/100x100.png',
+        photoHint: 'professional portrait',
+      }
+    });
+
+    revalidatePath('/dashboard/staff');
+    return {
+        message: 'Staff member added successfully!',
+        errors: null,
+        data: validatedFields.data,
+    };
+
+  } catch (error) {
+    console.error("Failed to create staff member:", error);
+    return {
+      message: 'An unexpected error occurred while saving the staff member.',
+      errors: { _form: ['Database error.'] },
+      data: null,
+    };
+  }
 }

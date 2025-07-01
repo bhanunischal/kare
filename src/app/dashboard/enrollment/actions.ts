@@ -1,9 +1,9 @@
 
-"use server";
+'use server';
 
 import { z } from "zod";
-// import prisma from "@/lib/prisma";
-// import { revalidatePath } from "next/cache";
+import prisma from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 const RegistrationFormSchema = z.object({
   childName: z.string().min(1, { message: "Child's name is required." }),
@@ -11,7 +11,7 @@ const RegistrationFormSchema = z.object({
   startDate: z.string().min(1, { message: "Start date is required." }),
   program: z.string().min(1, { message: "Program group is required." }),
   programType: z.string().min(1, { message: "Program type is required." }),
-  status: z.string().min(1, { message: "Status is required." }),
+  status: z.enum(['Active', 'Waitlisted', 'Inactive']),
   motherName: z.string().min(1, { message: "Mother's name is required." }),
   fatherName: z.string().min(1, { message: "Father's name is required." }),
   homePhone: z.string().optional(),
@@ -54,14 +54,45 @@ export async function submitRegistration(prevState: any, formData: FormData) {
       data: null,
     };
   }
+  
+  const { childName, dob, ...rest } = validatedFields.data;
 
-  // Bypassing database for server stability
-  console.log("Bypassing database save for child registration:", validatedFields.data);
-  // revalidatePath('/dashboard/enrollment');
+  // TODO: Replace with daycareId from the user's session once implemented.
+  const daycare = await prisma.daycare.findFirst();
 
-  return {
-    message: "Registration submitted successfully! (Database save is currently bypassed for testing)",
-    errors: null,
-    data: validatedFields.data,
-  };
+  if (!daycare) {
+      return {
+          message: 'No active daycare found to associate this child with. Please contact support.',
+          errors: { _form: ['System error: No daycare available.'] },
+          data: null,
+      };
+  }
+  
+  try {
+    await prisma.child.create({
+        data: {
+            ...rest,
+            name: childName,
+            dateOfBirth: new Date(dob),
+            daycareId: daycare.id,
+            photoUrl: 'https://placehold.co/100x100.png',
+            photoHint: 'child portrait',
+        }
+    });
+
+    revalidatePath('/dashboard/enrollment');
+    return {
+        message: `${childName} has been registered successfully!`,
+        errors: null,
+        data: validatedFields.data,
+    };
+
+  } catch (error) {
+      console.error("Failed to create child record:", error);
+      return {
+          message: 'An unexpected error occurred while saving the registration.',
+          errors: { _form: ['Database error.'] },
+          data: null,
+      };
+  }
 }

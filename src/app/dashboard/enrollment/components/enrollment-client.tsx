@@ -24,6 +24,7 @@ import type { Child } from "@prisma/client";
 
 const programOptions = ['Infant (0-12months)', 'Toddler (1 to 3 years)', 'Preschool (3 to 5 years)', 'Gradeschooler (5 to 12 years)'];
 const programTypeOptions = ['Full time', 'Part time', 'Ad-hoc daily basis'];
+const statusOptions: Child['status'][] = ['Active', 'Waitlisted', 'Inactive'];
 
 const initialState: {
   message: string | null;
@@ -70,7 +71,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
   
   const [activeFilter, setActiveFilter] = useState<string>('All');
 
-  // Update local state when server provides new initial data
+  // Update local state when server provides new initial data (e.g., after revalidation)
   useEffect(() => {
     setEnrolledChildren(initialEnrolledChildren);
   }, [initialEnrolledChildren]);
@@ -84,42 +85,23 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [activeFilter, enrolledChildren]);
 
-  const processedStateRef = useRef(initialState);
-
+  // Handle form submission feedback from the server action
   useEffect(() => {
-    if (state !== processedStateRef.current) {
-      if (state.message) {
-        if (state.errors) {
-          toast({
-            variant: "destructive",
-            title: "Error submitting form",
-            description: state.message,
-          });
-        } else if (state.data) {
-          toast({
-            title: "Success!",
-            description: state.message,
-          });
-          
-          // Optimistically add to the list
-          // Note: In a real app with proper session management, we'd re-fetch or revalidate
-          const newChildData: any = { // Using any to avoid TS errors for missing fields not in form
-            ...state.data,
-            id: new Date().toISOString(),
-            dateOfBirth: new Date(state.data.dob),
-            startDate: new Date(state.data.startDate),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            photoUrl: 'https://placehold.co/100x100.png',
-            photoHint: 'child portrait',
-            name: state.data.childName,
-          };
-          setEnrolledChildren(prev => [newChildData, ...prev]);
-
-          formRef.current?.reset();
-        }
+    if (state.message) {
+      if (state.errors) {
+        toast({
+          variant: "destructive",
+          title: "Error submitting form",
+          description: state.message,
+        });
+      } else {
+        toast({
+          title: "Success!",
+          description: state.message,
+        });
+        // Reset the form after a successful submission
+        formRef.current?.reset();
       }
-      processedStateRef.current = state;
     }
   }, [state, toast]);
 
@@ -142,7 +124,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
       setEnrolledChildren(prev => prev.map(child => child.id === editedData.id ? editedData : child));
       setSelectedChild(editedData);
       setIsEditing(false);
-      toast({ title: "Success!", description: "Child information updated (client-side)." });
+      toast({ title: "Success!", description: "Child information updated (client-side only)." });
     }
   };
 
@@ -153,7 +135,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
       const updatedChild = { ...selectedChild, status: newStatus };
       setEnrolledChildren(prev => prev.map(child => child.id === selectedChild.id ? updatedChild : child));
       setSelectedChild(updatedChild);
-      toast({ title: "Success!", description: `Child has been marked as ${newStatus.toLowerCase()} (client-side).` });
+      toast({ title: "Success!", description: `Child has been marked as ${newStatus.toLowerCase()} (client-side only).` });
     }
   };
 
@@ -163,7 +145,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
       setEnrolledChildren(prev => prev.filter(child => child.id !== selectedChild.id));
       setSelectedChild(null);
       setIsDeleteDialogOpen(false);
-      toast({ title: "Success!", description: "Child record has been deleted (client-side)." });
+      toast({ title: "Success!", description: "Child record has been deleted (client-side only)." });
     }
   };
 
@@ -219,7 +201,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredChildren.map((child) => (
+                  {filteredChildren.length > 0 ? filteredChildren.map((child) => (
                     <TableRow key={child.id}>
                       <TableCell>
                         <Avatar>
@@ -250,7 +232,13 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                         <Button variant="ghost" size="sm" onClick={() => setSelectedChild(child)}>View</Button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )) : (
+                     <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                            No children found. Add a child to get started.
+                        </TableCell>
+                     </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

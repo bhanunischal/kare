@@ -37,6 +37,7 @@ import type { DateRange } from "react-day-picker";
 import { format, differenceInDays } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import type { Child } from "@prisma/client";
 
 type AttendanceStatus = "Present" | "Absent" | "On Leave" | "Pending";
 type LeaveType = "Daily" | "Short-term" | "Long-term";
@@ -52,17 +53,23 @@ type AttendanceRecord = {
   leaveType?: LeaveType;
 };
 
-const initialAttendanceRecords: AttendanceRecord[] = [
-    { id: "1", name: "Olivia Martin", checkIn: "8:30 AM", checkOut: "4:00 PM", status: "Present" },
-    { id: "2", name: "Liam Garcia", checkIn: "9:00 AM", checkOut: null, status: "Present" },
-    { id: "3", name: "Emma Rodriguez", checkIn: null, checkOut: null, status: "Pending" },
-    { id: "4", name: "Noah Hernandez", checkIn: null, checkOut: null, status: "On Leave", leaveReason: "Family vacation." },
-    { id: "5", name: "Ava Lopez", checkIn: "9:15 AM", checkOut: "4:30 PM", status: "Present" },
-    { id: "6", name: "James Wilson", checkIn: null, checkOut: null, status: "Absent" },
-];
+// This page should now be a server component that fetches children
+// and passes them to a client component. For simplicity in this step,
+// we will make this a client component that receives children as props.
 
-export default function AttendancePage() {
-  const [records, setRecords] = useState<AttendanceRecord[]>(initialAttendanceRecords);
+export default function AttendancePage({ children }: { children: Child[] }) {
+  const [records, setRecords] = useState<AttendanceRecord[]>(
+    // Initialize attendance records based on the children fetched from the database
+    children
+      .filter(c => c.status === 'Active')
+      .map(child => ({
+        id: child.id,
+        name: child.name,
+        checkIn: null,
+        checkOut: null,
+        status: "Pending" as AttendanceStatus
+      }))
+  );
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [selectedChild, setSelectedChild] = useState<AttendanceRecord | null>(null);
   const [leaveReason, setLeaveReason] = useState("");

@@ -17,19 +17,44 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { allDaycares } from "./daycares/data"
 import { format } from "date-fns"
+import { Daycare } from "@prisma/client";
+import { useEffect, useState } from "react";
 
-const statusCards = [
-    { title: "Total Daycares", value: "5", icon: <Building className="h-6 w-6 text-muted-foreground" /> },
-    { title: "Total Children", value: "277", icon: <Users className="h-6 w-6 text-muted-foreground" /> },
-    { title: "Total MRR", value: "$4,500", icon: <DollarSign className="h-6 w-6 text-muted-foreground" /> },
-    { title: "New Signups (30d)", value: "1", icon: <UserPlus className="h-6 w-6 text-muted-foreground" /> }
-]
-
-const recentSignups = allDaycares.slice(0, 5).sort((a,b) => new Date(b.joinDate).getTime() - new Date(a.joinDate).getTime());
+// This component is now a client component to fetch data on the client side.
+// In a real-world scenario with sessions, this data would be fetched on the server
+// and passed down.
 
 export default function AdminDashboardPage() {
+  const [stats, setStats] = useState({
+    totalDaycares: 0,
+    totalChildren: 0,
+    totalMRR: 0,
+    newSignups: 0
+  });
+  const [recentSignups, setRecentSignups] = useState<Daycare[]>([]);
+
+  useEffect(() => {
+    // This is a placeholder for fetching data. In a real app, you'd fetch this from an API route.
+    // For now, we'll keep it simple and demonstrate the structure.
+    // The server-side fetching is done in the /admin/daycares page.
+    setStats({
+        totalDaycares: 5,
+        totalChildren: 277,
+        totalMRR: 4500,
+        newSignups: 1,
+    });
+    // This would be a fetch to an API route like /api/admin/recent-signups
+    setRecentSignups([]); 
+  }, []);
+
+  const statusCards = [
+    { title: "Total Daycares", value: stats.totalDaycares.toString(), icon: <Building className="h-6 w-6 text-muted-foreground" /> },
+    { title: "Total Children", value: stats.totalChildren.toString(), icon: <Users className="h-6 w-6 text-muted-foreground" /> },
+    { title: "Total MRR", value: `$${stats.totalMRR.toLocaleString()}`, icon: <DollarSign className="h-6 w-6 text-muted-foreground" /> },
+    { title: "New Signups (30d)", value: stats.newSignups.toString(), icon: <UserPlus className="h-6 w-6 text-muted-foreground" /> }
+  ]
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -67,20 +92,24 @@ export default function AdminDashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentSignups.map(daycare => (
+                  {recentSignups.length > 0 ? recentSignups.map(daycare => (
                      <TableRow key={daycare.id}>
                         <TableCell className="font-medium">{daycare.name}</TableCell>
                         <TableCell><Badge variant="outline">{daycare.plan}</Badge></TableCell>
                         <TableCell>
                           <Badge 
-                            variant={daycare.status === 'Active' ? 'default' : daycare.status === 'Pending' ? 'secondary' : 'destructive'}
+                            variant={daycare.status === 'ACTIVE' ? 'default' : daycare.status === 'PENDING' ? 'secondary' : 'destructive'}
                           >
                             {daycare.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">{format(new Date(daycare.joinDate.replace(/-/g, '/')), 'PPP')}</TableCell>
+                        <TableCell className="text-right">{format(new Date(daycare.createdAt), 'PPP')}</TableCell>
                     </TableRow>
-                  ))}
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center">No recent signups.</TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
           </CardContent>

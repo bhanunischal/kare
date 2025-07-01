@@ -12,7 +12,7 @@ import type { GenerateAssessmentOutput } from "@/ai/flows/generate-assessment-fl
 import { generateAssessment } from "./actions";
 import { Loader2, Bot, Share2, Download, BookUser, Brain, MessageSquare, PersonStanding } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { initialEnrolledChildren } from "../enrollment/data";
+import type { Child } from "@prisma/client";
 
 const initialState: { output: GenerateAssessmentOutput | null; error: string | null; } = {
   output: null,
@@ -38,13 +38,14 @@ function SubmitButton() {
   );
 }
 
-export default function AssessmentsPage() {
+// This page now receives the list of children from its server component parent
+export default function AssessmentsPage({ children }: { children: Child[] }) {
   const [state, formAction] = useActionState(generateAssessment, initialState);
   const { toast } = useToast();
   const stateRef = useRef(initialState);
   
   const [selectedChildId, setSelectedChildId] = useState<string>('');
-  const activeChildren = initialEnrolledChildren.filter(c => c.status === 'Active');
+  const activeChildren = children.filter(c => c.status === 'Active');
   const selectedChild = activeChildren.find(c => c.id === selectedChildId);
 
   useEffect(() => {
@@ -179,7 +180,7 @@ export default function AssessmentsPage() {
                    </Card>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center text-center p-8 h-full rounded-lg bg-secondary/30">
+                <div className="flex flex-col items-center justify-center text-center p-8 h-full rounded-lg bg-secondary/30 min-h-[400px]">
                   <Bot className="h-12 w-12 text-muted-foreground" />
                   <p className="mt-4 text-muted-foreground">Your AI-generated assessment report will appear here once generated.</p>
                 </div>

@@ -1,6 +1,4 @@
 
-"use client";
-
 import {
   Card,
   CardContent,
@@ -19,13 +17,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-const statusCards = [
-    { title: "Children Present", value: "68 / 72", icon: <Users className="h-6 w-6 text-muted-foreground" /> },
-    { title: "Upcoming Birthdays", value: "2 this week", icon: <Cake className="h-6 w-6 text-muted-foreground" /> },
-    { title: "Staff on Duty", value: "8", icon: <CheckCircle className="h-6 w-6 text-muted-foreground" /> },
-    { title: "Pending Invoices", value: "3", icon: <BellRing className="h-6 w-6 text-muted-foreground" /> }
-]
+import prisma from "@/lib/prisma";
 
 const recentActivities = [
     { name: "Liam Garcia", action: "Checked In", time: "2m ago", photo: "https://placehold.co/40x40.png", hint: "young boy" },
@@ -35,7 +27,25 @@ const recentActivities = [
     { name: "Emma Rodriguez", action: "Invoice #INV003 created", time: "2d ago", photo: "https://placehold.co/40x40.png", hint: "toddler girl" },
 ]
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  // TODO: Scope this to the logged-in user's daycareId once session management is implemented.
+  const daycare = await prisma.daycare.findFirst();
+
+  let childrenCount = 0;
+  let staffCount = 0;
+
+  if (daycare) {
+    childrenCount = await prisma.child.count({ where: { daycareId: daycare.id, status: 'Active' } });
+    staffCount = await prisma.staff.count({ where: { daycareId: daycare.id, status: 'Active' } });
+  }
+
+  const statusCards = [
+    { title: "Children Present", value: `${childrenCount} / ${childrenCount}`, icon: <Users className="h-6 w-6 text-muted-foreground" /> },
+    { title: "Upcoming Birthdays", value: "0 this week", icon: <Cake className="h-6 w-6 text-muted-foreground" /> },
+    { title: "Staff on Duty", value: staffCount.toString(), icon: <CheckCircle className="h-6 w-6 text-muted-foreground" /> },
+    { title: "Pending Invoices", value: "0", icon: <BellRing className="h-6 w-6 text-muted-foreground" /> }
+  ]
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -61,7 +71,7 @@ export default function DashboardPage() {
         <Card className="lg:col-span-4">
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>A live feed of recent events.</CardDescription>
+            <CardDescription>A live feed of recent events. (Static placeholder)</CardDescription>
           </CardHeader>
           <CardContent>
              <Table>
