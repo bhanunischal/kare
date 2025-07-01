@@ -80,6 +80,7 @@ export async function signup(
             data: {
                 name: daycareName,
                 status: 'PENDING',
+                plan: 'Basic', // Assign a default plan
             },
         });
 
