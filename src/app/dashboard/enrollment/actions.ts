@@ -1,4 +1,3 @@
-
 'use server';
 
 import { z } from "zod";
@@ -55,7 +54,13 @@ export async function submitRegistration(prevState: any, formData: FormData) {
     };
   }
   
-  const { childName, dob, startDate, ...rest } = validatedFields.data;
+  const { 
+    childName, 
+    dob, 
+    startDate,
+    homePhone, // Destructure `homePhone` to exclude it from the `...rest` spread
+    ...rest 
+  } = validatedFields.data;
 
   // TODO: Replace with daycareId from the user's session once implemented.
   const daycare = await prisma.daycare.findFirst();
@@ -71,7 +76,7 @@ export async function submitRegistration(prevState: any, formData: FormData) {
   try {
     await prisma.child.create({
         data: {
-            ...rest,
+            ...rest, // `rest` no longer contains the `homePhone` field
             name: childName,
             dateOfBirth: new Date(dob),
             startDate: new Date(startDate),
