@@ -55,7 +55,7 @@ export async function submitRegistration(prevState: any, formData: FormData) {
     };
   }
   
-  const { childName, dob, ...rest } = validatedFields.data;
+  const { childName, dob, startDate, ...rest } = validatedFields.data;
 
   // TODO: Replace with daycareId from the user's session once implemented.
   const daycare = await prisma.daycare.findFirst();
@@ -74,6 +74,7 @@ export async function submitRegistration(prevState: any, formData: FormData) {
             ...rest,
             name: childName,
             dateOfBirth: new Date(dob),
+            startDate: new Date(startDate),
             daycareId: daycare.id,
             photoUrl: 'https://placehold.co/100x100.png',
             photoHint: 'child portrait',
