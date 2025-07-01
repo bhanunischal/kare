@@ -1,9 +1,10 @@
+
 "use server";
 
 // import { generateAssessmentFlow } from "@/ai/flows/generate-assessment-flow";
 import { z } from "zod";
-import { initialEnrolledChildren } from "../enrollment/data";
 import type { GenerateAssessmentOutput } from "@/ai/flows/generate-assessment-flow";
+import prisma from "@/lib/prisma";
 
 const AssessmentFormSchema = z.object({
   childId: z.string().min(1, { message: "Please select a child." }),
@@ -37,7 +38,7 @@ export async function generateAssessment(prevState: any, formData: FormData) {
     };
   }
   
-  const child = initialEnrolledChildren.find(c => c.id === validatedFields.data.childId);
+  const child = await prisma.child.findUnique({ where: { id: validatedFields.data.childId } });
   if (!child) {
       return { output: null, error: "Child not found." };
   }

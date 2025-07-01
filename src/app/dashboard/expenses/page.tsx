@@ -19,7 +19,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { addExpense, type ExpenseFormData } from './actions';
 import { Loader2, DollarSign } from 'lucide-react';
-import { initialStaffMembers, type StaffMember } from '../staff/page';
 
 type ExpenseCategory = 'Supplies' | 'Utilities' | 'Rent' | 'Salaries' | 'Food' | 'Maintenance' | 'Other';
 const expenseCategories: ExpenseCategory[] = ['Supplies', 'Utilities', 'Rent', 'Salaries', 'Food', 'Maintenance', 'Other'];
@@ -64,11 +63,6 @@ export default function ExpensesPage() {
   const [state, formAction] = useActionState(addExpense, initialState);
   const { toast } = useToast();
   
-  const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | ''>('');
-  const [amount, setAmount] = useState<string | number>('');
-  const [description, setDescription] = useState('');
-  const [staffList] = useState<StaffMember[]>(initialStaffMembers.filter(s => s.status === 'Active'));
-
   const processedStateRef = useRef(initialState);
 
   useEffect(() => {
@@ -88,33 +82,11 @@ export default function ExpensesPage() {
                 };
                 setExpenses(prev => [newExpense, ...prev]);
                 formRef.current?.reset();
-                setSelectedCategory('');
-                setAmount('');
-                setDescription('');
             }
         }
         processedStateRef.current = state;
     }
   }, [state, toast]);
-  
-  const handleCategoryChange = (value: string) => {
-    const category = value as ExpenseCategory;
-    setSelectedCategory(category);
-    setAmount('');
-    setDescription('');
-  };
-
-  const handleStaffChange = (staffName: string) => {
-    const staff = staffList.find(s => s.name === staffName);
-    if (staff) {
-      setAmount(staff.payRate.toFixed(2));
-      if (staff.payType === 'Monthly Salary') {
-        setDescription(`Monthly salary for ${staff.name}`);
-      } else {
-        setDescription(`Payment for ${staff.name}. Enter total amount.`);
-      }
-    }
-  };
   
   const expenseReportData = expenseCategories.map(category => {
       const total = expenses
@@ -199,8 +171,6 @@ export default function ExpensesPage() {
                           step="0.01" 
                           placeholder="0.00" 
                           className="pl-8" 
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
                           required 
                         />
                     </div>
@@ -210,7 +180,7 @@ export default function ExpensesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <Label htmlFor="category">Category</Label>
-                        <Select name="category" onValueChange={handleCategoryChange} required>
+                        <Select name="category" required>
                             <SelectTrigger id="category">
                                 <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
@@ -222,21 +192,8 @@ export default function ExpensesPage() {
                         </Select>
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="vendor">{selectedCategory === 'Salaries' ? 'Staff Member' : 'Vendor (Optional)'}</Label>
-                        {selectedCategory === 'Salaries' ? (
-                            <Select name="vendor" onValueChange={handleStaffChange}>
-                                <SelectTrigger id="staff">
-                                    <SelectValue placeholder="Select a staff member" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {staffList.map(staff => (
-                                        <SelectItem key={staff.id} value={staff.name}>{staff.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        ) : (
-                            <Input id="vendor" name="vendor" placeholder="e.g., Staples" />
-                        )}
+                        <Label htmlFor="vendor">Vendor (Optional)</Label>
+                        <Input id="vendor" name="vendor" placeholder="e.g., Staples" />
                     </div>
                 </div>
 
@@ -246,8 +203,6 @@ export default function ExpensesPage() {
                     id="description" 
                     name="description" 
                     placeholder="e.g., Purchase of new art supplies" 
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
                     required 
                   />
                 </div>
