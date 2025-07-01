@@ -1,3 +1,4 @@
+
 import { verifyEmail } from './actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, XCircle } from "lucide-react";
