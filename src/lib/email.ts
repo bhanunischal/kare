@@ -4,14 +4,20 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = 'onboarding@resend.dev'; // Resend requires a verified domain. 'onboarding@resend.dev' can be used for testing.
+// The "from" address is now configured in your .env file.
+// It must be from a domain you have verified in your Resend account.
+const fromEmail = process.env.FROM_EMAIL;
 
 export async function sendVerificationEmail(email: string, token: string) {
   const verificationLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/verify-email?token=${token}`;
 
+  if (!fromEmail) {
+    throw new Error('FROM_EMAIL environment variable is not set. Cannot send verification email.');
+  }
+
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromEmail,
       to: email,
       subject: 'Verify your email address for Child Care Ops',
       html: `
@@ -22,7 +28,7 @@ export async function sendVerificationEmail(email: string, token: string) {
         <p>If you did not sign up for an account, you can safely ignore this email.</p>
       `,
     });
-    console.log(`Verification email sent to ${email}`);
+    console.log(`Verification email sent to ${email} from ${fromEmail}`);
   } catch (error) {
     console.error('Error sending verification email:', error);
     // In a production app, you might want to handle this error more gracefully,
