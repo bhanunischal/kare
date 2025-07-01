@@ -3,6 +3,8 @@
 
 import { z } from 'zod';
 import { redirect } from 'next/navigation';
+import prisma from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 const LoginFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -33,10 +35,35 @@ export async function login(
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
-
-  // Bypassing database for server stability.
-  // In a real app, you would check credentials here.
-  console.log(`Bypassing database check for user: ${validatedFields.data.email}`);
   
+  const { email, password } = validatedFields.data;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return { message: 'Login failed', errors: { _form: ['Invalid email or password.'] } };
+    }
+
+    if (!user.emailVerified) {
+      return { message: 'Login failed', errors: { _form: ['Please verify your email before logging in.'] } };
+    }
+
+    const passwordsMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordsMatch) {
+      return { message: 'Login failed', errors: { _form: ['Invalid email or password.'] } };
+    }
+
+    // This is where a real session would be created.
+    // For now, we are just redirecting. The next step is to implement
+    // session management to properly scope data.
+  } catch (error) {
+    console.error('Login Error:', error);
+    return { message: 'An unexpected error occurred', errors: { _form: ['Something went wrong.'] } };
+  }
+
   redirect('/dashboard');
 }

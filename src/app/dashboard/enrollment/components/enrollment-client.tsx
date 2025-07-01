@@ -21,7 +21,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { Child } from "@prisma/client";
-import { programOptions, programTypeOptions, type Program, type ProgramType } from '../data';
+
+const programOptions = ['Infant (0-12months)', 'Toddler (1 to 3 years)', 'Preschool (3 to 5 years)', 'Gradeschooler (5 to 12 years)'];
+const programTypeOptions = ['Full time', 'Part time', 'Ad-hoc daily basis'];
 
 const initialState: {
   message: string | null;
@@ -100,30 +102,19 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
           });
           
           // Optimistically add to the list
-          const newChild: Child = {
+          // Note: In a real app with proper session management, we'd re-fetch or revalidate
+          const newChildData: any = { // Using any to avoid TS errors for missing fields not in form
+            ...state.data,
             id: new Date().toISOString(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            name: state.data.childName,
             dateOfBirth: new Date(state.data.dob),
             startDate: new Date(state.data.startDate),
-            program: state.data.program,
-            programType: state.data.programType,
-            status: state.data.status,
-            motherName: state.data.motherName,
-            fatherName: state.data.fatherName,
-            homePhone: state.data.homePhone || null,
-            mobilePhone: state.data.mobilePhone,
-            address: state.data.address,
-            emergencyName: state.data.emergencyName,
-            emergencyPhone: state.data.emergencyPhone,
-            vaccination: state.data.vaccination || null,
-            allergies: state.data.allergies || null,
-            notes: state.data.notes || null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
             photoUrl: 'https://placehold.co/100x100.png',
             photoHint: 'child portrait',
+            name: state.data.childName,
           };
-          setEnrolledChildren(prev => [newChild, ...prev]);
+          setEnrolledChildren(prev => [newChildData, ...prev]);
 
           formRef.current?.reset();
         }
@@ -139,20 +130,15 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
     }
   };
 
-  const handleProgramChange = (value: Program) => {
+  const handleSelectChange = (name: string, value: string) => {
     if (editedData) {
-      setEditedData({ ...editedData, program: value });
-    }
-  };
-
-  const handleProgramTypeChange = (value: ProgramType) => {
-    if (editedData) {
-      setEditedData({ ...editedData, programType: value });
+      setEditedData({ ...editedData, [name]: value });
     }
   };
 
   const handleSaveChanges = () => {
     if (editedData) {
+      // TODO: Call a server action to update the database
       setEnrolledChildren(prev => prev.map(child => child.id === editedData.id ? editedData : child));
       setSelectedChild(editedData);
       setIsEditing(false);
@@ -162,6 +148,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
 
   const handleDeactivateChild = () => {
     if (selectedChild) {
+      // TODO: Call a server action to update the database
       const newStatus = selectedChild.status === 'Active' ? 'Inactive' : 'Active';
       const updatedChild = { ...selectedChild, status: newStatus };
       setEnrolledChildren(prev => prev.map(child => child.id === selectedChild.id ? updatedChild : child));
@@ -172,6 +159,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
 
   const handleDeleteChild = () => {
     if (selectedChild) {
+      // TODO: Call a server action to delete from the database
       setEnrolledChildren(prev => prev.filter(child => child.id !== selectedChild.id));
       setSelectedChild(null);
       setIsDeleteDialogOpen(false);
@@ -467,7 +455,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                       </div>
                       <div className="space-y-2">
                           <Label htmlFor="edit-programType">Program Type</Label>
-                          <Select value={editedData.programType} onValueChange={(value: ProgramType) => handleProgramTypeChange(value as ProgramType)}>
+                          <Select value={editedData.programType} onValueChange={(value) => handleSelectChange('programType', value)}>
                               <SelectTrigger id="edit-programType">
                                   <SelectValue placeholder="Select a type" />
                               </SelectTrigger>
@@ -478,7 +466,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                       </div>
                       <div className="space-y-2 sm:col-span-2">
                         <Label htmlFor="edit-program">Program Group</Label>
-                        <Select value={editedData.program} onValueChange={(value: Program) => handleProgramChange(value as Program)}>
+                        <Select value={editedData.program} onValueChange={(value) => handleSelectChange('program', value)}>
                             <SelectTrigger id="edit-program">
                                 <SelectValue placeholder="Select a program" />
                             </SelectTrigger>

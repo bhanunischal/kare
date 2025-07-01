@@ -56,6 +56,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {cn} from '@/lib/utils';
+import type { Staff } from '@prisma/client';
 
 type Role = 'Lead ECE' | 'Assistant' | 'ECE-IT' | 'Support Staff';
 const roleOptions: Role[] = [
@@ -68,107 +69,6 @@ const roleOptions: Role[] = [
 type Status = 'Active' | 'On Leave' | 'Inactive';
 type PayType = 'Monthly Salary' | 'Hourly Rate';
 const payTypeOptions: PayType[] = ['Monthly Salary', 'Hourly Rate'];
-
-export type StaffMember = {
-  id: string;
-  name: string;
-  photoUrl?: string;
-  photoHint?: string;
-  role: Role;
-  certifications: string;
-  status: Status;
-  startDate: string;
-  phone: string;
-  address: string;
-  emergencyName: string;
-  emergencyPhone: string;
-  payType: PayType;
-  payRate: number;
-  notes?: string;
-};
-
-export const initialStaffMembers: StaffMember[] = [
-  {
-    id: '1',
-    name: 'Jane Doe',
-    photoUrl: 'https://placehold.co/100x100.png',
-    photoHint: 'friendly woman',
-    role: 'Lead ECE',
-    certifications: 'ECE License, First Aid',
-    status: 'Active',
-    startDate: '2022-08-15',
-    phone: '(555) 123-4567',
-    address: '123 Sunshine Ave, Anytown, USA',
-    emergencyName: 'John Doe',
-    emergencyPhone: '(555) 765-4321',
-    payType: 'Monthly Salary',
-    payRate: 5500,
-  },
-  {
-    id: '2',
-    name: 'John Smith',
-    photoUrl: 'https://placehold.co/100x100.png',
-    photoHint: 'smiling man',
-    role: 'Assistant',
-    certifications: 'First Aid',
-    status: 'Active',
-    startDate: '2023-01-20',
-    phone: '(555) 234-5678',
-    address: '456 Rainbow Rd, Anytown, USA',
-    emergencyName: 'Mary Smith',
-    emergencyPhone: '(555) 876-5432',
-    payType: 'Hourly Rate',
-    payRate: 22.5,
-  },
-  {
-    id: '3',
-    name: 'Emily White',
-    photoUrl: 'https://placehold.co/100x100.png',
-    photoHint: 'teacher portrait',
-    role: 'ECE-IT',
-    certifications: 'ECE License',
-    status: 'Active',
-    startDate: '2023-09-01',
-    phone: '(555) 345-6789',
-    address: '789 Learning Ln, Anytown, USA',
-    emergencyName: 'David White',
-    emergencyPhone: '(555) 987-6543',
-    payType: 'Monthly Salary',
-    payRate: 4200,
-  },
-  {
-    id: '4',
-    name: 'Michael Brown',
-    photoUrl: 'https://placehold.co/100x100.png',
-    photoHint: 'kind man',
-    role: 'Support Staff',
-    certifications: 'Background Check',
-    status: 'On Leave',
-    startDate: '2021-11-05',
-    phone: '(555) 456-7890',
-    address: '101 Playful Pl, Anytown, USA',
-    emergencyName: 'Susan Brown',
-    emergencyPhone: '(555) 098-7654',
-    payType: 'Hourly Rate',
-    payRate: 20,
-  },
-  {
-    id: '5',
-    name: 'Sarah Green',
-    photoUrl: 'https://placehold.co/100x100.png',
-    photoHint: 'woman smiling',
-    role: 'Lead ECE',
-    certifications: 'ECE License, First Aid',
-    status: 'Active',
-    startDate: '2020-03-10',
-    phone: '(555) 567-8901',
-    address: '212 Creative Ct, Anytown, USA',
-    emergencyName: 'Tom Green',
-    emergencyPhone: '(555) 109-8765',
-    payType: 'Monthly Salary',
-    payRate: 5800,
-  },
-];
 
 const initialState: {
   message: string | null;
@@ -191,17 +91,22 @@ function SubmitButton() {
 }
 
 export default function StaffPage() {
-  const [staffMembers, setStaffMembers] =
-    useState<StaffMember[]>(initialStaffMembers);
-  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  // This should be fetched from the database
+  const [staffMembers, setStaffMembers] = useState<Staff[]>([]); 
+  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedData, setEditedData] = useState<StaffMember | null>(null);
+  const [editedData, setEditedData] = useState<Staff | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(addStaffMember, initialState);
   const {toast} = useToast();
 
   const processedStateRef = useRef(initialState);
+
+  // TODO: Fetch initial staff members from the database
+  // useEffect(() => {
+  //   fetchStaff().then(setStaffMembers);
+  // }, []);
 
   useEffect(() => {
     if (state !== processedStateRef.current) {
@@ -218,22 +123,24 @@ export default function StaffPage() {
             description: state.message,
           });
 
-          const newStaff: StaffMember = {
+          const newStaff: any = {
             id: String(new Date().getTime()),
             name: state.data.name,
             photoUrl: 'https://placehold.co/100x100.png',
             photoHint: 'professional portrait',
-            role: state.data.role as Role,
+            role: state.data.role,
             status: 'Active',
-            startDate: state.data.startDate,
+            startDate: new Date(state.data.startDate),
             phone: state.data.phone,
             address: state.data.address,
             emergencyName: state.data.emergencyName,
             emergencyPhone: state.data.emergencyPhone,
             certifications: state.data.certifications || '',
             notes: state.data.notes,
-            payType: state.data.payType as PayType,
+            payType: state.data.payType,
             payRate: state.data.payRate,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           };
 
           setStaffMembers(prev => [newStaff, ...prev]);
@@ -249,19 +156,14 @@ export default function StaffPage() {
   ) => {
     if (editedData) {
       const {name, value} = e.target;
-      setEditedData({...editedData, [name]: value});
+      const newValue = e.target.type === 'number' ? parseFloat(value) : value;
+      setEditedData({...editedData, [name]: newValue});
     }
   };
 
-  const handleRoleChange = (value: Role) => {
+  const handleSelectChange = (name: string, value: string) => {
     if (editedData) {
-      setEditedData({...editedData, role: value});
-    }
-  };
-
-  const handlePayTypeChange = (value: PayType) => {
-    if (editedData) {
-      setEditedData({...editedData, payType: value});
+      setEditedData({ ...editedData, [name]: value });
     }
   };
 
@@ -342,15 +244,15 @@ export default function StaffPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {staffMembers.map(staff => (
+                  {staffMembers.length > 0 ? staffMembers.map(staff => (
                     <TableRow key={staff.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-3">
                           <Avatar className="hidden h-9 w-9 sm:flex">
                             <AvatarImage
-                              src={staff.photoUrl}
+                              src={staff.photoUrl ?? undefined}
                               alt={staff.name}
-                              data-ai-hint={staff.photoHint}
+                              data-ai-hint={staff.photoHint ?? undefined}
                             />
                             <AvatarFallback>{staff.name.charAt(0)}</AvatarFallback>
                           </Avatar>
@@ -360,7 +262,7 @@ export default function StaffPage() {
                       <TableCell>{staff.role}</TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {staff.certifications.split(',')[0]}
+                          {staff.certifications?.split(',')[0] || 'N/A'}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -390,7 +292,13 @@ export default function StaffPage() {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">
+                        No staff members found. Add one to get started.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -564,7 +472,7 @@ export default function StaffPage() {
               <DialogHeader>
                   <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
                       <Avatar className="h-24 w-24">
-                          <AvatarImage src={isEditing ? editedData?.photoUrl : selectedStaff.photoUrl} alt={selectedStaff.name} data-ai-hint={isEditing ? editedData?.photoHint : selectedStaff.photoHint} />
+                          <AvatarImage src={isEditing ? editedData?.photoUrl ?? undefined : selectedStaff.photoUrl ?? undefined} alt={selectedStaff.name} data-ai-hint={isEditing ? editedData?.photoHint ?? undefined : selectedStaff.photoHint ?? undefined} />
                           <AvatarFallback>{selectedStaff.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="space-y-1.5">
@@ -592,7 +500,7 @@ export default function StaffPage() {
                       <Label htmlFor="edit-role">Role</Label>
                       <Select
                         value={editedData.role}
-                        onValueChange={(value: Role) => handleRoleChange(value)}
+                        onValueChange={(value) => handleSelectChange('role', value)}
                       >
                         <SelectTrigger id="edit-role">
                           <SelectValue placeholder="Select a role" />
@@ -612,7 +520,7 @@ export default function StaffPage() {
                         id="edit-startDate"
                         name="startDate"
                         type="date"
-                        value={editedData.startDate}
+                        value={new Date(editedData.startDate).toISOString().split('T')[0]}
                         onChange={handleEditChange}
                       />
                     </div>
@@ -627,7 +535,7 @@ export default function StaffPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="edit-pay-type">Pay Type</Label>
-                        <Select value={editedData.payType} onValueChange={(value: PayType) => handlePayTypeChange(value)}>
+                        <Select value={editedData.payType} onValueChange={(value) => handleSelectChange('payType', value)}>
                             <SelectTrigger id="edit-pay-type"><SelectValue placeholder="Select a type" /></SelectTrigger>
                             <SelectContent>{payTypeOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
                         </Select>

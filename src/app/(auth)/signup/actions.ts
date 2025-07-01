@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { sendVerificationEmail } from '@/lib/email';
+import { redirect } from 'next/navigation';
 
 const SignupFormSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
@@ -72,30 +73,41 @@ export async function signup(
         errors: { email: ['An account with this email already exists.'] },
       };
     }
+    
+    // Transaction to create Daycare and User together
+    const { user } = await prisma.$transaction(async (tx) => {
+        const daycare = await tx.daycare.create({
+            data: {
+                name: daycareName,
+            },
+        });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.create({
-      data: {
-        name: fullName,
-        daycareName: daycareName,
-        email,
-        password: hashedPassword,
-      },
+        const user = await tx.user.create({
+            data: {
+                name: fullName,
+                email,
+                password: hashedPassword,
+                daycareId: daycare.id,
+            },
+        });
+
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const tokenExpiration = new Date(Date.now() + 3600 * 1000); // 1 hour from now
+
+        await tx.verificationToken.create({
+            data: {
+                email,
+                token: verificationToken,
+                expires: tokenExpiration,
+            },
+        });
+
+        await sendVerificationEmail(email, verificationToken);
+        
+        return { user, daycare };
     });
-
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const tokenExpiration = new Date(Date.now() + 3600 * 1000); // 1 hour from now
-
-    await prisma.verificationToken.create({
-      data: {
-        email,
-        token: verificationToken,
-        expires: tokenExpiration,
-      },
-    });
-
-    await sendVerificationEmail(email, verificationToken);
 
     return {
       message: 'Registration successful! Please check your email to verify your account.',

@@ -1,5 +1,9 @@
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -10,15 +14,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Daycare {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  children Child[]
+  staff    Staff[]
+  invoices Invoice[]
+  attendance AttendanceRecord[]
+}
+
 model User {
   id            String    @id @default(cuid())
-  name          String
-  daycareName   String
+  name          String?
   email         String    @unique
-  emailVerified DateTime?
   password      String
+  emailVerified DateTime?
+  image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  daycareId String
+  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -31,27 +51,33 @@ model VerificationToken {
 }
 
 model Child {
-  id             String      @id @default(cuid())
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  name           String
-  dateOfBirth    DateTime
-  startDate      DateTime
-  program        String // e.g., 'Infant (0-12months)'
-  programType    String // e.g., 'Full time'
-  status         String // e.g., 'Active', 'Waitlisted'
-  motherName     String
-  fatherName     String
-  homePhone      String?
-  mobilePhone    String
-  address        String
-  emergencyName  String
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  name          String
+  dateOfBirth   DateTime
+  startDate     DateTime
+  program       String
+  programType   String
+  status        String
+  motherName    String
+  fatherName    String
+  homePhone     String?
+  mobilePhone   String
+  address       String
+  emergencyName String
   emergencyPhone String
-  vaccination    String?
-  allergies      String?
-  notes          String?
-  photoUrl       String?
-  photoHint      String?
+  vaccination   String?
+  allergies     String?
+  notes         String?
+  photoUrl      String?
+  photoHint     String?
+
+  daycareId String
+  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  
+  invoices   Invoice[]
+  attendance AttendanceRecord[]
 }
 
 model Staff {
@@ -60,16 +86,53 @@ model Staff {
   updatedAt      DateTime @updatedAt
   name           String
   role           String
+  certifications String?
+  status         String
+  startDate      DateTime
   phone          String
   address        String
   emergencyName  String
   emergencyPhone String
-  startDate      DateTime
-  status         String // 'Active', 'On Leave', 'Inactive'
-  payType        String // 'Monthly Salary', 'Hourly Rate'
+  payType        String
   payRate        Float
-  certifications String?
   notes          String?
   photoUrl       String?
   photoHint      String?
+
+  daycareId String
+  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  amount    Float
+  dueDate   DateTime
+  status    String // "Paid", "Due", "Overdue"
+  program   String
+
+  childId String
+  child   Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  daycareId String
+  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+}
+
+model AttendanceRecord {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  checkIn     String?
+  checkOut    String?
+  status      String // "Present", "Absent", "On Leave", "Pending"
+  leaveReason String?
+  leaveType   String?
+  leaveFrom   DateTime?
+  leaveTo     DateTime?
+
+  childId String
+  child   Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+  
+  daycareId String
+  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
 }
