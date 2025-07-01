@@ -75,10 +75,11 @@ export async function signup(
     }
     
     // Transaction to create Daycare and User together
-    const { user } = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
         const daycare = await tx.daycare.create({
             data: {
                 name: daycareName,
+                status: 'PENDING',
             },
         });
 
@@ -105,8 +106,6 @@ export async function signup(
         });
 
         await sendVerificationEmail(email, verificationToken);
-        
-        return { user, daycare };
     });
 
     return {

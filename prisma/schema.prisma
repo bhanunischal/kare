@@ -1,9 +1,5 @@
-
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -15,30 +11,83 @@ datasource db {
 }
 
 model Daycare {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    DaycareStatus @default(PENDING)
+  plan      String        @default("Basic")
+  location  String?
+  users     User[]
+  children  Child[]
+  staff     Staff[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
 
-  users    User[]
-  children Child[]
-  staff    Staff[]
-  invoices Invoice[]
-  attendance AttendanceRecord[]
+enum DaycareStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }
 
 model User {
   id            String    @id @default(cuid())
-  name          String?
+  name          String
   email         String    @unique
   password      String
   emailVerified DateTime?
-  image         String?
+  daycareId     String
+  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
 
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+model Child {
+  id             String    @id @default(cuid())
+  name           String
+  dateOfBirth    DateTime
+  startDate      DateTime
+  program        String
+  programType    String
+  status         String // "Active", "Inactive", "Waitlisted"
+  photoUrl       String?
+  photoHint      String?
+  motherName     String
+  fatherName     String
+  homePhone      String?
+  mobilePhone    String
+  address        String
+  emergencyName  String
+  emergencyPhone String
+  vaccination    String?
+  allergies      String?
+  notes          String?
+  daycareId      String
+  daycare        Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Staff {
+  id             String   @id @default(cuid())
+  name           String
+  photoUrl       String?
+  photoHint      String?
+  role           String
+  status         String // "Active", "Inactive", "On Leave"
+  startDate      DateTime
+  phone          String
+  address        String
+  emergencyName  String
+  emergencyPhone String
+  certifications String?
+  notes          String?
+  payType        String
+  payRate        Float
+  daycareId      String
+  daycare        Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model VerificationToken {
@@ -48,91 +97,4 @@ model VerificationToken {
   expires DateTime
 
   @@unique([email, token])
-}
-
-model Child {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  name          String
-  dateOfBirth   DateTime
-  startDate     DateTime
-  program       String
-  programType   String
-  status        String
-  motherName    String
-  fatherName    String
-  homePhone     String?
-  mobilePhone   String
-  address       String
-  emergencyName String
-  emergencyPhone String
-  vaccination   String?
-  allergies     String?
-  notes         String?
-  photoUrl      String?
-  photoHint     String?
-
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  
-  invoices   Invoice[]
-  attendance AttendanceRecord[]
-}
-
-model Staff {
-  id             String   @id @default(cuid())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  name           String
-  role           String
-  certifications String?
-  status         String
-  startDate      DateTime
-  phone          String
-  address        String
-  emergencyName  String
-  emergencyPhone String
-  payType        String
-  payRate        Float
-  notes          String?
-  photoUrl       String?
-  photoHint      String?
-
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-}
-
-model Invoice {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  amount    Float
-  dueDate   DateTime
-  status    String // "Paid", "Due", "Overdue"
-  program   String
-
-  childId String
-  child   Child @relation(fields: [childId], references: [id], onDelete: Cascade)
-
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-}
-
-model AttendanceRecord {
-  id          String   @id @default(cuid())
-  date        DateTime @db.Date
-  checkIn     String?
-  checkOut    String?
-  status      String // "Present", "Absent", "On Leave", "Pending"
-  leaveReason String?
-  leaveType   String?
-  leaveFrom   DateTime?
-  leaveTo     DateTime?
-
-  childId String
-  child   Child @relation(fields: [childId], references: [id], onDelete: Cascade)
-  
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
 }

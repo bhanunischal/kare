@@ -1,172 +1,57 @@
 
-"use client";
-
-import { useState } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Plus, CheckCircle, XCircle, Archive, ArchiveRestore } from "lucide-react";
-import { allDaycares, Daycare } from "./data";
-import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { Plus } from "lucide-react";
+import prisma from "@/lib/prisma";
+import { DaycaresClient } from "./client";
 
-export default function AdminDaycaresPage() {
-  const [daycares, setDaycares] = useState<Daycare[]>(allDaycares);
-  const { toast } = useToast();
+export default async function AdminDaycaresPage() {
+  const daycares = await prisma.daycare.findMany({
+    include: {
+      _count: {
+        select: {
+          children: true,
+          staff: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
-  const handleStatusChange = (id: string, newStatus: Daycare['status']) => {
-    const daycareName = daycares.find(dc => dc.id === id)?.name || "The daycare";
-    const oldStatus = daycares.find(dc => dc.id === id)?.status;
-
-    setDaycares(daycares.map(dc => 
-        dc.id === id ? { ...dc, status: newStatus } : dc
-    ));
-
-    let description = `${daycareName} has been set to ${newStatus}.`;
-    if (newStatus === 'Inactive' && oldStatus === 'Active') {
-        description = `${daycareName} has been deactivated.`;
-    } else if (newStatus === 'Active' && (oldStatus === 'Inactive' || oldStatus === 'Pending')) {
-        description = `${daycareName} has been activated.`;
-    } else if (newStatus === 'Archived') {
-        description = `${daycareName} has been archived.`;
-    } else if (newStatus === 'Inactive' && oldStatus === 'Archived') {
-        description = `${daycareName} has been restored. You can now activate it.`;
-    }
-
-    toast({
-        title: "Status Updated",
-        description: description,
-    });
-  };
+  const formattedDaycares = daycares.map(dc => ({
+      ...dc,
+      joinDate: dc.createdAt.toISOString(),
+      childrenCount: dc._count.children,
+      staffCount: dc._count.staff,
+  }));
 
   return (
     <div className="space-y-6">
-       <div className="flex items-center justify-between">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight font-headline">Daycare Management</h1>
-                <p className="text-muted-foreground">Manage all daycare centers on the platform.</p>
-            </div>
-            <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add Daycare
-            </Button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight font-headline">Daycare Management</h1>
+          <p className="text-muted-foreground">Manage all daycare centers on the platform.</p>
+        </div>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" /> Add Daycare
+        </Button>
       </div>
 
-       <Card>
+      <Card>
         <CardHeader>
           <CardTitle>All Daycares</CardTitle>
           <CardDescription>A list of all registered daycare centers.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="w-full overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Plan</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Children</TableHead>
-                  <TableHead>Staff</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {daycares.map((daycare) => (
-                  <TableRow key={daycare.id}>
-                    <TableCell className="font-medium">{daycare.name}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={
-                            daycare.status === "Active" ? "default" :
-                            daycare.status === "Pending" ? "secondary" :
-                            daycare.status === "Inactive" ? "destructive" :
-                            "outline" // for Archived
-                        }
-                        className={cn(
-                            daycare.status === 'Active' && 'bg-accent text-accent-foreground',
-                            daycare.status === 'Archived' && 'border-dashed text-muted-foreground'
-                        )}
-                      >
-                        {daycare.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{daycare.plan}</Badge>
-                    </TableCell>
-                    <TableCell>{daycare.location}</TableCell>
-                    <TableCell>{daycare.childrenCount}</TableCell>
-                    <TableCell>{daycare.staffCount}</TableCell>
-                    <TableCell className="text-right whitespace-nowrap">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                           <Button aria-haspopup="true" size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                           <DropdownMenuItem>View Details</DropdownMenuItem>
-                           <DropdownMenuItem>Manage Subscription</DropdownMenuItem>
-                           <DropdownMenuSeparator />
-                           {daycare.status === 'Active' && (
-                                <DropdownMenuItem 
-                                    className="text-destructive focus:text-destructive"
-                                    onClick={() => handleStatusChange(daycare.id, 'Inactive')}
-                                >
-                                    <XCircle className="mr-2 h-4 w-4" />
-                                    Deactivate
-                                </DropdownMenuItem>
-                            )}
-                            {(daycare.status === 'Inactive' || daycare.status === 'Pending') && (
-                                <DropdownMenuItem onClick={() => handleStatusChange(daycare.id, 'Active')}>
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Activate
-                                </DropdownMenuItem>
-                            )}
-                            {daycare.status === 'Inactive' && (
-                                <DropdownMenuItem onClick={() => handleStatusChange(daycare.id, 'Archived')}>
-                                    <Archive className="mr-2 h-4 w-4" />
-                                    Archive
-                                </DropdownMenuItem>
-                            )}
-                            {daycare.status === 'Archived' && (
-                                <DropdownMenuItem onClick={() => handleStatusChange(daycare.id, 'Inactive')}>
-                                    <ArchiveRestore className="mr-2 h-4 w-4" />
-                                    Restore
-                                </DropdownMenuItem>
-                            )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <DaycaresClient daycares={formattedDaycares} />
         </CardContent>
       </Card>
     </div>

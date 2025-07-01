@@ -41,9 +41,10 @@ export async function login(
   try {
     const user = await prisma.user.findUnique({
       where: { email },
+      include: { daycare: true },
     });
 
-    if (!user) {
+    if (!user || !user.daycare) {
       return { message: 'Login failed', errors: { _form: ['Invalid email or password.'] } };
     }
 
@@ -52,18 +53,24 @@ export async function login(
     }
 
     const passwordsMatch = await bcrypt.compare(password, user.password);
-
     if (!passwordsMatch) {
       return { message: 'Login failed', errors: { _form: ['Invalid email or password.'] } };
     }
 
-    // This is where a real session would be created.
-    // For now, we are just redirecting. The next step is to implement
-    // session management to properly scope data.
+    if (user.daycare.status === 'PENDING') {
+        redirect('/pending');
+    }
+
+    if (user.daycare.status !== 'ACTIVE') {
+        return { message: 'Login failed', errors: { _form: ['Your account is not active. Please contact support.'] } };
+    }
+
   } catch (error) {
     console.error('Login Error:', error);
     return { message: 'An unexpected error occurred', errors: { _form: ['Something went wrong.'] } };
   }
 
+  // At this point, login is successful and the account is active.
+  // The next step is to implement session management.
   redirect('/dashboard');
 }
