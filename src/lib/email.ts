@@ -3,16 +3,21 @@
 
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-// The "from" address for sending emails.
-// It must be from a domain you have verified in your Resend account.
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 const fromEmail = 'verify@daytrack.nischal.ca';
 
 export async function sendVerificationEmail(email: string, token: string) {
+  if (!resend) {
+    const errorMessage = 'Resend API key is not configured. Cannot send email.';
+    console.error(errorMessage);
+    throw new Error(errorMessage);
+  }
+  
   const verificationLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/verify-email?token=${token}`;
 
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: email,
       subject: 'Verify your email address for Child Care Ops',
@@ -24,12 +29,18 @@ export async function sendVerificationEmail(email: string, token: string) {
         <p>If you did not sign up for an account, you can safely ignore this email.</p>
       `,
     });
-    console.log(`Verification email sent to ${email} from ${fromEmail}`);
+
+    if (error) {
+      console.error('Resend API Error:', error);
+      throw new Error(`Could not send verification email. Reason: ${error.message}`);
+    }
+
+    console.log(`Verification email sent successfully to ${email}. Message ID: ${data?.id}`);
   } catch (error) {
-    console.error('Error sending verification email:', error);
-    // In a production app, you might want to handle this error more gracefully,
-    // e.g., by logging it to a monitoring service.
-    // For now, we'll re-throw the error to be caught by the signup action.
-    throw new Error('Could not send verification email.');
+    console.error('Error in sendVerificationEmail function:', error);
+    if (error instanceof Error) {
+        throw new Error(error.message);
+    }
+    throw new Error('An unknown error occurred while sending the email.');
   }
 }
