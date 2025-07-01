@@ -4,16 +4,12 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-// The "from" address is now configured in your .env file.
+// The "from" address for sending emails.
 // It must be from a domain you have verified in your Resend account.
-const fromEmail = process.env.FROM_EMAIL;
+const fromEmail = 'verify@daytrack.nischal.ca';
 
 export async function sendVerificationEmail(email: string, token: string) {
   const verificationLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/verify-email?token=${token}`;
-
-  if (!fromEmail) {
-    throw new Error('FROM_EMAIL environment variable is not set. Cannot send verification email.');
-  }
 
   try {
     await resend.emails.send({
