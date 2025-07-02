@@ -51,6 +51,36 @@ export default function AssessmentsClient({ children, daycare }: { children: Chi
   const activeChildren = (children || []).filter(c => c.status === 'Active');
   const selectedChild = activeChildren.find(c => c.id === selectedChildId);
 
+  const [reportDate, setReportDate] = useState<string>('');
+  const [displayAge, setDisplayAge] = useState<string | number>('{{childAge}}');
+
+  // This function is now safe because it's only called from within a useEffect hook
+  function calculateAge(dob: Date | string): number {
+    if (!dob) return 0;
+    const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return 0; // Invalid date
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age > 0 ? age : 0;
+  }
+
+  useEffect(() => {
+    // This effect runs only on the client after hydration
+    setReportDate(new Date().toLocaleDateString());
+  }, []); // Empty dependency array ensures it runs once on mount
+
+  useEffect(() => {
+    if (selectedChild) {
+      setDisplayAge(calculateAge(selectedChild.dateOfBirth));
+    } else {
+      setDisplayAge('{{childAge}}');
+    }
+  }, [selectedChild]); // Recalculate when selectedChild changes
+
   useEffect(() => {
     if (state !== stateRef.current && state.error) {
       toast({
@@ -155,19 +185,6 @@ export default function AssessmentsClient({ children, daycare }: { children: Chi
         }
     }
   };
-  
-  function calculateAge(dob: Date | string): number {
-    if (!dob) return 0;
-    const birthDate = new Date(dob);
-    if (isNaN(birthDate.getTime())) return 0; // Invalid date
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-      age--;
-    }
-    return age > 0 ? age : 0;
-  }
 
   return (
     <div className="space-y-6">
@@ -287,9 +304,9 @@ export default function AssessmentsClient({ children, daycare }: { children: Chi
                       <h2 className="text-lg font-semibold mb-4 text-gray-800">Child Information</h2>
                       <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
                           <div><span className="font-medium text-gray-600">Name:</span> {selectedChild?.name || '{{childName}}'}</div>
-                          <div><span className="font-medium text-gray-600">Age:</span> {selectedChild ? calculateAge(selectedChild.dateOfBirth) : '{{childAge}}'}</div>
+                          <div><span className="font-medium text-gray-600">Age:</span> {displayAge}</div>
                           <div><span className="font-medium text-gray-600">Parent/Guardian:</span> {selectedChild?.fatherName || '{{parentName}}'}</div>
-                          <div><span className="font-medium text-gray-600">Date:</span> {new Date().toLocaleDateString()}</div>
+                          <div><span className="font-medium text-gray-600">Date:</span> {reportDate}</div>
                       </div>
                   </div>
 
