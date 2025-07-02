@@ -77,7 +77,6 @@ export default function AssessmentsClient({ children, daycare }: { children: Chi
         const pdfHeight = pdf.internal.pageSize.getHeight();
         
         const canvasRatio = canvas.width / canvas.height;
-        const pdfRatio = pdfWidth / pdfHeight;
         
         let imgWidth = pdfWidth;
         let imgHeight = pdfWidth / canvasRatio;
@@ -203,7 +202,7 @@ export default function AssessmentsClient({ children, daycare }: { children: Chi
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="reporting-period">Reporting Period</Label>
-                    <Select name="reportingPeriod" defaultValue="quarterly" required>
+                    <Select name="reportingPeriod" defaultValue="Quarterly" required>
                         <SelectTrigger id="reporting-period">
                             <SelectValue placeholder="Select period" />
                         </SelectTrigger>
