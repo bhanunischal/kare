@@ -28,7 +28,11 @@ export default async function AdminDaycaresPage() {
   });
 
   const formattedDaycares = daycares.map(dc => ({
-      ...dc,
+      id: dc.id,
+      name: dc.name,
+      status: dc.status,
+      plan: dc.plan,
+      address: dc.address,
       joinDate: dc.createdAt.toISOString(),
       childrenCount: dc._count.children,
       staffCount: dc._count.staff,
