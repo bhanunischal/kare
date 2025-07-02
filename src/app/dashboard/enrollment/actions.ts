@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from "zod";
@@ -58,7 +59,7 @@ export async function submitRegistration(prevState: any, formData: FormData) {
     childName, 
     dob, 
     startDate,
-    homePhone, // Destructure `homePhone` to exclude it from the `...rest` spread
+    homePhone, // Exclude homePhone from the rest of the data
     ...rest 
   } = validatedFields.data;
 
@@ -76,7 +77,7 @@ export async function submitRegistration(prevState: any, formData: FormData) {
   try {
     await prisma.child.create({
         data: {
-            ...rest, // `rest` no longer contains the `homePhone` field
+            ...rest,
             name: childName,
             dateOfBirth: new Date(dob),
             startDate: new Date(startDate),
