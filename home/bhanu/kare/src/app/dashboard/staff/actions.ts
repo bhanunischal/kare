@@ -92,6 +92,55 @@ export async function addStaffMember(prevState: any, formData: FormData) {
   }
 }
 
+const UpdateStaffSchema = StaffFormSchema.extend({
+  id: z.string().min(1, { message: "Staff ID is missing." }),
+});
+
+export async function updateStaff(prevState: any, formData: FormData) {
+    const validatedFields = UpdateStaffSchema.safeParse({
+        id: formData.get('id'),
+        name: formData.get('name'),
+        role: formData.get('role'),
+        startDate: formData.get('startDate'),
+        phone: formData.get('phone'),
+        address: formData.get('address'),
+        emergencyName: formData.get('emergencyName'),
+        emergencyPhone: formData.get('emergencyPhone'),
+        payType: formData.get('payType'),
+        payRate: formData.get('payRate'),
+        certifications: formData.get('certifications'),
+        notes: formData.get('notes'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: 'Please review the form and correct any errors.',
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+  
+    const { id, startDate, ...rest } = validatedFields.data;
+
+    try {
+        await prisma.staff.update({
+            where: { id },
+            data: {
+                ...rest,
+                startDate: new Date(startDate),
+            }
+        });
+
+        revalidatePath('/dashboard/staff');
+        return { message: 'Staff details updated successfully.', errors: null };
+    } catch (error) {
+        console.error("Failed to update staff:", error);
+        return {
+            message: 'An unexpected error occurred while updating the staff member.',
+            errors: { _form: ['Database error.'] },
+        };
+    }
+}
+
 export async function updateStaffStatus(id: string, status: StaffStatus) {
     if (!id || !status) {
         return { success: false, message: "Invalid arguments provided." };

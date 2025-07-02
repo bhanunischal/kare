@@ -13,17 +13,18 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { addStaffMember, updateStaffStatus, deleteStaff, type StaffFormData, type StaffStatus } from "./actions";
+import { addStaffMember, updateStaff, updateStaffStatus, deleteStaff, type StaffFormData, type StaffStatus } from "./actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import type { Staff } from "@prisma/client";
 import { format } from "date-fns";
 
 const payTypeOptions = ['Hourly', 'Salary'];
 
-const initialState: {
+const addInitialState: {
   message: string | null;
   errors: any;
   data: StaffFormData | null;
@@ -33,7 +34,9 @@ const initialState: {
   data: null,
 };
 
-function SubmitButton() {
+const updateInitialState: { message: string | null; errors: any; } = { message: null, errors: null };
+
+function SubmitAddButton() {
   const { pending } = useFormStatus();
   return (
     <Button size="lg" type="submit" disabled={pending} className="w-full md:w-auto">
@@ -43,12 +46,28 @@ function SubmitButton() {
   );
 }
 
+function SubmitUpdateButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      Save Changes
+    </Button>
+  );
+}
+
 export default function StaffClientPage({ initialStaffMembers }: { initialStaffMembers: Staff[] }) {
   const [staffMembers, setStaffMembers] = useState<Staff[]>(initialStaffMembers);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedData, setEditedData] = useState<Staff | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useActionState(addStaffMember, initialState);
+  
+  const [addState, addFormAction] = useActionState(addStaffMember, addInitialState);
+  const [updateState, updateFormAction] = useActionState(updateStaff, updateInitialState);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -60,44 +79,64 @@ export default function StaffClientPage({ initialStaffMembers }: { initialStaffM
       const freshStaffData = staffMembers.find(s => s.id === selectedStaff.id);
       if (freshStaffData) {
         setSelectedStaff(freshStaffData);
+        if (isEditing) {
+          setEditedData(freshStaffData);
+        }
       } else {
         setSelectedStaff(null); // Staff member was deleted, so close dialog
+        setIsEditing(false);
       }
     }
-  }, [staffMembers, selectedStaff]);
+  }, [staffMembers, selectedStaff, isEditing]);
 
   useEffect(() => {
-    if (state.message) {
-      if (state.errors) {
+    if (addState.message) {
+      if (addState.errors) {
         toast({
           variant: "destructive",
           title: "Error submitting form",
-          description: state.message,
+          description: addState.message,
         });
       } else {
         toast({
           title: "Success!",
-          description: state.message,
+          description: addState.message,
         });
         formRef.current?.reset();
       }
     }
-  }, [state, toast]);
+  }, [addState, toast]);
+
+  useEffect(() => {
+    if (updateState.message) {
+        if (updateState.errors) {
+            toast({ variant: "destructive", title: "Update Failed", description: updateState.message });
+        } else {
+            toast({ title: "Success!", description: updateState.message });
+            setIsEditing(false);
+        }
+    }
+  }, [updateState, toast]);
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (editedData) {
+      const { name, value } = e.target;
+      setEditedData({ ...editedData, [name]: value });
+    }
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    if (editedData) {
+      setEditedData({ ...editedData, [name]: value as any });
+    }
+  };
 
   const handleStatusUpdate = async (newStatus: StaffStatus) => {
     if (!selectedStaff) return;
     
-    const oldStaff = [...staffMembers];
-    const oldSelectedStaff = { ...selectedStaff };
-
-    setStaffMembers(staffMembers.map(s => s.id === selectedStaff.id ? { ...s, status: newStatus } : s));
-    setSelectedStaff({ ...selectedStaff, status: newStatus });
-
     const result = await updateStaffStatus(selectedStaff.id, newStatus);
     if (!result.success) {
       toast({ variant: "destructive", title: "Error", description: result.message });
-      setStaffMembers(oldStaff);
-      setSelectedStaff(oldSelectedStaff);
     } else {
       toast({ title: "Status Updated", description: result.message });
     }
@@ -189,7 +228,7 @@ export default function StaffClientPage({ initialStaffMembers }: { initialStaffM
               <CardDescription>Fill out the form below to add a new staff member.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form ref={formRef} action={formAction} className="space-y-8">
+              <form ref={formRef} action={addFormAction} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
@@ -269,109 +308,185 @@ export default function StaffClientPage({ initialStaffMembers }: { initialStaffM
                   </div>
                 </div>
                 
-                <SubmitButton />
+                <SubmitAddButton />
               </form>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
       
-      <Dialog open={!!selectedStaff} onOpenChange={(isOpen) => { if (!isOpen) { setSelectedStaff(null); } }}>
-        <DialogContent className="sm:max-w-xl">
+      <Dialog open={!!selectedStaff} onOpenChange={(isOpen) => { if (!isOpen) { setSelectedStaff(null); setIsEditing(false); } }}>
+        <DialogContent className="sm:max-w-2xl">
           {selectedStaff && (
             <>
               <DialogHeader>
                   <div className="flex items-center gap-4">
                       <Avatar className="h-20 w-20">
-                          <AvatarImage src={selectedStaff.photoUrl ?? undefined} alt={selectedStaff.name} data-ai-hint={selectedStaff.photoHint ?? undefined} />
+                          <AvatarImage src={isEditing ? editedData?.photoUrl ?? undefined : selectedStaff.photoUrl ?? undefined} alt={selectedStaff.name} data-ai-hint={isEditing ? editedData?.photoHint ?? undefined : selectedStaff.photoHint ?? undefined} />
                           <AvatarFallback>{selectedStaff.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="space-y-1">
-                          <DialogTitle>{selectedStaff.name}</DialogTitle>
+                          <DialogTitle>{isEditing ? 'Edit Staff Details' : selectedStaff.name}</DialogTitle>
                           <DialogDescription>
-                            {selectedStaff.role}
+                            {isEditing ? `Update profile for ${editedData?.name}.` : `${selectedStaff.role}`}
                           </DialogDescription>
                       </div>
                   </div>
               </DialogHeader>
-              <div className="space-y-4 py-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
-                  <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
-                      <div className="sm:col-span-1">
-                          <dt className="font-medium text-muted-foreground">Status</dt>
-                          <dd className="mt-1"><Badge variant={selectedStaff.status === 'Active' ? 'default' : selectedStaff.status === 'Inactive' ? 'secondary' : 'outline'}>{selectedStaff.status}</Badge></dd>
+              {isEditing && editedData ? (
+                <form action={updateFormAction} className="space-y-6 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                    <input type="hidden" name="id" value={editedData.id} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-name">Name</Label>
+                        <Input id="edit-name" name="name" value={editedData.name} onChange={handleEditChange} />
                       </div>
-                       <div className="sm:col-span-1">
-                          <dt className="font-medium text-muted-foreground">Start Date</dt>
-                          <dd className="mt-1">{format(new Date(selectedStaff.startDate), 'PPP')}</dd>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-role">Role</Label>
+                        <Input id="edit-role" name="role" value={editedData.role} onChange={handleEditChange} />
                       </div>
-                       <div className="sm:col-span-1">
-                          <dt className="font-medium text-muted-foreground">Phone</dt>
-                          <dd className="mt-1">{selectedStaff.phone}</dd>
+                      <div className="space-y-2">
+                          <Label htmlFor="edit-startDate">Start Date</Label>
+                          <Input id="edit-startDate" name="startDate" type="date" value={new Date(editedData.startDate).toISOString().split('T')[0]} onChange={handleEditChange} />
                       </div>
-                       <div className="sm:col-span-2">
-                          <dt className="font-medium text-muted-foreground">Address</dt>
-                          <dd className="mt-1 whitespace-pre-wrap">{selectedStaff.address}</dd>
+                      <div className="space-y-2">
+                          <Label htmlFor="edit-phone">Phone</Label>
+                          <Input id="edit-phone" name="phone" value={editedData.phone} onChange={handleEditChange} />
                       </div>
-                       <div className="sm:col-span-1">
-                          <dt className="font-medium text-muted-foreground">Emergency Contact</dt>
-                          <dd className="mt-1">{selectedStaff.emergencyName}</dd>
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-address">Address</Label>
+                        <Textarea id="edit-address" name="address" value={editedData.address} onChange={handleEditChange} />
+                    </div>
+                    <Separator />
+                    <h4 className="font-semibold text-base">Emergency Contact</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                        <Label htmlFor="edit-emergencyName">Name</Label>
+                        <Input id="edit-emergencyName" name="emergencyName" value={editedData.emergencyName} onChange={handleEditChange} />
                       </div>
-                      <div className="sm:col-span-1">
-                          <dt className="font-medium text-muted-foreground">Emergency Phone</dt>
-                          <dd className="mt-1">{selectedStaff.emergencyPhone}</dd>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-emergencyPhone">Phone</Label>
+                        <Input id="edit-emergencyPhone" name="emergencyPhone" value={editedData.emergencyPhone} onChange={handleEditChange} />
                       </div>
-                      <div className="sm:col-span-1">
-                          <dt className="font-medium text-muted-foreground">Pay Type</dt>
-                          <dd className="mt-1">{selectedStaff.payType}</dd>
+                    </div>
+                    <Separator />
+                    <h4 className="font-semibold text-base">Compensation</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-payType">Pay Type</Label>
+                        <Select name="payType" value={editedData.payType} onValueChange={(value) => handleSelectChange('payType', value)}>
+                          <SelectTrigger id="edit-payType"><SelectValue /></SelectTrigger>
+                          <SelectContent>{payTypeOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                        </Select>
                       </div>
-                      <div className="sm:col-span-1">
-                          <dt className="font-medium text-muted-foreground">Pay Rate</dt>
-                          <dd className="mt-1">${selectedStaff.payRate.toFixed(2)}</dd>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-payRate">Pay Rate</Label>
+                        <Input id="edit-payRate" name="payRate" type="number" step="0.01" value={editedData.payRate} onChange={handleEditChange} />
                       </div>
-                      <div className="sm:col-span-2">
-                          <dt className="font-medium text-muted-foreground">Certifications</dt>
-                          <dd className="mt-1 whitespace-pre-wrap">{selectedStaff.certifications || 'N/A'}</dd>
+                    </div>
+                    <Separator />
+                    <div className="grid grid-cols-1 gap-4">
+                       <div className="space-y-2">
+                        <Label htmlFor="edit-certifications">Certifications</Label>
+                        <Textarea id="edit-certifications" name="certifications" value={editedData.certifications || ''} onChange={handleEditChange} />
                       </div>
-                      <div className="sm:col-span-2">
-                          <dt className="font-medium text-muted-foreground">Notes</dt>
-                          <dd className="mt-1 whitespace-pre-wrap">{selectedStaff.notes || 'N/A'}</dd>
+                       <div className="space-y-2">
+                        <Label htmlFor="edit-notes">Notes</Label>
+                        <Textarea id="edit-notes" name="notes" value={editedData.notes || ''} onChange={handleEditChange} />
                       </div>
-                  </dl>
-              </div>
-              <DialogFooter className="flex-wrap justify-end gap-2">
-                  <div className="mr-auto">
-                    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                      <AlertDialogTrigger asChild>
-                          <Button variant="destructive">Delete</Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                          <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete this staff member's record from the database.
-                          </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
-                          </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    </div>
+                     <DialogFooter>
+                      <Button variant="outline" type="button" onClick={() => { setIsEditing(false); setEditedData(null); }}>Cancel</Button>
+                      <SubmitUpdateButton />
+                  </DialogFooter>
+                </form>
+              ) : (
+                <>
+                  <div className="space-y-4 py-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
+                      <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                          <div className="sm:col-span-1">
+                              <dt className="font-medium text-muted-foreground">Status</dt>
+                              <dd className="mt-1"><Badge variant={selectedStaff.status === 'Active' ? 'default' : selectedStaff.status === 'Inactive' ? 'secondary' : 'outline'}>{selectedStaff.status}</Badge></dd>
+                          </div>
+                          <div className="sm:col-span-1">
+                              <dt className="font-medium text-muted-foreground">Start Date</dt>
+                              <dd className="mt-1">{format(new Date(selectedStaff.startDate), 'PPP')}</dd>
+                          </div>
+                          <div className="sm:col-span-1">
+                              <dt className="font-medium text-muted-foreground">Phone</dt>
+                              <dd className="mt-1">{selectedStaff.phone}</dd>
+                          </div>
+                          <div className="sm:col-span-2">
+                              <dt className="font-medium text-muted-foreground">Address</dt>
+                              <dd className="mt-1 whitespace-pre-wrap">{selectedStaff.address}</dd>
+                          </div>
+                          <div className="sm:col-span-1">
+                              <dt className="font-medium text-muted-foreground">Emergency Contact</dt>
+                              <dd className="mt-1">{selectedStaff.emergencyName}</dd>
+                          </div>
+                          <div className="sm:col-span-1">
+                              <dt className="font-medium text-muted-foreground">Emergency Phone</dt>
+                              <dd className="mt-1">{selectedStaff.emergencyPhone}</dd>
+                          </div>
+                          <div className="sm:col-span-1">
+                              <dt className="font-medium text-muted-foreground">Pay Type</dt>
+                              <dd className="mt-1">{selectedStaff.payType}</dd>
+                          </div>
+                          <div className="sm:col-span-1">
+                              <dt className="font-medium text-muted-foreground">Pay Rate</dt>
+                              <dd className="mt-1">${selectedStaff.payRate.toFixed(2)}</dd>
+                          </div>
+                          <div className="sm:col-span-2">
+                              <dt className="font-medium text-muted-foreground">Certifications</dt>
+                              <dd className="mt-1 whitespace-pre-wrap">{selectedStaff.certifications || 'N/A'}</dd>
+                          </div>
+                          <div className="sm:col-span-2">
+                              <dt className="font-medium text-muted-foreground">Notes</dt>
+                              <dd className="mt-1 whitespace-pre-wrap">{selectedStaff.notes || 'N/A'}</dd>
+                          </div>
+                      </dl>
                   </div>
-                  <Button variant="outline" onClick={() => setSelectedStaff(null)}>Close</Button>
-                  {selectedStaff.status === 'Active' && (
-                    <Button variant="outline" onClick={() => handleStatusUpdate('Inactive')}>Deactivate</Button>
-                  )}
-                  {selectedStaff.status === 'Inactive' && (
-                    <>
-                      <Button variant="outline" onClick={() => handleStatusUpdate('Active')}>Activate</Button>
-                      <Button variant="secondary" onClick={() => handleStatusUpdate('Archived')}>Archive</Button>
-                    </>
-                  )}
-                  {selectedStaff.status === 'Archived' && (
-                    <Button variant="outline" onClick={() => handleStatusUpdate('Inactive')}>Restore</Button>
-                  )}
-              </DialogFooter>
+                  <DialogFooter className="flex-wrap justify-between items-center">
+                      <div>
+                        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                          <AlertDialogTrigger asChild>
+                              <Button variant="destructive">Delete</Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                              <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete this staff member's record from the database.
+                              </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
+                              </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setSelectedStaff(null)}>Close</Button>
+                        <Button variant="outline" onClick={() => { setIsEditing(true); setEditedData(selectedStaff); }}>Edit</Button>
+                        {selectedStaff.status === 'Active' && (
+                          <Button variant="outline" onClick={() => handleStatusUpdate('Inactive')}>Deactivate</Button>
+                        )}
+                        {selectedStaff.status === 'Inactive' && (
+                          <>
+                            <Button variant="outline" onClick={() => handleStatusUpdate('Active')}>Activate</Button>
+                            <Button variant="secondary" onClick={() => handleStatusUpdate('Archived')}>Archive</Button>
+                          </>
+                        )}
+                        {selectedStaff.status === 'Archived' && (
+                          <Button variant="outline" onClick={() => handleStatusUpdate('Inactive')}>Restore</Button>
+                        )}
+                      </div>
+                  </DialogFooter>
+                </>
+              )}
             </>
           )}
         </DialogContent>
