@@ -45,7 +45,7 @@ type DaycareWithCounts = {
     name: string;
     status: DaycareStatus;
     plan: string;
-    location: string | null;
+    address: string | null;
     joinDate: string;
     childrenCount: number;
     staffCount: number;
@@ -195,7 +195,7 @@ export function DaycaresClient({ daycares: initialDaycares }: { daycares: Daycar
                 <TableHead>Name</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Plan</TableHead>
-                <TableHead>Location</TableHead>
+                <TableHead>Address</TableHead>
                 <TableHead>Children</TableHead>
                 <TableHead>Staff</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -224,7 +224,7 @@ export function DaycaresClient({ daycares: initialDaycares }: { daycares: Daycar
                     <TableCell>
                     <Badge variant="outline">{daycare.plan}</Badge>
                     </TableCell>
-                    <TableCell>{daycare.location || 'N/A'}</TableCell>
+                    <TableCell>{daycare.address || 'N/A'}</TableCell>
                     <TableCell>{daycare.childrenCount}</TableCell>
                     <TableCell>{daycare.staffCount}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">
