@@ -1,29 +1,23 @@
 
-# How to Reset and Recreate Your Database
+# How to Sync Your Database Schema
 
-If your database schema is out of sync, corrupted, or needs to be updated with new tables, this guide provides a single, reliable command to completely reset it.
+If your application isn't working because of a database error like "Table... does not exist," it means your database schema is out of sync with the application code. This guide provides a single, reliable command to fix this.
 
-**IMPORTANT:** This process will **permanently delete all data** in your database and recreate it from scratch based on the latest schema. This is required when making schema changes, such as adding the new `Daycare` or `VerificationToken` tables.
+This is a common and expected step after making changes to the `prisma/schema.prisma` file (e.g., adding a new field to a model).
 
-## Step-by-Step Instructions
+## The Fix: One Command
 
-1.  **Ensure Environment is Configured**
-    Make sure your `.env` file at the root of the project (`/home/user/studio/.env`) contains the correct `DATABASE_URL` for your PostgreSQL database.
+This command will read your `prisma/schema.prisma` file and update your database to match it, creating any missing tables and columns. It is the correct method for this development environment.
 
-2.  **Run the Reset Command**
-    From your project's terminal (`/home/user/studio`), execute the following command:
-    ```bash
-    npx prisma migrate reset
-    ```
+**From your project's terminal (`/home/bhanu/kare`), execute the following command:**
+```bash
+npm run db:reset
+```
 
-3.  **Confirm the Reset**
-    Prisma will ask you to confirm because this action cannot be undone.
-    - Type `y` and press `Enter` to proceed.
-
-This command will automatically:
-- Drop the database.
-- Create a new, empty database.
-- Apply the schema from `prisma/schema.prisma` to create all tables (`Daycare`, `User`, `Child`, `Staff`, etc.).
+That's it! The command now correctly runs `prisma db push`, which will automatically:
+- Connect to the database specified in your `.env` file.
+- Compare your database's current state with the schema defined in `prisma/schema.prisma`.
+- Apply the necessary changes (add/remove tables and columns) to sync them.
 - Generate a new Prisma Client for your application to use.
 
-After the command completes, your database will be fresh, empty, and perfectly matched with your application's code. You can now restart your application and begin with a clean slate.
+After the command completes, your database will be perfectly matched with your application's code. You can now restart your application (`npm run dev`) and continue working without database errors.
