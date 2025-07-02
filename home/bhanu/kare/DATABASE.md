@@ -1,21 +1,21 @@
 
 # How to Sync Your Database Schema
 
-If your application shows an error like "Table... does not exist," it means your local database is out of sync with the application's code. This is an expected step after making changes to the `prisma/schema.prisma` file.
+If your application isn't working because of a database error like "Table... does not exist," it means your database schema is out of sync with the application code. This is an expected step after making changes to the `prisma/schema.prisma` file.
 
-## The Fix: One Command for Development
+## The Fix: One Command
 
-For development, the recommended way to sync your database is with the `db push` command. It directly applies your schema to the database without creating migration files, which is ideal for a fast development loop.
+This command will read your `prisma/schema.prisma` file and update your database to match it, creating any missing tables and columns. The `db:reset` script now runs the correct `prisma db push` command via an external shell script (`db-reset.sh`) to ensure reliability.
 
 **From your project's terminal (`/home/bhanu/kare`), execute the following command:**
 ```bash
 npm run db:reset
 ```
 
-This command is now an alias for `npx prisma db push`. It will automatically:
+That's it! The command will automatically:
 - Connect to the database specified in your `.env` file.
-- Compare your database's current state with the schema in `prisma/schema.prisma`.
-- Create any missing tables and columns to make them match.
+- Compare your database's current state with the schema defined in `prisma/schema.prisma`.
+- Apply the necessary changes to create all the required tables.
 - Generate a new Prisma Client for your application to use.
 
-After the command completes, your database will be perfectly synchronized with your code. You can restart your application (`npm run dev`), and the errors will be gone.
+After the command completes, your database will be perfectly matched with your application's code. You can now restart your application (`npm run dev`) and continue working.
