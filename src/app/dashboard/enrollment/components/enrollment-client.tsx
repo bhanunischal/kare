@@ -13,20 +13,20 @@ import { Badge } from "@/components/ui/badge";
 import { FileUp, ImageUp, Loader2, Mail } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { submitRegistration, type RegistrationFormData } from "../actions";
+import { submitRegistration, updateChild, updateChildStatus, deleteChild, type RegistrationFormData } from "../actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import type { Child } from "@prisma/client";
+import type { Child, ChildStatus } from "@prisma/client";
 
 const programOptions = ['Infant (0-12months)', 'Toddler (1 to 3 years)', 'Preschool (3 to 5 years)', 'Gradeschooler (5 to 12 years)'];
 const programTypeOptions = ['Full time', 'Part time', 'Ad-hoc daily basis'];
-const statusOptions: Child['status'][] = ['Active', 'Waitlisted', 'Inactive'];
+const statusOptions: ChildStatus[] = ['Active', 'Waitlisted', 'Inactive'];
 
-const initialState: {
+const registrationInitialState: {
   message: string | null;
   errors: any;
   data: RegistrationFormData | null;
@@ -35,6 +35,9 @@ const initialState: {
   errors: null,
   data: null,
 };
+
+const updateInitialState: { message: string | null; errors: any; } = { message: null, errors: null };
+
 
 function calculateAge(dob: Date | string): number {
   if (!dob) return 0;
@@ -49,7 +52,7 @@ function calculateAge(dob: Date | string): number {
   return age > 0 ? age : 0;
 }
 
-function SubmitButton() {
+function SubmitRegistrationButton() {
   const { pending } = useFormStatus();
   return (
     <Button size="lg" type="submit" disabled={pending} className="w-full md:w-auto">
@@ -59,6 +62,16 @@ function SubmitButton() {
   );
 }
 
+function SubmitUpdateButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+             Save Changes
+        </Button>
+    )
+}
+
 export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledChildren: Child[] }) {
   const [enrolledChildren, setEnrolledChildren] = useState<Child[]>(initialEnrolledChildren);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
@@ -66,7 +79,8 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
   const [editedData, setEditedData] = useState<Child | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useActionState(submitRegistration, initialState);
+  const [state, formAction] = useActionState(submitRegistration, registrationInitialState);
+  const [updateState, updateFormAction] = useActionState(updateChild, updateInitialState);
   const { toast } = useToast();
   
   const [activeFilter, setActiveFilter] = useState<string>('All');
@@ -75,6 +89,20 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
   useEffect(() => {
     setEnrolledChildren(initialEnrolledChildren);
   }, [initialEnrolledChildren]);
+  
+  useEffect(() => {
+    // This is for the child info viewer dialog
+    if (selectedChild) {
+        const freshChildData = enrolledChildren.find(c => c.id === selectedChild.id);
+        if(freshChildData) {
+            setSelectedChild(freshChildData);
+        } else {
+            // Child was deleted, close dialog
+            setSelectedChild(null);
+        }
+    }
+  }, [enrolledChildren, selectedChild]);
+
 
   const filteredChildren = useMemo(() => {
     if (activeFilter === 'All') {
@@ -105,6 +133,18 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
     }
   }, [state, toast]);
 
+  // Handle form update feedback
+  useEffect(() => {
+    if (updateState.message) {
+        if (updateState.errors) {
+            toast({ variant: "destructive", title: "Update Failed", description: updateState.message });
+        } else {
+            toast({ title: "Success!", description: updateState.message });
+            setIsEditing(false); // Close edit mode on success
+        }
+    }
+  }, [updateState, toast]);
+
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (editedData) {
       const { name, value } = e.target;
@@ -114,38 +154,33 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
 
   const handleSelectChange = (name: string, value: string) => {
     if (editedData) {
-      setEditedData({ ...editedData, [name]: value });
+      setEditedData({ ...editedData, [name]: value as any });
     }
   };
-
-  const handleSaveChanges = () => {
-    if (editedData) {
-      // TODO: Call a server action to update the database
-      setEnrolledChildren(prev => prev.map(child => child.id === editedData.id ? editedData : child));
-      setSelectedChild(editedData);
-      setIsEditing(false);
-      toast({ title: "Success!", description: "Child information updated (client-side only)." });
-    }
-  };
-
-  const handleDeactivateChild = () => {
+  
+  const handleDeactivateChild = async () => {
     if (selectedChild) {
-      // TODO: Call a server action to update the database
-      const newStatus = selectedChild.status === 'Active' ? 'Inactive' : 'Active';
-      const updatedChild = { ...selectedChild, status: newStatus };
-      setEnrolledChildren(prev => prev.map(child => child.id === selectedChild.id ? updatedChild : child));
-      setSelectedChild(updatedChild);
-      toast({ title: "Success!", description: `Child has been marked as ${newStatus.toLowerCase()} (client-side only).` });
+        const newStatus = selectedChild.status === 'Active' ? 'Inactive' : 'Active';
+        const result = await updateChildStatus(selectedChild.id, newStatus);
+        if (result.success) {
+            toast({ title: "Status Updated", description: result.message });
+            // The dialog will close because the selectedChild state will be updated via revalidation
+        } else {
+            toast({ variant: "destructive", title: "Error", description: result.message });
+        }
     }
   };
-
-  const handleDeleteChild = () => {
+  
+  const handleDeleteChild = async () => {
     if (selectedChild) {
-      // TODO: Call a server action to delete from the database
-      setEnrolledChildren(prev => prev.filter(child => child.id !== selectedChild.id));
-      setSelectedChild(null);
-      setIsDeleteDialogOpen(false);
-      toast({ title: "Success!", description: "Child record has been deleted (client-side only)." });
+        const result = await deleteChild(selectedChild.id);
+        if (result.success) {
+            toast({ title: "Child Deleted", description: result.message });
+            setIsDeleteDialogOpen(false);
+            setSelectedChild(null);
+        } else {
+            toast({ variant: "destructive", title: "Error", description: result.message });
+        }
     }
   };
 
@@ -235,7 +270,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                   )) : (
                      <TableRow>
                         <TableCell colSpan={6} className="h-24 text-center">
-                            No children found. Add a child to get started.
+                            No children found for this filter.
                         </TableCell>
                      </TableRow>
                   )}
@@ -401,7 +436,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                     </CardContent>
                   </Card>
                 </div>
-                <SubmitButton />
+                <SubmitRegistrationButton />
               </form>
             </CardContent>
           </Card>
@@ -427,7 +462,8 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                   </div>
               </DialogHeader>
               {isEditing && editedData ? (
-                  <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                <form action={updateFormAction} className="space-y-6 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                    <input type="hidden" name="id" value={editedData.id} />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="edit-name">Name</Label>
@@ -443,7 +479,7 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                       </div>
                       <div className="space-y-2">
                           <Label htmlFor="edit-programType">Program Type</Label>
-                          <Select value={editedData.programType} onValueChange={(value) => handleSelectChange('programType', value)}>
+                          <Select name="programType" value={editedData.programType} onValueChange={(value) => handleSelectChange('programType', value)}>
                               <SelectTrigger id="edit-programType">
                                   <SelectValue placeholder="Select a type" />
                               </SelectTrigger>
@@ -452,14 +488,25 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                               </SelectContent>
                           </Select>
                       </div>
-                      <div className="space-y-2 sm:col-span-2">
+                      <div className="space-y-2">
                         <Label htmlFor="edit-program">Program Group</Label>
-                        <Select value={editedData.program} onValueChange={(value) => handleSelectChange('program', value)}>
+                        <Select name="program" value={editedData.program} onValueChange={(value) => handleSelectChange('program', value)}>
                             <SelectTrigger id="edit-program">
                                 <SelectValue placeholder="Select a program" />
                             </SelectTrigger>
                             <SelectContent>
                                 {programOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                     </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-status">Status</Label>
+                        <Select name="status" value={editedData.status} onValueChange={(value) => handleSelectChange('status', value)}>
+                            <SelectTrigger id="edit-status">
+                                <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {statusOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
                             </SelectContent>
                         </Select>
                      </div>
@@ -512,7 +559,11 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                         <Textarea id="edit-notes" name="notes" value={editedData.notes || ''} onChange={handleEditChange} />
                       </div>
                     </div>
-                  </div>
+                     <DialogFooter>
+                      <Button variant="outline" type="button" onClick={() => { setIsEditing(false); setEditedData(null); }}>Cancel</Button>
+                      <SubmitUpdateButton />
+                  </DialogFooter>
+                </form>
               ) : (
                   <div className="space-y-6 py-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
                       <div>
@@ -611,52 +662,43 @@ export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledC
                               </div>
                           </dl>
                       </div>
+                        <DialogFooter>
+                            <div className="mr-auto">
+                                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive">Delete</Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This will permanently delete the child's record.
+                                        </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleDeleteChild}>Continue</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                            <Button variant="outline" onClick={() => setSelectedChild(null)}>Close</Button>
+                            <Button variant="outline" onClick={() => { setIsEditing(true); setEditedData(selectedChild); }}>Edit</Button>
+                            <Button variant="outline" onClick={handleDeactivateChild}>
+                                {selectedChild?.status === 'Active' ? 'Deactivate' : 'Activate'}
+                            </Button>
+                            {selectedChild.status === 'Waitlisted' && (
+                                <Button onClick={handleOfferSpot}>
+                                <Mail className="mr-2 h-4 w-4" />
+                                Offer Spot
+                                </Button>
+                            )}
+                      </DialogFooter>
                   </div>
                )
             }
-            <DialogFooter>
-               {isEditing ? (
-                  <>
-                      <Button variant="outline" onClick={() => { setIsEditing(false); setEditedData(null); }}>Cancel</Button>
-                      <Button onClick={handleSaveChanges}>Save Changes</Button>
-                  </>
-               ) : (
-                  <>
-                      <div className="mr-auto">
-                          <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                              <AlertDialogTrigger asChild>
-                                  <Button variant="destructive">Delete</Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                      This action cannot be undone. This will permanently delete the child's record.
-                                  </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={handleDeleteChild}>Continue</AlertDialogAction>
-                                  </AlertDialogFooter>
-                              </AlertDialogContent>
-                          </AlertDialog>
-                      </div>
-                      <Button variant="outline" onClick={() => setSelectedChild(null)}>Close</Button>
-                      <Button variant="outline" onClick={() => { setIsEditing(true); setEditedData(selectedChild); }}>Edit</Button>
-                      <Button variant="outline" onClick={handleDeactivateChild}>
-                        {selectedChild?.status === 'Active' ? 'Deactivate' : 'Activate'}
-                      </Button>
-                       {selectedChild.status === 'Waitlisted' && (
-                        <Button onClick={handleOfferSpot}>
-                          <Mail className="mr-2 h-4 w-4" />
-                          Offer Spot
-                        </Button>
-                      )}
-                  </>
-               )}
-            </DialogFooter>
-          </>
-        )}
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -4,6 +4,7 @@
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import type { ChildStatus } from "@prisma/client";
 
 const RegistrationFormSchema = z.object({
   childName: z.string().min(1, { message: "Child's name is required." }),
@@ -63,7 +64,6 @@ export async function submitRegistration(prevState: any, formData: FormData) {
     ...rest 
   } = validatedFields.data;
 
-  // TODO: Replace with daycareId from the user's session once implemented.
   const daycare = await prisma.daycare.findFirst();
 
   if (!daycare) {
@@ -102,4 +102,92 @@ export async function submitRegistration(prevState: any, formData: FormData) {
           data: null,
       };
   }
+}
+
+const UpdateChildSchema = RegistrationFormSchema.extend({
+  id: z.string().min(1, { message: "Child ID is missing." }),
+});
+
+export async function updateChild(prevState: any, formData: FormData) {
+    const validatedFields = UpdateChildSchema.safeParse({
+        id: formData.get('id'),
+        childName: formData.get("name"), // form field name is 'name'
+        dob: formData.get("dateOfBirth"), // form field name is 'dateOfBirth'
+        startDate: formData.get("startDate"),
+        program: formData.get("program"),
+        programType: formData.get("programType"),
+        status: formData.get("status"),
+        motherName: formData.get("motherName"),
+        fatherName: formData.get("fatherName"),
+        mobilePhone: formData.get("mobilePhone"),
+        address: formData.get("address"),
+        emergencyName: formData.get("emergencyName"),
+        emergencyPhone: formData.get("emergencyPhone"),
+        vaccination: formData.get("vaccination"),
+        allergies: formData.get("allergies"),
+        notes: formData.get("notes"),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: 'Please review the form and correct any errors.',
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+  
+    const { id, childName, dob, startDate, homePhone, ...rest } = validatedFields.data;
+
+    try {
+        await prisma.child.update({
+            where: { id },
+            data: {
+                ...rest,
+                name: childName,
+                dateOfBirth: new Date(dob),
+                startDate: new Date(startDate),
+            }
+        });
+
+        revalidatePath('/dashboard/enrollment');
+        return { message: 'Child details updated successfully.', errors: null };
+    } catch (error) {
+        console.error("Failed to update child:", error);
+        return {
+            message: 'An unexpected error occurred while updating the child.',
+            errors: { _form: ['Database error.'] },
+        };
+    }
+}
+
+export async function updateChildStatus(id: string, status: ChildStatus) {
+    if (!id || !status) {
+        return { success: false, message: "Invalid arguments provided." };
+    }
+    try {
+        await prisma.child.update({
+            where: { id },
+            data: { status },
+        });
+        revalidatePath('/dashboard/enrollment');
+        return { success: true, message: `Child status updated to ${status}.` };
+    } catch (error) {
+        console.error("Failed to update child status:", error);
+        return { success: false, message: 'An unexpected error occurred while updating status.' };
+    }
+}
+
+export async function deleteChild(id: string) {
+    if (!id) {
+        return { success: false, message: "Child ID is required." };
+    }
+    try {
+        await prisma.child.delete({
+            where: { id },
+        });
+        revalidatePath('/dashboard/enrollment');
+        return { success: true, message: 'Child deleted successfully.' };
+    } catch (error) {
+        console.error("Failed to delete child:", error);
+        return { success: false, message: 'An unexpected error occurred while deleting the child.' };
+    }
 }
