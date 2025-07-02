@@ -5,7 +5,7 @@ If your application isn't working because of a database error like "Table... doe
 
 ## The Fix: One Command
 
-This command will read your `prisma/schema.prisma` file and update your database to match it, creating any missing tables and columns. The `db:reset` script now runs the correct `prisma db push` command via an external shell script (`db-reset.sh`) to ensure reliability.
+This command will read your `prisma/schema.prisma` file and update your database to match it, creating any missing tables and columns. The `db:reset` script now runs the correct `prisma db push` command.
 
 **IMPORTANT: You must run this command *before* starting the development server with `npm run dev` whenever you see this type of database error.**
 
