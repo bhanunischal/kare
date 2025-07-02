@@ -14,6 +14,8 @@ import { Loader2, Bot, Share2, Download, BookUser, Brain, MessageSquare, PersonS
 import { useToast } from "@/hooks/use-toast";
 import type { Child, Daycare } from "@prisma/client";
 import { Separator } from "@/components/ui/separator";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const initialState: { output: GenerateAssessmentOutput | null; error: string | null; } = {
   output: null,
@@ -43,6 +45,7 @@ export default function AssessmentsClient({ children, daycare }: { children: Chi
   const [state, formAction] = useActionState(generateAssessment, initialState);
   const { toast } = useToast();
   const stateRef = useRef(initialState);
+  const reportPreviewRef = useRef<HTMLDivElement>(null);
   
   const [selectedChildId, setSelectedChildId] = useState<string>('');
   const activeChildren = (children || []).filter(c => c.status === 'Active');
@@ -59,20 +62,100 @@ export default function AssessmentsClient({ children, daycare }: { children: Chi
     }
   }, [state, toast]);
 
-  const handleShare = () => {
-    if (!selectedChild) return;
-    toast({
-      title: "Report Shared",
-      description: `The assessment for ${selectedChild.name} has been shared with their parents.`
-    });
-  }
-
   const handleDownload = () => {
-    toast({
-      title: "Download Started",
-      description: "Your report is being generated as a PDF."
-    });
-  }
+    const input = reportPreviewRef.current;
+    if (!input || !selectedChild) {
+      toast({ variant: "destructive", title: "Error", description: "Cannot download report without a selected child and generated content." });
+      return;
+    }
+
+    html2canvas(input, { scale: 2 }) // Using scale 2 for better resolution
+      .then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const canvasRatio = canvas.width / canvas.height;
+        const pdfRatio = pdfWidth / pdfHeight;
+        
+        let imgWidth = pdfWidth;
+        let imgHeight = pdfWidth / canvasRatio;
+
+        if (imgHeight > pdfHeight) {
+            imgHeight = pdfHeight;
+            imgWidth = imgHeight * canvasRatio;
+        }
+
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        pdf.save(`assessment-report-${selectedChild.name.replace(/\s/g, '-')}.pdf`);
+        toast({
+          title: "Download Started",
+          description: "Your report is being generated as a PDF.",
+        });
+      });
+  };
+
+  const handleShare = async () => {
+    if (!navigator.share) {
+      toast({
+        variant: "destructive",
+        title: "Unsupported",
+        description: "Web Share API is not supported in your browser.",
+      });
+      return;
+    }
+
+    const input = reportPreviewRef.current;
+    if (!input || !selectedChild) {
+      toast({ variant: "destructive", title: "Error", description: "Cannot share report without generated content." });
+      return;
+    }
+    
+    try {
+        const canvas = await html2canvas(input, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const canvasRatio = canvas.width / canvas.height;
+        const imgWidth = pdfWidth;
+        const imgHeight = pdfWidth / canvasRatio;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight > pdfHeight ? pdfHeight : imgHeight);
+        const pdfBlob = pdf.output('blob');
+
+        const fileName = `assessment-report-${selectedChild.name.replace(/\s/g, '-')}.pdf`;
+        const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+             await navigator.share({
+                title: `Assessment for ${selectedChild.name}`,
+                files: [file],
+            });
+            toast({
+                title: "Report Shared",
+                description: `The assessment for ${selectedChild.name} has been shared.`,
+            });
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Unsupported",
+                description: "Sharing PDF files is not supported on this device.",
+            });
+        }
+    } catch (error) {
+        if (error instanceof Error && error.name !== 'AbortError') {
+             toast({
+                variant: 'destructive',
+                title: 'Sharing Failed',
+                description: 'There was an error while trying to share the report.',
+            });
+        }
+    }
+  };
   
   function calculateAge(dob: Date | string): number {
     if (!dob) return 0;
@@ -184,7 +267,7 @@ export default function AssessmentsClient({ children, daycare }: { children: Chi
                       </div>
                   )}
               </CardHeader>
-              <CardContent className="p-8 aspect-[8.5/11] flex flex-col bg-white text-black overflow-y-auto">
+              <CardContent ref={reportPreviewRef} className="p-8 aspect-[8.5/11] flex flex-col bg-white text-black overflow-y-auto">
                   {/* PDF Header */}
                   <div className="flex justify-between items-start pb-4 border-b border-gray-300">
                       <div className="space-y-1">
