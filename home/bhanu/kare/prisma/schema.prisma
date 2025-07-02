@@ -18,23 +18,21 @@ model Daycare {
   address   String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
-
-  users    User[]
-  children Child[]
-  staff    Staff[]
+  users     User[]
+  children  Child[]
+  staff     Staff[]
 }
 
 model User {
   id            String    @id @default(cuid())
   name          String
   email         String    @unique
-  password      String
   emailVerified DateTime?
+  password      String
+  daycareId     String
+  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId String
 }
 
 model VerificationToken {
@@ -47,83 +45,65 @@ model VerificationToken {
 }
 
 model Child {
-  id          String      @id @default(cuid())
-  name        String
-  dateOfBirth DateTime
-  gender      String?
-  status      ChildStatus @default(Active)
-  program     String
-  programType String
-  startDate   DateTime
-
-  photoUrl  String?
-  photoHint String?
-
-  // Parent Info
+  id             String      @id @default(cuid())
+  name           String
+  dateOfBirth    DateTime
+  gender         String?
+  startDate      DateTime
+  program        String
+  programType    String
+  status         ChildStatus @default(Active)
+  photoUrl       String?
+  photoHint      String?
   motherName     String
   motherEmail    String?
   fatherName     String
   fatherEmail    String?
   mobilePhone    String
   address        String
-
-  // Emergency Contact
   emergencyName  String
   emergencyPhone String
-
-  // Health Info
-  vaccination String?
-  allergies   String?
-  notes       String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId String
-}
-
-enum ChildStatus {
-  Active
-  Inactive
-  Waitlisted
+  vaccination    String?
+  allergies      String?
+  notes          String?
+  daycareId      String
+  daycare        Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
 
 model Staff {
-  id     String @id @default(cuid())
-  name   String
-  role   String
-  status String @default("Active") // Can be Active, Inactive, Archived
+  id             String   @id @default(cuid())
+  name           String
+  role           String
   startDate      DateTime
-  
-  photoUrl       String?
-  photoHint      String?
-
-  phone   String
-  address String
-
-  // Emergency Contact
+  phone          String
+  address        String
   emergencyName  String
   emergencyPhone String
-
-  // Compensation
-  payType String // Hourly, Salary
-  payRate Float
-
-  // Other
+  payType        String
+  payRate        Float
+  status         String   @default("Active") // Should be enum
   certifications String?
   notes          String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  daycareId String
+  photoUrl       String?
+  photoHint      String?
+  daycareId      String
+  daycare        Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
+
 
 enum DaycareStatus {
   PENDING
   ACTIVE
   INACTIVE
   ARCHIVED
+}
+
+enum ChildStatus {
+  Active
+  Inactive
+  Waitlisted
 }
