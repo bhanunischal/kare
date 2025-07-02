@@ -1,7 +1,7 @@
 
 # How to Sync Your Database Schema
 
-If your application isn't working because of a database error like "Table... does not exist," it means your database schema is out of sync with the application code. This guide provides a single, reliable command to fix this.
+If your application isn't working because of a database error like "Table... does not exist," or "Unknown argument...", it means your database schema is out of sync with the application code. This guide provides a single, reliable command to fix this.
 
 This is a common and expected step after making changes to the `prisma/schema.prisma` file (e.g., adding a new field to a model).
 
