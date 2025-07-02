@@ -13,8 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { addStaffMember, type StaffFormData } from "@/app/dashboard/staff/actions";
+import { addStaffMember, updateStaffStatus, deleteStaff, type StaffFormData, type StaffStatus } from "./actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { Staff } from "@prisma/client";
@@ -45,6 +46,7 @@ function SubmitButton() {
 export default function StaffClientPage({ initialStaffMembers }: { initialStaffMembers: Staff[] }) {
   const [staffMembers, setStaffMembers] = useState<Staff[]>(initialStaffMembers);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(addStaffMember, initialState);
   const { toast } = useToast();
@@ -52,6 +54,17 @@ export default function StaffClientPage({ initialStaffMembers }: { initialStaffM
   useEffect(() => {
     setStaffMembers(initialStaffMembers);
   }, [initialStaffMembers]);
+
+  useEffect(() => {
+    if (selectedStaff) {
+      const freshStaffData = staffMembers.find(s => s.id === selectedStaff.id);
+      if (freshStaffData) {
+        setSelectedStaff(freshStaffData);
+      } else {
+        setSelectedStaff(null); // Staff member was deleted, so close dialog
+      }
+    }
+  }, [staffMembers, selectedStaff]);
 
   useEffect(() => {
     if (state.message) {
@@ -70,6 +83,37 @@ export default function StaffClientPage({ initialStaffMembers }: { initialStaffM
       }
     }
   }, [state, toast]);
+
+  const handleStatusUpdate = async (newStatus: StaffStatus) => {
+    if (!selectedStaff) return;
+    
+    const oldStaff = [...staffMembers];
+    const oldSelectedStaff = { ...selectedStaff };
+
+    setStaffMembers(staffMembers.map(s => s.id === selectedStaff.id ? { ...s, status: newStatus } : s));
+    setSelectedStaff({ ...selectedStaff, status: newStatus });
+
+    const result = await updateStaffStatus(selectedStaff.id, newStatus);
+    if (!result.success) {
+      toast({ variant: "destructive", title: "Error", description: result.message });
+      setStaffMembers(oldStaff);
+      setSelectedStaff(oldSelectedStaff);
+    } else {
+      toast({ title: "Status Updated", description: result.message });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedStaff) return;
+    const result = await deleteStaff(selectedStaff.id);
+    if (result.success) {
+        toast({ title: "Staff Deleted", description: result.message });
+        setIsDeleteDialogOpen(false);
+        setSelectedStaff(null);
+    } else {
+        toast({ variant: "destructive", title: "Error", description: result.message });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -112,7 +156,13 @@ export default function StaffClientPage({ initialStaffMembers }: { initialStaffM
                       <TableCell className="font-medium">{staff.name}</TableCell>
                       <TableCell>{staff.role}</TableCell>
                       <TableCell>
-                        <Badge variant={staff.status === 'Active' ? 'default' : 'outline'}>
+                        <Badge
+                          variant={
+                            staff.status === 'Active' ? 'default'
+                            : staff.status === 'Inactive' ? 'secondary'
+                            : 'outline'
+                          }
+                        >
                           {staff.status}
                         </Badge>
                       </TableCell>
@@ -248,7 +298,7 @@ export default function StaffClientPage({ initialStaffMembers }: { initialStaffM
                   <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
                       <div className="sm:col-span-1">
                           <dt className="font-medium text-muted-foreground">Status</dt>
-                          <dd className="mt-1"><Badge variant={selectedStaff.status === 'Active' ? 'default' : 'outline'}>{selectedStaff.status}</Badge></dd>
+                          <dd className="mt-1"><Badge variant={selectedStaff.status === 'Active' ? 'default' : selectedStaff.status === 'Inactive' ? 'secondary' : 'outline'}>{selectedStaff.status}</Badge></dd>
                       </div>
                        <div className="sm:col-span-1">
                           <dt className="font-medium text-muted-foreground">Start Date</dt>
@@ -288,8 +338,39 @@ export default function StaffClientPage({ initialStaffMembers }: { initialStaffM
                       </div>
                   </dl>
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex-wrap justify-end gap-2">
+                  <div className="mr-auto">
+                    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                      <AlertDialogTrigger asChild>
+                          <Button variant="destructive">Delete</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                          <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete this staff member's record from the database.
+                          </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
+                          </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                   <Button variant="outline" onClick={() => setSelectedStaff(null)}>Close</Button>
+                  {selectedStaff.status === 'Active' && (
+                    <Button variant="outline" onClick={() => handleStatusUpdate('Inactive')}>Deactivate</Button>
+                  )}
+                  {selectedStaff.status === 'Inactive' && (
+                    <>
+                      <Button variant="outline" onClick={() => handleStatusUpdate('Active')}>Activate</Button>
+                      <Button variant="secondary" onClick={() => handleStatusUpdate('Archived')}>Archive</Button>
+                    </>
+                  )}
+                  {selectedStaff.status === 'Archived' && (
+                    <Button variant="outline" onClick={() => handleStatusUpdate('Inactive')}>Restore</Button>
+                  )}
               </DialogFooter>
             </>
           )}
