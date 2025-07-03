@@ -10,48 +10,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Full-text search is not supported on this provider.
-// model Post {
-//   id        String   @id @default(cuid())
-//   title     String
-//   content   String?
-//   published Boolean  @default(false)
-//   author    User?    @relation(fields: [authorId], references: [id])
-//   authorId  String?
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
-
 model Daycare {
-  id        String        @id @default(cuid())
-  name      String
-  plan      String
-  address   String?
-  status    DaycareStatus @default(PENDING)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  users     User[]
-  children  Child[]
-  staff     Staff[]
-}
-
-enum DaycareStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  ARCHIVED
+  id          String   @id @default(cuid())
+  name        String
+  plan        String
+  status      DaycareStatus @default(PENDING)
+  address     String?
+  licenseNumber String?
+  contactEmail String?
+  contactPhone String?
+  infantCapacity Int @default(0)
+  toddlerCapacity Int @default(0)
+  preschoolCapacity Int @default(0)
+  gradeschoolerCapacity Int @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+  children    Child[]
+  staff       Staff[]
+  activities  Activity[]
 }
 
 model User {
-  id              String    @id @default(cuid())
-  name            String
-  email           String    @unique
-  password        String
-  emailVerified   DateTime?
-  daycare         Daycare   @relation(fields: [daycareId], references: [id])
-  daycareId       String
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  emailVerified DateTime?
+  daycareId     String
+  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model VerificationToken {
@@ -63,17 +52,22 @@ model VerificationToken {
   @@unique([email, token])
 }
 
+enum DaycareStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
 model Child {
   id             String      @id @default(cuid())
   name           String
   dateOfBirth    DateTime
-  gender         String?
   startDate      DateTime
   program        String
   programType    String
-  status         ChildStatus @default(Active)
-  photoUrl       String?
-  photoHint      String?
+  status         ChildStatus
+  gender         String?
   motherName     String
   motherEmail    String?
   fatherName     String
@@ -85,8 +79,10 @@ model Child {
   vaccination    String?
   allergies      String?
   notes          String?
-  daycare        Daycare     @relation(fields: [daycareId], references: [id])
+  photoUrl       String?
+  photoHint      String?
   daycareId      String
+  daycare        Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 }
@@ -108,13 +104,28 @@ model Staff {
   emergencyPhone String
   payType        String
   payRate        Float
+  status         String
   certifications String?
   notes          String?
   photoUrl       String?
   photoHint      String?
-  status         String   @default("Active") // e.g., Active, Inactive, Archived
-  daycare        Daycare  @relation(fields: [daycareId], references: [id])
   daycareId      String
+  daycare        Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model Activity {
+  id          String    @id @default(cuid())
+  date        DateTime
+  time        String
+  title       String
+  category    String
+  description String?
+  materials   String?
+  domains     String[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  daycareId   String
+  daycare     Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
 }
