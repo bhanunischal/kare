@@ -73,7 +73,7 @@ function SubmitUpdateButton() {
     )
 }
 
-export function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledChildren: Child[] }) {
+export default function EnrollmentClient({ initialEnrolledChildren }: { initialEnrolledChildren: Child[] }) {
   const [enrolledChildren, setEnrolledChildren] = useState<Child[]>(initialEnrolledChildren);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [isEditing, setIsEditing] = useState(false);
