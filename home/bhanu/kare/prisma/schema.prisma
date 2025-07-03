@@ -1,21 +1,21 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 model Daycare {
   id        String   @id @default(cuid())
   name      String
+  plan      String
   address   String?
   status    DaycareStatus @default(PENDING)
-  plan      String
   users     User[]
   children  Child[]
   staff     Staff[]
@@ -34,12 +34,10 @@ model User {
   id            String    @id @default(cuid())
   name          String
   email         String    @unique
-  password      String
   emailVerified DateTime?
-  daycareId     String
+  password      String
   daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  daycareId     String
 }
 
 model VerificationToken {
@@ -52,57 +50,57 @@ model VerificationToken {
 }
 
 model Child {
-  id               String      @id @default(cuid())
-  name             String
-  dateOfBirth      DateTime
-  startDate        DateTime
-  program          String
-  programType      String
-  status           ChildStatus @default(Active)
-  photoUrl         String?
-  photoHint        String?
-  gender           String?
-  motherName       String
-  motherEmail      String?
-  fatherName       String
-  fatherEmail      String?
-  mobilePhone      String
-  address          String
-  emergencyName    String
-  emergencyPhone   String
-  vaccination      String?
-  allergies        String?
-  notes            String?
-  daycareId        String
-  daycare          Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  id                       String      @id @default(cuid())
+  name                     String
+  dateOfBirth              DateTime
+  startDate                DateTime
+  status                   ChildStatus @default(Active)
+  program                  String
+  programType              String
+  gender                   String?
+  photoUrl                 String?
+  photoHint                String?
+  motherName               String
+  motherEmail              String?
+  fatherName               String
+  fatherEmail              String?
+  mobilePhone              String
+  address                  String
+  emergencyName            String
+  emergencyPhone           String
+  vaccination              String?
+  allergies                String?
+  notes                    String?
+  daycare                  Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycareId                String
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
 }
 
 enum ChildStatus {
   Active
-  Inactive
   Waitlisted
+  Inactive
 }
 
 model Staff {
-  id               String   @id @default(cuid())
-  name             String
-  role             String
-  startDate        DateTime
-  phone            String
-  address          String
-  emergencyName    String
-  emergencyPhone   String
-  payType          String
-  payRate          Float
-  certifications   String?
-  notes            String?
-  status           String   @default("Active")
-  photoUrl         String?
-  photoHint        String?
-  daycareId        String
-  daycare          Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  role           String
+  status         String
+  startDate      DateTime
+  phone          String
+  address        String
+  emergencyName  String
+  emergencyPhone String
+  payType        String
+  payRate        Float
+  certifications String?
+  notes          String?
+  photoUrl       String?
+  photoHint      String?
+  daycare        Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycareId      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
