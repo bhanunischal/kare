@@ -300,6 +300,7 @@ export function DaycaresClient({ daycares: initialDaycares }: { daycares: (Dayca
       
       {editingDaycare && (
         <DaycareSettingsDialog 
+            key={editingDaycare.id}
             daycare={editingDaycare}
             adminUser={editingDaycare.adminUser}
             isOpen={!!editingDaycare}
