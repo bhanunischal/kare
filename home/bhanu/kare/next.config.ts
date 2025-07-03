@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  allowedDevOrigins: ['http://192.168.1.89:9002'],
+  allowedDevOrigins: ['http://192.168.1.89:9002', 'http://daytrack.nischal.ca'],
 };
 
 export default nextConfig;
