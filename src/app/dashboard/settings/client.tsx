@@ -14,16 +14,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import type { Daycare } from '@prisma/client';
-import { updateSettings } from './actions';
+import { updateSettings, connectStorage, disconnectStorage } from './actions';
 import { useFormStatus } from 'react-dom';
 
-type StorageProvider = 'google-drive' | 'one-drive' | 'aws-s3' | 'azure-blob';
+type StorageProvider = 'google-drive' | 'one-drive';
 
 const providers = [
   { id: 'google-drive', name: 'Google Drive' },
   { id: 'one-drive', name: 'Microsoft OneDrive' },
-  { id: 'aws-s3', name: 'Amazon S3' },
-  { id: 'azure-blob', name: 'Azure Blob Storage' },
 ];
 
 const updateSettingsInitialState = { message: null, errors: null };
@@ -39,9 +37,15 @@ function SaveButton() {
 }
 
 export default function SettingsClient({ daycare }: { daycare: Daycare }) {
+  const { toast } = useToast();
+
+  // State for profile tab
+  const [state, formAction] = useActionState(updateSettings, updateSettingsInitialState);
+
   // State for integrations tab
-  const [connectedProvider, setConnectedProvider] = useState<StorageProvider | null>('google-drive');
-  const [selectedProvider, setSelectedProvider] = useState<StorageProvider>(connectedProvider || 'google-drive');
+  const [connectedProvider, setConnectedProvider] = useState<string | null>(daycare.storageProvider);
+  const [selectedProvider, setSelectedProvider] = useState<StorageProvider>((daycare.storageProvider as StorageProvider) || 'google-drive');
+  const [isConnecting, setIsConnecting] = useState(false);
   
   // State for homepage tab
   const [carouselImages, setCarouselImages] = useState([
@@ -49,9 +53,6 @@ export default function SettingsClient({ daycare }: { daycare: Daycare }) {
     { id: 2, src: 'https://placehold.co/600x450.png', alt: 'Daycare classroom', hint: 'bright classroom' },
     { id: 3, src: 'https://placehold.co/600x450.png', alt: 'Teacher reading to kids', hint: 'teacher reading' },
   ]);
-
-  const { toast } = useToast();
-  const [state, formAction] = useActionState(updateSettings, updateSettingsInitialState);
 
   useEffect(() => {
     if (state?.message) {
@@ -62,22 +63,37 @@ export default function SettingsClient({ daycare }: { daycare: Daycare }) {
       }
     }
   }, [state, toast]);
+  
+  // This useEffect ensures the client state is in sync with the server data after revalidation
+  useEffect(() => {
+    setConnectedProvider(daycare.storageProvider);
+    if (daycare.storageProvider) {
+        setSelectedProvider(daycare.storageProvider as StorageProvider);
+    }
+  }, [daycare.storageProvider]);
 
-  const handleConnect = () => {
-    // In a real app, this would trigger the OAuth flow or credential setup
-    setConnectedProvider(selectedProvider);
-    toast({
-      title: "Connection Successful",
-      description: `Successfully connected to ${providers.find(p => p.id === selectedProvider)?.name}.`
-    })
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    // In a real app, this would trigger the OAuth flow.
+    // Here we just simulate a successful connection by updating the database.
+    const result = await connectStorage(daycare.id, selectedProvider);
+    if (result.success) {
+      toast({ title: "Connection Successful", description: result.message });
+    } else {
+      toast({ variant: "destructive", title: "Connection Failed", description: result.message });
+    }
+    setIsConnecting(false);
   };
   
-  const handleDisconnect = () => {
-    setConnectedProvider(null);
-    toast({
-      title: "Disconnected",
-      description: "Cloud storage has been disconnected."
-    })
+  const handleDisconnect = async () => {
+    setIsConnecting(true);
+    const result = await disconnectStorage(daycare.id);
+    if (result.success) {
+      toast({ title: "Disconnected", description: result.message });
+    } else {
+      toast({ variant: "destructive", title: "Disconnection Failed", description: result.message });
+    }
+    setIsConnecting(false);
   };
 
   const isConnected = selectedProvider === connectedProvider;
@@ -221,11 +237,13 @@ export default function SettingsClient({ daycare }: { daycare: Daycare }) {
               </RadioGroup>
               
               <div className="flex gap-2">
-                <Button onClick={handleConnect} disabled={isConnected}>
+                <Button onClick={handleConnect} disabled={isConnected || isConnecting}>
+                  {isConnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
                   {connectedProvider === selectedProvider ? 'Already Connected' : `Connect to ${providers.find(p => p.id === selectedProvider)?.name}`}
                 </Button>
                  {connectedProvider && (
-                  <Button variant="destructive" onClick={handleDisconnect}>
+                  <Button variant="destructive" onClick={handleDisconnect} disabled={isConnecting}>
+                    {isConnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
                     Disconnect
                   </Button>
                 )}

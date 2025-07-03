@@ -1,44 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model Daycare {
+  id                      String    @id @default(cuid())
+  name                    String
+  status                  DaycareStatus @default(PENDING)
+  plan                    String
+  address                 String?
+  contactEmail            String?
+  contactPhone            String?
+  licenseNumber           String?
+  storageProvider         String?   @doc("Name of the connected storage provider, e.g., 'google-drive'")
+
+  infantCapacity          Int       @default(0)
+  toddlerCapacity         Int       @default(0)
+  preschoolCapacity       Int       @default(0)
+  gradeschoolerCapacity   Int       @default(0)
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  users     User[]
+  children  Child[]
+  staff     Staff[]
+  activities Activity[]
+
+  @@index([name])
 }
 
-model Daycare {
-  id                    String   @id @default(cuid())
-  name                  String
-  plan                  String
-  address               String?
-  status                DaycareStatus @default(PENDING)
-  licenseNumber         String?
-  contactEmail          String?
-  contactPhone          String?
-  infantCapacity        Int      @default(0)
-  toddlerCapacity       Int      @default(0)
-  preschoolCapacity     Int      @default(0)
-  gradeschoolerCapacity Int      @default(0)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  users                 User[]
-  children              Child[]
-  staff                 Staff[]
-  activities            Activity[]
+enum DaycareStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }
 
 model User {
   id            String    @id @default(cuid())
   name          String
   email         String    @unique
-  password      String
   emailVerified DateTime?
-  daycareId     String
-  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  password      String
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  
+  daycareId     String
+  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+
+  @@index([daycareId])
 }
 
 model VerificationToken {
@@ -60,53 +79,81 @@ model PasswordResetToken {
 }
 
 model Child {
-  id             String      @id @default(cuid())
-  name           String
-  dateOfBirth    DateTime
-  gender         String?
-  startDate      DateTime
-  program        String
-  programType    String
-  status         ChildStatus @default(Active)
-  photoUrl       String?
-  photoHint      String?
-  motherName     String
-  motherEmail    String?
-  fatherName     String
-  fatherEmail    String?
-  mobilePhone    String
-  address        String
-  emergencyName  String
-  emergencyPhone String
-  vaccination    String?
-  allergies      String?
-  notes          String?
-  daycareId      String
-  daycare        Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  id            String      @id @default(cuid())
+  name          String
+  dateOfBirth   DateTime
+  gender        String?
+  startDate     DateTime
+  program       String
+  programType   String
+  status        ChildStatus
+  
+  photoUrl      String?
+  photoHint     String?
+
+  motherName    String
+  motherEmail   String?
+  fatherName    String
+  fatherEmail   String?
+  mobilePhone   String
+  address       String
+
+  emergencyName   String
+  emergencyPhone  String
+
+  vaccination   String?
+  allergies     String?
+  notes         String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  daycareId     String
+  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+
+  @@index([daycareId])
+}
+
+enum ChildStatus {
+  Active
+  Waitlisted
+  Inactive
 }
 
 model Staff {
-  id             String      @id @default(cuid())
-  name           String
-  role           String
-  startDate      DateTime
-  phone          String
-  address        String
-  emergencyName  String
+  id            String      @id @default(cuid())
+  name          String
+  role          String
+  startDate     DateTime
+  status        StaffStatus
+  phone         String
+  address       String
+  
+  photoUrl      String?
+  photoHint     String?
+
+  emergencyName String
   emergencyPhone String
-  payType        String
-  payRate        Float
-  status         StaffStatus @default(Active)
-  photoUrl       String?
-  photoHint      String?
+
+  payType       String
+  payRate       Float
+
   certifications String?
-  notes          String?
-  daycareId      String
-  daycare        Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  notes         String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  daycareId     String
+  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+
+  @@index([daycareId])
+}
+
+enum StaffStatus {
+  Active
+  Inactive
+  Archived
 }
 
 model Activity {
@@ -118,27 +165,12 @@ model Activity {
   description String?
   materials   String?
   domains     String[]
-  daycareId   String
-  daycare     Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-}
 
-enum DaycareStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  ARCHIVED
-}
+  daycareId   String
+  daycare     Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
 
-enum ChildStatus {
-  Active
-  Waitlisted
-  Inactive
-}
-
-enum StaffStatus {
-  Active
-  Inactive
-  Archived
+  @@index([daycareId])
 }
