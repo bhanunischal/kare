@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,24 +11,24 @@ datasource db {
 }
 
 model Daycare {
-  id                    String        @id @default(cuid())
+  id                    String    @id @default(cuid())
   name                  String
   plan                  String
   address               String?
-  licenseNumber         String?
   contactEmail          String?
   contactPhone          String?
-  status                DaycareStatus
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  licenseNumber         String?
+  infantCapacity        Int       @default(0)
+  toddlerCapacity       Int       @default(0)
+  preschoolCapacity     Int       @default(0)
+  gradeschoolerCapacity Int       @default(0)
+  status                DaycareStatus @default(PENDING)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
   users                 User[]
   children              Child[]
   staff                 Staff[]
-
-  infantCapacity        Int           @default(10)
-  toddlerCapacity       Int           @default(20)
-  preschoolCapacity     Int           @default(30)
-  gradeschoolerCapacity Int           @default(15)
+  activities            Activity[]
 }
 
 enum DaycareStatus {
@@ -45,10 +42,10 @@ model User {
   id            String    @id @default(cuid())
   name          String
   email         String    @unique
-  password      String
   emailVerified DateTime?
+  password      String
   daycareId     String
-  daycare       Daycare   @relation(fields: [daycareId], references: [id])
+  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -63,7 +60,7 @@ model VerificationToken {
 }
 
 model Child {
-  id              String      @id @default(cuid())
+  id              String   @id @default(cuid())
   name            String
   dateOfBirth     DateTime
   gender          String?
@@ -85,41 +82,56 @@ model Child {
   photoUrl        String?
   photoHint       String?
   daycareId       String
-  daycare         Daycare     @relation(fields: [daycareId], references: [id])
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  daycare         Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 enum ChildStatus {
   Active
-  Inactive
   Waitlisted
+  Inactive
 }
 
 model Staff {
-  id               String       @id @default(cuid())
-  name             String
-  role             String
-  startDate        DateTime
-  phone            String
-  address          String
-  emergencyName    String
-  emergencyPhone   String
-  payType          String
-  payRate          Float
-  certifications   String?
-  notes            String?
-  status           StaffStatus
-  photoUrl         String?
-  photoHint        String?
-  daycareId        String
-  daycare          Daycare      @relation(fields: [daycareId], references: [id])
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  id             String      @id @default(cuid())
+  name           String
+  role           String
+  startDate      DateTime
+  phone          String
+  address        String
+  emergencyName  String
+  emergencyPhone String
+  payType        String
+  payRate        Float
+  certifications String?
+  notes          String?
+  photoUrl       String?
+  photoHint      String?
+  status         StaffStatus @default(Active)
+  daycareId      String
+  daycare        Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
 
 enum StaffStatus {
   Active
   Inactive
   Archived
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  date        DateTime
+  time        String
+  title       String
+  category    String
+  description String?
+  materials   String?
+  domains     String[]
+  daycareId   String
+  daycare     Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
