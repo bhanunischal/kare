@@ -1,62 +1,59 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-  provider = "prisma-client-js"
-}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model Daycare {
-  id                    String    @id @default(cuid())
-  name                  String
-  status                DaycareStatus @default(PENDING)
-  plan                  String
-  address               String?
-  contactEmail          String?
-  contactPhone          String?
-  licenseNumber         String?
-  storageProvider       String?   /// Name of the connected storage provider, e.g., 'google-drive'
-  infantCapacity        Int       @default(0)
-  toddlerCapacity       Int       @default(0)
-  preschoolCapacity     Int       @default(0)
-  gradeschoolerCapacity Int       @default(0)
-
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  users    User[]
-  children Child[]
-  staff    Staff[]
-  activities Activity[]
-
-  @@map("daycares")
+generator client {
+  provider = "prisma-client-js"
 }
 
-enum DaycareStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  ARCHIVED
+model Daycare {
+  id                      String    @id @default(cuid())
+  name                    String
+  status                  DaycareStatus @default(PENDING)
+  plan                    String
+  address                 String?
+  licenseNumber           String?
+  contactEmail            String?
+  contactPhone            String?
+  storageProvider         String?   /// Name of the connected storage provider, e.g., 'google-drive'
+
+  // OAuth Tokens for Cloud Storage Integrations
+  googleRefreshToken      String?   @unique /// Securely stored refresh token for Google Drive
+  googleAccessToken       String?   /// Short-lived access token for Google Drive
+  googleTokenExpiresAt    DateTime? /// Expiry timestamp for the Google access token
+  oneDriveRefreshToken    String?   @unique /// Securely stored refresh token for OneDrive
+  oneDriveAccessToken     String?   /// Short-lived access token for OneDrive
+  oneDriveTokenExpiresAt  DateTime? /// Expiry timestamp for the OneDrive access token
+
+  // Capacity fields
+  infantCapacity          Int       @default(0)
+  toddlerCapacity         Int       @default(0)
+  preschoolCapacity       Int       @default(0)
+  gradeschoolerCapacity   Int       @default(0)
+  
+  users                   User[]
+  children                Child[]
+  staff                   Staff[]
+  activities              Activity[]
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 }
 
 model User {
   id            String    @id @default(cuid())
   name          String
   email         String    @unique
-  emailVerified DateTime?
   password      String
+  emailVerified DateTime?
   
   daycareId     String
   daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  @@map("users")
 }
 
 model VerificationToken {
@@ -66,7 +63,6 @@ model VerificationToken {
   expires DateTime
 
   @@unique([email, token])
-  @@map("verification_tokens")
 }
 
 model PasswordResetToken {
@@ -76,46 +72,92 @@ model PasswordResetToken {
   expires DateTime
 
   @@unique([email, token])
-  @@map("password_reset_tokens")
 }
 
-
 model Child {
+  id                      String      @id @default(cuid())
+  name                    String
+  dateOfBirth             DateTime
+  startDate               DateTime
+  status                  ChildStatus
+  program                 String
+  programType             String
+  gender                  String?
+  photoUrl                String?
+  photoHint               String?
+
+  motherName              String
+  motherEmail             String?
+  fatherName              String
+  fatherEmail             String?
+  mobilePhone             String
+  address                 String
+  
+  emergencyName           String
+  emergencyPhone          String
+  
+  vaccination             String?
+  allergies               String?
+  notes                   String?
+
+  daycareId               String
+  daycare                 Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+}
+
+model Staff {
   id                String      @id @default(cuid())
   name              String
-  dateOfBirth       DateTime
-  gender            String?
+  role              String
   startDate         DateTime
-  status            ChildStatus @default(Active)
-  program           String
-  programType       String
-  photoUrl          String?
-  photoHint         String?
-
-  // Parent/Guardian Info
-  motherName        String
-  motherEmail       String?
-  fatherName        String
-  fatherEmail       String?
-  mobilePhone       String
+  status            StaffStatus @default(Active)
+  
+  phone             String
   address           String
-
-  // Emergency Contact
+  
   emergencyName     String
   emergencyPhone    String
 
-  // Health Info
-  vaccination       String?
-  allergies         String?
+  payType           String
+  payRate           Float
+  
+  certifications    String?
   notes             String?
+  
+  photoUrl          String?
+  photoHint         String?
 
   daycareId         String
   daycare           Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
 
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
+}
 
-  @@map("children")
+model Activity {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  category      String
+  date          DateTime
+  time          String
+  materials     String?
+  domains       String[]
+
+  daycareId     String
+  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum DaycareStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }
 
 enum ChildStatus {
@@ -124,51 +166,8 @@ enum ChildStatus {
   Inactive
 }
 
-model Staff {
-  id               String   @id @default(cuid())
-  name             String
-  role             String
-  startDate        DateTime
-  status           String   @default("Active") // e.g., Active, Inactive, Archived
-  phone            String
-  address          String
-  emergencyName    String
-  emergencyPhone   String
-  photoUrl         String?
-  photoHint        String?
-  
-  // Compensation
-  payType          String // e.g., Hourly, Salary
-  payRate          Float
-
-  // Certifications & Notes
-  certifications   String?
-  notes            String?
-
-  daycareId        String
-  daycare          Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  @@map("staff")
-}
-
-model Activity {
-  id          String   @id @default(cuid())
-  date        DateTime
-  time        String
-  title       String
-  category    String
-  description String?
-  materials   String?
-  domains     String[]
-
-  daycareId   String
-  daycare     Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("activities")
+enum StaffStatus {
+  Active
+  Inactive
+  Archived
 }
