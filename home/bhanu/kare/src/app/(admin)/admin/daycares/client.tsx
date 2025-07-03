@@ -3,6 +3,7 @@
 
 import { useState, useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -30,7 +31,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { MoreHorizontal, CheckCircle, XCircle, Archive, ArchiveRestore, Loader2, Plus } from "lucide-react";
+import { MoreHorizontal, CheckCircle, XCircle, Archive, ArchiveRestore, Loader2, Plus, Settings, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { updateDaycareStatus, createDaycare } from "./actions";
@@ -67,6 +68,7 @@ export function DaycaresClient({ daycares: initialDaycares }: { daycares: Daycar
   const [daycares, setDaycares] = useState<DaycareWithCounts[]>(initialDaycares);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
   
   const [createState, createFormAction] = useActionState(createDaycare, createDaycareInitialState);
 
@@ -238,8 +240,14 @@ export function DaycaresClient({ daycares: initialDaycares }: { daycares: Daycar
                         <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Manage Subscription</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(`/admin/daycares/${daycare.id}`)}>
+                            <Settings className="mr-2 h-4 w-4" />
+                            View & Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Manage Subscription
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {daycare.status === 'ACTIVE' && (
                                 <DropdownMenuItem 
