@@ -67,6 +67,10 @@ export async function login(
 
   } catch (error) {
     console.error('Login Error:', error);
+    // Check if it's a redirect error and re-throw it
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+        throw error;
+    }
     return { message: 'An unexpected error occurred', errors: { _form: ['Something went wrong.'] } };
   }
 
