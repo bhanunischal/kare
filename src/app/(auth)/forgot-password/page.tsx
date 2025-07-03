@@ -9,13 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { login, type LoginFormState } from './actions';
+import { sendResetLink } from './actions';
 import { useFormStatus } from 'react-dom';
 import { Loader2 } from 'lucide-react';
 
-const initialState: LoginFormState = {
+const initialState = {
   message: '',
-  errors: {},
+  isSuccess: false,
 };
 
 function SubmitButton() {
@@ -23,24 +23,47 @@ function SubmitButton() {
     return (
         <Button type="submit" className="w-full" disabled={pending}>
              {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-             Login
+             Send Reset Link
         </Button>
     );
 }
 
-export default function LoginPage() {
-  const [state, formAction] = useActionState(login, initialState);
+export default function ForgotPasswordPage() {
+  const [state, formAction] = useActionState(sendResetLink, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (state.message && state.errors?._form) {
+    if (state.message && !state.isSuccess) {
       toast({
         variant: 'destructive',
-        title: 'Login Failed',
-        description: state.errors._form[0],
+        title: 'Error',
+        description: state.message,
       });
     }
   }, [state, toast]);
+
+  if (state.isSuccess) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-secondary/50">
+        <Card className="mx-auto max-w-sm w-full">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <Logo />
+            </div>
+            <CardTitle className="text-2xl font-headline">Check Your Email</CardTitle>
+            <CardDescription>
+              {state.message}
+            </CardDescription>
+          </CardHeader>
+           <CardContent>
+             <Link href="/login" className="text-sm underline">
+              Return to Login
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary/50">
@@ -49,9 +72,9 @@ export default function LoginPage() {
             <div className="flex justify-center mb-4">
                 <Logo />
             </div>
-          <CardTitle className="text-2xl font-headline">Login</CardTitle>
+          <CardTitle className="text-2xl font-headline">Forgot Password</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your email and we'll send you a link to reset your password.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -65,28 +88,13 @@ export default function LoginPage() {
                 placeholder="m@example.com"
                 required
               />
-              {state.errors?.email && <p className="text-xs text-destructive">{state.errors.email[0]}</p>}
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="ml-auto inline-block text-sm underline">
-                  Forgot your password?
-                </Link>
-              </div>
-              <Input id="password" name="password" type="password" required />
-              {state.errors?.password && <p className="text-xs text-destructive">{state.errors.password[0]}</p>}
             </div>
             <SubmitButton />
-             {state.errors?._form && <p className="text-xs text-destructive text-center">{state.errors._form[0]}</p>}
-            <Button variant="outline" className="w-full">
-              Login with Google
-            </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="underline">
-              Sign up
+           <div className="mt-4 text-center text-sm">
+            Remember your password?{" "}
+            <Link href="/login" className="underline">
+              Login
             </Link>
           </div>
         </CardContent>
