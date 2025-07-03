@@ -58,23 +58,53 @@ export async function login(
     }
 
     if (user.daycare.status === 'PENDING') {
-        redirect('/pending');
+      redirect('/pending');
     }
 
     if (user.daycare.status !== 'ACTIVE') {
-        return { message: 'Login failed', errors: { _form: ['Your account is not active. Please contact support.'] } };
+      return { message: 'Login failed', errors: { _form: [`Your account is ${user.daycare.status.toLowerCase()}. Please contact support.`] } };
     }
 
   } catch (error) {
     console.error('Login Error:', error);
-    // Check if it's a redirect error and re-throw it
     if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
         throw error;
     }
     return { message: 'An unexpected error occurred', errors: { _form: ['Something went wrong.'] } };
   }
-
-  // At this point, login is successful and the account is active.
-  // The next step is to implement session management.
+  
   redirect('/dashboard');
+}
+
+
+export async function handleGoogleLogin(email: string | null): Promise<{ error?: string; redirect?: string; }> {
+    if (!email) {
+        return { error: "No email received from Google." };
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email },
+            include: { daycare: true },
+        });
+
+        if (!user || !user.daycare) {
+            return { error: "No account found with this email. Please sign up using the regular registration form first." };
+        }
+
+        if (user.daycare.status === 'PENDING') {
+            return { redirect: '/pending' };
+        }
+
+        if (user.daycare.status !== 'ACTIVE') {
+            return { error: `Your account is ${user.daycare.status.toLowerCase()}. Please contact support.` };
+        }
+
+        // Login is successful and active
+        return { redirect: '/dashboard' };
+
+    } catch (error) {
+        console.error('Google Login Error:', error);
+        return { error: 'An unexpected error occurred during Google sign-in.' };
+    }
 }
