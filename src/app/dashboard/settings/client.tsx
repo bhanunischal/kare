@@ -6,9 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Cloud, ImageUp, Loader2, Upload } from 'lucide-react';
+import { CheckCircle, ImageUp, Loader2, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from 'next/image';
@@ -16,12 +15,15 @@ import { Separator } from '@/components/ui/separator';
 import type { Daycare } from '@prisma/client';
 import { updateSettings, connectStorage, disconnectStorage } from './actions';
 import { useFormStatus } from 'react-dom';
+import { cn } from '@/lib/utils';
+import { GoogleDriveIcon } from '@/components/provider-icons/google-drive-icon';
+import { OneDriveIcon } from '@/components/provider-icons/one-drive-icon';
 
 type StorageProvider = 'google-drive' | 'one-drive';
 
 const providers = [
-  { id: 'google-drive', name: 'Google Drive' },
-  { id: 'one-drive', name: 'Microsoft OneDrive' },
+  { id: 'google-drive', name: 'Google Drive', icon: <GoogleDriveIcon className="h-8 w-8" /> },
+  { id: 'one-drive', name: 'Microsoft OneDrive', icon: <OneDriveIcon className="h-8 w-8" /> },
 ];
 
 const updateSettingsInitialState = { message: null, errors: null };
@@ -44,7 +46,7 @@ export default function SettingsClient({ daycare }: { daycare: Daycare }) {
 
   // State for integrations tab
   const [connectedProvider, setConnectedProvider] = useState<string | null>(daycare.storageProvider);
-  const [selectedProvider, setSelectedProvider] = useState<StorageProvider>((daycare.storageProvider as StorageProvider) || 'google-drive');
+  const [selectedProvider, setSelectedProvider] = useState<StorageProvider | null>(daycare.storageProvider as StorageProvider | null);
   const [isConnecting, setIsConnecting] = useState(false);
   
   // State for homepage tab
@@ -67,12 +69,14 @@ export default function SettingsClient({ daycare }: { daycare: Daycare }) {
   // This useEffect ensures the client state is in sync with the server data after revalidation
   useEffect(() => {
     setConnectedProvider(daycare.storageProvider);
-    if (daycare.storageProvider) {
-        setSelectedProvider(daycare.storageProvider as StorageProvider);
-    }
+    setSelectedProvider(daycare.storageProvider as StorageProvider | null);
   }, [daycare.storageProvider]);
 
   const handleConnect = async () => {
+    if (!selectedProvider) {
+        toast({ variant: "destructive", title: "Error", description: "Please select a provider to connect." });
+        return;
+    }
     setIsConnecting(true);
     // In a real app, this would trigger the OAuth flow.
     // Here we just simulate a successful connection by updating the database.
@@ -95,8 +99,6 @@ export default function SettingsClient({ daycare }: { daycare: Daycare }) {
     }
     setIsConnecting(false);
   };
-
-  const isConnected = selectedProvider === connectedProvider;
 
   return (
     <div className="space-y-6">
@@ -216,34 +218,40 @@ export default function SettingsClient({ daycare }: { daycare: Daycare }) {
               <CardDescription>Connect a cloud storage provider to store documents and photos securely. Changes will apply to all future uploads.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <RadioGroup value={selectedProvider} onValueChange={(value) => setSelectedProvider(value as StorageProvider)} className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {providers.map((provider) => (
-                  <Label key={provider.id} htmlFor={provider.id} className="flex items-center justify-between rounded-lg border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary transition-all">
-                    <div className="flex items-center gap-4">
-                       <RadioGroupItem value={provider.id} id={provider.id} />
-                       <div className="flex items-center gap-2">
-                           <Cloud className="h-5 w-5 text-muted-foreground" />
-                           <span className="font-medium">{provider.name}</span>
-                       </div>
-                    </div>
-                    {connectedProvider === provider.id && (
-                      <Badge variant="default" className="bg-accent text-accent-foreground border-green-500 text-green-700">
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Connected
-                      </Badge>
+                  <Card 
+                    key={provider.id} 
+                    className={cn(
+                        "cursor-pointer transition-all",
+                        selectedProvider === provider.id && "border-primary ring-2 ring-primary"
                     )}
-                  </Label>
+                    onClick={() => setSelectedProvider(provider.id as StorageProvider)}
+                  >
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            {provider.icon}
+                            <span className="font-medium">{provider.name}</span>
+                        </div>
+                        {connectedProvider === provider.id && (
+                          <Badge variant="outline" className="border-green-500 text-green-600">
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Connected
+                          </Badge>
+                        )}
+                    </CardContent>
+                  </Card>
                 ))}
-              </RadioGroup>
+              </div>
               
               <div className="flex gap-2">
-                <Button onClick={handleConnect} disabled={isConnected || isConnecting}>
-                  {isConnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                  {connectedProvider === selectedProvider ? 'Already Connected' : `Connect to ${providers.find(p => p.id === selectedProvider)?.name}`}
+                <Button onClick={handleConnect} disabled={isConnecting || !selectedProvider || selectedProvider === connectedProvider}>
+                  {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                  {selectedProvider === connectedProvider ? 'Already Connected' : `Connect to ${providers.find(p => p.id === selectedProvider)?.name}`}
                 </Button>
                  {connectedProvider && (
                   <Button variant="destructive" onClick={handleDisconnect} disabled={isConnecting}>
-                    {isConnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                    {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                     Disconnect
                   </Button>
                 )}
