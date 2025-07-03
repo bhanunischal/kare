@@ -1,24 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model Daycare {
+  id                    String        @id @default(cuid())
+  name                  String
+  plan                  String
+  address               String?
+  licenseNumber         String?
+  contactEmail          String?
+  contactPhone          String?
+  status                DaycareStatus
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  users                 User[]
+  children              Child[]
+  staff                 Staff[]
+
+  infantCapacity        Int           @default(10)
+  toddlerCapacity       Int           @default(20)
+  preschoolCapacity     Int           @default(30)
+  gradeschoolerCapacity Int           @default(15)
 }
 
-model Daycare {
-  id        String   @id @default(cuid())
-  name      String
-  status    DaycareStatus
-  plan      String
-  address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  users     User[]
-  children  Child[]
-  staff     Staff[]
+enum DaycareStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }
 
 model User {
@@ -48,9 +68,9 @@ model Child {
   dateOfBirth     DateTime
   gender          String?
   startDate       DateTime
-  status          ChildStatus
   program         String
   programType     String
+  status          ChildStatus
   motherName      String
   motherEmail     String?
   fatherName      String
@@ -65,42 +85,41 @@ model Child {
   photoUrl        String?
   photoHint       String?
   daycareId       String
-  daycare         Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  daycare         Daycare     @relation(fields: [daycareId], references: [id])
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
-}
-
-model Staff {
-  id             String   @id @default(cuid())
-  name           String
-  role           String
-  startDate      DateTime
-  status         String
-  phone          String
-  address        String
-  emergencyName  String
-  emergencyPhone String
-  payType        String
-  payRate        Float
-  certifications String?
-  notes          String?
-  photoUrl       String?
-  photoHint      String?
-  daycareId      String
-  daycare        Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
-
-enum DaycareStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  ARCHIVED
 }
 
 enum ChildStatus {
   Active
   Inactive
   Waitlisted
+}
+
+model Staff {
+  id               String       @id @default(cuid())
+  name             String
+  role             String
+  startDate        DateTime
+  phone            String
+  address          String
+  emergencyName    String
+  emergencyPhone   String
+  payType          String
+  payRate          Float
+  certifications   String?
+  notes            String?
+  status           StaffStatus
+  photoUrl         String?
+  photoHint        String?
+  daycareId        String
+  daycare          Daycare      @relation(fields: [daycareId], references: [id])
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+enum StaffStatus {
+  Active
+  Inactive
+  Archived
 }
