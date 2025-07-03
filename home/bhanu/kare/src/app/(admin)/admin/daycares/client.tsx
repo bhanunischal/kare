@@ -3,7 +3,6 @@
 
 import { useState, useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
-import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -35,13 +34,14 @@ import { MoreHorizontal, CheckCircle, XCircle, Archive, ArchiveRestore, Loader2,
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { updateDaycareStatus, createDaycare } from "./actions";
-import type { DaycareStatus } from "@prisma/client";
+import type { Daycare, DaycareStatus, User } from "@prisma/client";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DaycareSettingsDialog } from "./daycare-settings-dialog";
 
-type DaycareWithCounts = {
+type DaycareWithCountsAndUser = {
     id: string;
     name: string;
     status: DaycareStatus;
@@ -50,6 +50,7 @@ type DaycareWithCounts = {
     joinDate: string;
     childrenCount: number;
     staffCount: number;
+    adminUser: User | null;
 }
 
 const createDaycareInitialState = { error: null };
@@ -64,18 +65,28 @@ function AddDaycareSubmitButton() {
     )
 }
 
-export function DaycaresClient({ daycares: initialDaycares }: { daycares: DaycareWithCounts[] }) {
-  const [daycares, setDaycares] = useState<DaycareWithCounts[]>(initialDaycares);
+export function DaycaresClient({ daycares: initialDaycares }: { daycares: (DaycareWithCountsAndUser & Daycare)[] }) {
+  const [daycares, setDaycares] = useState<(DaycareWithCountsAndUser & Daycare)[]>(initialDaycares);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingDaycare, setEditingDaycare] = useState<(DaycareWithCountsAndUser & Daycare) | null>(null);
   const { toast } = useToast();
-  const router = useRouter();
   
   const [createState, createFormAction] = useActionState(createDaycare, createDaycareInitialState);
 
   // Update local state when server provides new data (after revalidation)
   useEffect(() => {
     setDaycares(initialDaycares);
-  }, [initialDaycares]);
+     // If a daycare was being edited, find the updated version in the new data
+    if (editingDaycare) {
+      const updatedDaycare = initialDaycares.find(d => d.id === editingDaycare.id);
+      if (updatedDaycare) {
+        setEditingDaycare(updatedDaycare);
+      } else {
+        // The daycare was deleted or is no longer in the list, close the dialog.
+        setEditingDaycare(null);
+      }
+    }
+  }, [initialDaycares, editingDaycare]);
   
   // Handle feedback from create daycare action
   useEffect(() => {
@@ -240,11 +251,11 @@ export function DaycaresClient({ daycares: initialDaycares }: { daycares: Daycar
                         <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => router.push(`/admin/daycares/${daycare.id}`)}>
+                        <DropdownMenuItem onSelect={() => setEditingDaycare(daycare)}>
                             <Settings className="mr-2 h-4 w-4" />
                             View & Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem disabled>
                             <CreditCard className="mr-2 h-4 w-4" />
                             Manage Subscription
                         </DropdownMenuItem>
@@ -286,6 +297,15 @@ export function DaycaresClient({ daycares: initialDaycares }: { daycares: Daycar
         </div>
         </CardContent>
       </Card>
+      
+      {editingDaycare && (
+        <DaycareSettingsDialog 
+            daycare={editingDaycare}
+            adminUser={editingDaycare.adminUser}
+            isOpen={!!editingDaycare}
+            onOpenChange={() => setEditingDaycare(null)}
+        />
+      )}
     </div>
   );
 }

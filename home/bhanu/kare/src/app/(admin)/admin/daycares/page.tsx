@@ -1,19 +1,20 @@
 
 import prisma from "@/lib/prisma";
 import { DaycaresClient } from "./client";
-import type { Daycare } from "@prisma/client";
+import type { Daycare, User } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
 
-type DaycareWithCounts = Daycare & {
+export type DaycareWithDetails = Daycare & {
     _count: {
         children: number;
         staff: number;
-    }
+    },
+    users: User[]
 }
 
 export default async function AdminDaycaresPage() {
-  const daycares: DaycareWithCounts[] = await prisma.daycare.findMany({
+  const daycares: DaycareWithDetails[] = await prisma.daycare.findMany({
     include: {
       _count: {
         select: {
@@ -21,6 +22,12 @@ export default async function AdminDaycaresPage() {
           staff: true,
         },
       },
+      users: {
+        orderBy: {
+            createdAt: 'asc',
+        },
+        take: 1
+      }
     },
     orderBy: {
       createdAt: "desc",
@@ -36,6 +43,9 @@ export default async function AdminDaycaresPage() {
       joinDate: dc.createdAt.toISOString(),
       childrenCount: dc._count.children,
       staffCount: dc._count.staff,
+      adminUser: dc.users[0] || null,
+      // Pass the full daycare object for the dialog
+      ...dc
   }));
 
   return <DaycaresClient daycares={formattedDaycares} />;
