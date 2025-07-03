@@ -1,156 +1,34 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model Daycare {
-  id                      String    @id @default(cuid())
+  id                      String   @id @default(cuid())
   name                    String
   status                  DaycareStatus @default(PENDING)
   plan                    String
   address                 String?
-  licenseNumber           String?
   contactEmail            String?
   contactPhone            String?
-  storageProvider         String?   /// Name of the connected storage provider, e.g., 'google-drive'
-
-  // OAuth Tokens for Cloud Storage Integrations
-  googleRefreshToken      String?   @unique /// Securely stored refresh token for Google Drive
-  googleAccessToken       String?   /// Short-lived access token for Google Drive
-  googleTokenExpiresAt    DateTime? /// Expiry timestamp for the Google access token
-  oneDriveRefreshToken    String?   @unique /// Securely stored refresh token for OneDrive
-  oneDriveAccessToken     String?   /// Short-lived access token for OneDrive
-  oneDriveTokenExpiresAt  DateTime? /// Expiry timestamp for the OneDrive access token
-
-  // Capacity fields
-  infantCapacity          Int       @default(0)
-  toddlerCapacity         Int       @default(0)
-  preschoolCapacity       Int       @default(0)
-  gradeschoolerCapacity   Int       @default(0)
-  
+  licenseNumber           String?
+  infantCapacity          Int      @default(0)
+  toddlerCapacity         Int      @default(0)
+  preschoolCapacity       Int      @default(0)
+  gradeschoolerCapacity   Int      @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
   users                   User[]
   children                Child[]
   staff                   Staff[]
   activities              Activity[]
-
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-}
-
-model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  password      String
-  emailVerified DateTime?
-  
-  daycareId     String
-  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
-model VerificationToken {
-  id      String   @id @default(cuid())
-  email   String
-  token   String   @unique
-  expires DateTime
-
-  @@unique([email, token])
-}
-
-model PasswordResetToken {
-  id      String   @id @default(cuid())
-  email   String
-  token   String   @unique
-  expires DateTime
-
-  @@unique([email, token])
-}
-
-model Child {
-  id                      String      @id @default(cuid())
-  name                    String
-  dateOfBirth             DateTime
-  startDate               DateTime
-  status                  ChildStatus
-  program                 String
-  programType             String
-  gender                  String?
-  photoUrl                String?
-  photoHint               String?
-
-  motherName              String
-  motherEmail             String?
-  fatherName              String
-  fatherEmail             String?
-  mobilePhone             String
-  address                 String
-  
-  emergencyName           String
-  emergencyPhone          String
-  
-  vaccination             String?
-  allergies               String?
-  notes                   String?
-
-  daycareId               String
-  daycare                 Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-
-  createdAt               DateTime    @default(now())
-  updatedAt               DateTime    @updatedAt
-}
-
-model Staff {
-  id                String      @id @default(cuid())
-  name              String
-  role              String
-  startDate         DateTime
-  status            StaffStatus @default(Active)
-  
-  phone             String
-  address           String
-  
-  emergencyName     String
-  emergencyPhone    String
-
-  payType           String
-  payRate           Float
-  
-  certifications    String?
-  notes             String?
-  
-  photoUrl          String?
-  photoHint         String?
-
-  daycareId         String
-  daycare           Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-}
-
-model Activity {
-  id            String    @id @default(cuid())
-  title         String
-  description   String?
-  category      String
-  date          DateTime
-  time          String
-  materials     String?
-  domains       String[]
-
-  daycareId     String
-  daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
 }
 
 enum DaycareStatus {
@@ -160,14 +38,107 @@ enum DaycareStatus {
   ARCHIVED
 }
 
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String
+  password        String
+  emailVerified   DateTime?
+  daycareId       String
+  daycare         Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([email, token])
+}
+
+model Child {
+  id               String      @id @default(cuid())
+  name             String
+  dateOfBirth      DateTime
+  gender           String?
+  photoUrl         String?
+  photoHint        String?
+  startDate        DateTime
+  program          String
+  programType      String
+  status           ChildStatus @default(Active)
+  motherName       String
+  motherEmail      String?
+  fatherName       String
+  fatherEmail      String?
+  mobilePhone      String
+  address          String
+  emergencyName    String
+  emergencyPhone   String
+  vaccination      String?
+  allergies        String?
+  notes            String?
+  daycareId        String
+  daycare          Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+}
+
 enum ChildStatus {
   Active
   Waitlisted
   Inactive
 }
 
-enum StaffStatus {
-  Active
-  Inactive
-  Archived
+model Staff {
+  id               String   @id @default(cuid())
+  name             String
+  photoUrl         String?
+  photoHint        String?
+  role             String
+  status           String   @default("Active")
+  startDate        DateTime
+  phone            String
+  address          String
+  emergencyName    String
+  emergencyPhone   String
+  payType          String
+  payRate          Float
+  certifications   String?
+  notes            String?
+  daycareId        String
+  daycare          Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Activity {
+    id            String    @id @default(cuid())
+    title         String
+    date          DateTime
+    time          String
+    category      String
+    description   String?
+    materials     String?
+    domains       String[]
+    daycareId     String
+    daycare       Daycare   @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
 }

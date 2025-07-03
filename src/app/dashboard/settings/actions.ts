@@ -62,38 +62,3 @@ export async function updateSettings(prevState: any, formData: FormData) {
         };
     }
 }
-
-export async function connectStorage(daycareId: string, provider: string) {
-    if (!daycareId || !provider) {
-        return { success: false, message: 'Invalid daycare ID or provider.' };
-    }
-
-    try {
-        await prisma.daycare.update({
-            where: { id: daycareId },
-            data: { storageProvider: provider },
-        });
-        revalidatePath('/dashboard/settings');
-        return { success: true, message: `Successfully connected to ${provider}.` };
-    } catch (error) {
-        console.error("Failed to connect storage provider:", error);
-        return { success: false, message: 'Could not connect to storage provider.' };
-    }
-}
-
-export async function disconnectStorage(daycareId: string) {
-     if (!daycareId) {
-        return { success: false, message: 'Invalid daycare ID.' };
-    }
-    try {
-        await prisma.daycare.update({
-            where: { id: daycareId },
-            data: { storageProvider: null },
-        });
-        revalidatePath('/dashboard/settings');
-        return { success: true, message: 'Successfully disconnected from storage provider.' };
-    } catch (error) {
-        console.error("Failed to disconnect storage provider:", error);
-        return { success: false, message: 'Could not disconnect from storage provider.' };
-    }
-}

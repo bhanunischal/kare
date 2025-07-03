@@ -6,25 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ImageUp, Loader2, Upload } from 'lucide-react';
+import { ImageUp, Loader2, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import type { Daycare } from '@prisma/client';
-import { updateSettings, connectStorage, disconnectStorage } from './actions';
+import { updateSettings } from './actions';
 import { useFormStatus } from 'react-dom';
-import { cn } from '@/lib/utils';
-import { GoogleDriveIcon } from '@/components/provider-icons/google-drive-icon';
-import { OneDriveIcon } from '@/components/provider-icons/one-drive-icon';
-
-type StorageProvider = 'google-drive' | 'one-drive';
-
-const providers = [
-  { id: 'google-drive', name: 'Google Drive', icon: <GoogleDriveIcon className="h-8 w-8" /> },
-  { id: 'one-drive', name: 'Microsoft OneDrive', icon: <OneDriveIcon className="h-8 w-8" /> },
-];
 
 const updateSettingsInitialState = { message: null, errors: null };
 
@@ -41,15 +30,8 @@ function SaveButton() {
 export default function SettingsClient({ daycare }: { daycare: Daycare }) {
   const { toast } = useToast();
 
-  // State for profile tab
   const [state, formAction] = useActionState(updateSettings, updateSettingsInitialState);
-
-  // State for integrations tab
-  const [connectedProvider, setConnectedProvider] = useState<string | null>(daycare.storageProvider);
-  const [selectedProvider, setSelectedProvider] = useState<StorageProvider | null>(daycare.storageProvider as StorageProvider | null);
-  const [isConnecting, setIsConnecting] = useState(false);
   
-  // State for homepage tab
   const [carouselImages, setCarouselImages] = useState([
     { id: 1, src: 'https://placehold.co/600x450.png', alt: 'Children playing', hint: 'kids playing' },
     { id: 2, src: 'https://placehold.co/600x450.png', alt: 'Daycare classroom', hint: 'bright classroom' },
@@ -66,39 +48,6 @@ export default function SettingsClient({ daycare }: { daycare: Daycare }) {
     }
   }, [state, toast]);
   
-  // This useEffect ensures the client state is in sync with the server data after revalidation
-  useEffect(() => {
-    setConnectedProvider(daycare.storageProvider);
-    setSelectedProvider(daycare.storageProvider as StorageProvider | null);
-  }, [daycare.storageProvider]);
-
-  const handleConnect = async () => {
-    if (!selectedProvider) {
-        toast({ variant: "destructive", title: "Error", description: "Please select a provider to connect." });
-        return;
-    }
-    setIsConnecting(true);
-    // In a real app, this would trigger the OAuth flow.
-    // Here we just simulate a successful connection by updating the database.
-    const result = await connectStorage(daycare.id, selectedProvider);
-    if (result.success) {
-      toast({ title: "Connection Successful", description: result.message });
-    } else {
-      toast({ variant: "destructive", title: "Connection Failed", description: result.message });
-    }
-    setIsConnecting(false);
-  };
-  
-  const handleDisconnect = async () => {
-    setIsConnecting(true);
-    const result = await disconnectStorage(daycare.id);
-    if (result.success) {
-      toast({ title: "Disconnected", description: result.message });
-    } else {
-      toast({ variant: "destructive", title: "Disconnection Failed", description: result.message });
-    }
-    setIsConnecting(false);
-  };
 
   return (
     <div className="space-y-6">
@@ -108,9 +57,8 @@ export default function SettingsClient({ daycare }: { daycare: Daycare }) {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
@@ -208,54 +156,6 @@ export default function SettingsClient({ daycare }: { daycare: Daycare }) {
                 
                 <SaveButton />
               </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="integrations">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cloud Storage Integration</CardTitle>
-              <CardDescription>Connect a cloud storage provider to store documents and photos securely. Changes will apply to all future uploads.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {providers.map((provider) => (
-                  <Card 
-                    key={provider.id} 
-                    className={cn(
-                        "cursor-pointer transition-all",
-                        selectedProvider === provider.id && "border-primary ring-2 ring-primary"
-                    )}
-                    onClick={() => setSelectedProvider(provider.id as StorageProvider)}
-                  >
-                    <CardContent className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            {provider.icon}
-                            <span className="font-medium">{provider.name}</span>
-                        </div>
-                        {connectedProvider === provider.id && (
-                          <Badge variant="outline" className="border-green-500 text-green-600">
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Connected
-                          </Badge>
-                        )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              
-              <div className="flex gap-2">
-                <Button onClick={handleConnect} disabled={isConnecting || !selectedProvider || selectedProvider === connectedProvider}>
-                  {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                  {selectedProvider === connectedProvider ? 'Already Connected' : `Connect to ${providers.find(p => p.id === selectedProvider)?.name}`}
-                </Button>
-                 {connectedProvider && (
-                  <Button variant="destructive" onClick={handleDisconnect} disabled={isConnecting}>
-                    {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                    Disconnect
-                  </Button>
-                )}
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
