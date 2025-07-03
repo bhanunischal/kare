@@ -9,7 +9,7 @@ This is a common and expected step after making changes to the `prisma/schema.pr
 
 This command will read your `prisma/schema.prisma` file and update your database to match it, creating any missing tables and columns. It is the correct method for this development environment.
 
-**From your project's terminal (`/home/bhanu/kare`), execute the following command:**
+**From your project's terminal (`/home/user/studio`), execute the following command:**
 ```bash
 npm run db:reset
 ```

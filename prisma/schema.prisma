@@ -1,30 +1,24 @@
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 model Daycare {
   id        String   @id @default(cuid())
   name      String
-  status    DaycareStatus @default(PENDING)
+  status    DaycareStatus
+  plan      String
+  address   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  users    User[]
-  children Child[]
-  staff    Staff[]
-}
-
-enum DaycareStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  ARCHIVED
+  users     User[]
+  children  Child[]
+  staff     Staff[]
 }
 
 model User {
@@ -33,11 +27,10 @@ model User {
   email         String    @unique
   password      String
   emailVerified DateTime?
+  daycareId     String
+  daycare       Daycare   @relation(fields: [daycareId], references: [id])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -50,58 +43,64 @@ model VerificationToken {
 }
 
 model Child {
-  id            String   @id @default(cuid())
-  name          String
-  dateOfBirth   DateTime
-  startDate     DateTime
-  program       String
-  programType   String
-  status        String   @default("Active") // e.g., Active, Inactive, Waitlisted
-  photoUrl      String?
-  photoHint     String?
-
-  motherName    String
-  fatherName    String
-  homePhone     String?
-  mobilePhone   String
-  address       String
-
+  id              String      @id @default(cuid())
+  name            String
+  dateOfBirth     DateTime
+  gender          String?
+  startDate       DateTime
+  status          ChildStatus
+  program         String
+  programType     String
+  motherName      String
+  motherEmail     String?
+  fatherName      String
+  fatherEmail     String?
+  mobilePhone     String
+  address         String
   emergencyName   String
   emergencyPhone  String
-
-  vaccination   String?
-  allergies     String?
-  notes         String?
-
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  vaccination     String?
+  allergies       String?
+  notes           String?
+  photoUrl        String?
+  photoHint       String?
+  daycareId       String
+  daycare         Daycare     @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
 model Staff {
   id             String   @id @default(cuid())
   name           String
-  photoUrl       String?
-  photoHint      String?
   role           String
-  status         String   @default("Active") // e.g., Active, On Leave, Inactive
   startDate      DateTime
+  status         String
   phone          String
   address        String
   emergencyName  String
   emergencyPhone String
-
+  payType        String
+  payRate        Float
   certifications String?
   notes          String?
-  
-  payType        String // e.g., Monthly Salary, Hourly Rate
-  payRate        Float
+  photoUrl       String?
+  photoHint      String?
+  daycareId      String
+  daycare        Daycare  @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
 
-  daycareId String
-  daycare   Daycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+enum DaycareStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum ChildStatus {
+  Active
+  Inactive
+  Waitlisted
 }
